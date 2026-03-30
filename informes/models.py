@@ -1,20 +1,20 @@
 from django.db import models
-from users.models import Users
-from laboratorios.models import Laboratorio
 
-class Informe(models.Model):
-    estudiante = models.ForeignKey(Users, on_delete=models.CASCADE)
-    laboratorio = models.ForeignKey(Laboratorio, on_delete=models.CASCADE)
-    fecha = models.DateTimeField(auto_now_add=True)
-
-class Resultado(models.Model):
-    informe = models.ForeignKey(Informe, on_delete=models.CASCADE)
-    descripcion = models.TextField()
+class Laboratorio(models.Model):
+    nombre = models.CharField(max_length=100)
 
 class Conclusiones(models.Model):
-    informe = models.ForeignKey(Informe, on_delete=models.CASCADE)
     descripcion = models.TextField()
 
 class Recomendaciones(models.Model):
-    informe = models.ForeignKey(Informe, on_delete=models.CASCADE)
     descripcion = models.TextField()
+
+class Informe(models.Model):
+    laboratorio = models.ForeignKey(Laboratorio, on_delete=models.CASCADE)
+    desarrollo = models.TextField()
+    resultado = models.TextField()
+    analisis = models.TextField()
+    conclusiones = models.ForeignKey(Conclusiones, on_delete=models.CASCADE)
+    recomendaciones = models.ForeignKey(Recomendaciones, on_delete=models.CASCADE)
+    autor = models.CharField(max_length=100)
+    fecha = models.DateField(auto_now_add=True)
