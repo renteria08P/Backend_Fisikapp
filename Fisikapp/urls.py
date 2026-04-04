@@ -29,7 +29,6 @@ from laboratorios.api.router import (
 from informes import routers
 
 
-
 schema_view = get_schema_view(
    openapi.Info(
       title="Snippets API",
@@ -56,5 +55,8 @@ urlpatterns = [
     path('categorias/', include(router_categorias.urls)),
     path('palabras-clave/', include(router_palabras.urls)),
     path('objetivos/', include(router_objetivos.urls)),
+    path('api/users/', include('users.urls')),
     
 ]
+
+
