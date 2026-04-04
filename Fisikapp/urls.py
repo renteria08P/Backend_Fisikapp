@@ -19,7 +19,12 @@ from django.urls import include, path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from laboratorios.api.router import router
+from laboratorios.api.router import (
+    router_laboratorios,
+    router_categorias,
+    router_palabras,
+    router_objetivos
+)
 
 from informes import routers
 
@@ -45,5 +50,11 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path("api-auth/", include("rest_framework.urls")),
-    path('informes/', include(routers.router.urls)),
+    path('informes/', include(routers.router_informes.urls)),
+    path('resultados/', include(routers.router_resultados.urls)),
+    path('laboratorios/', include(router_laboratorios.urls)),
+    path('categorias/', include(router_categorias.urls)),
+    path('palabras-clave/', include(router_palabras.urls)),
+    path('objetivos/', include(router_objetivos.urls)),
+    
 ]

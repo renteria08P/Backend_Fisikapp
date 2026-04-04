@@ -4,11 +4,16 @@ from .models import Informe
 from .models import Resultado
 from .serializers import InformeSerializer
 from .serializers import ResultadoSerializer
+from drf_yasg.utils import swagger_auto_schema
+
 
 # Create your views here.
+
 class InformeViewSet(viewsets.ModelViewSet):
     queryset = Informe.objects.all()
     serializer_class = InformeSerializer
+
+    
 
 class ResultadoViewSet(viewsets.ModelViewSet):
     queryset = Resultado.objects.all()

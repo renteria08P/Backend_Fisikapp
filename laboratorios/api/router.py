@@ -6,11 +6,14 @@ from .views import (
     ObjetivoViewSet
 )
 
-router = DefaultRouter()
+router_laboratorios = DefaultRouter()
+router_laboratorios.register(r'laboratorios', LaboratorioViewSet, basename='laboratorios')
 
-router.register(r'laboratorios', LaboratorioViewSet, basename='laboratorios')
-router.register(r'categorias', CategoriaViewSet, basename='categorias')
-router.register(r'palabras-clave', PalabraClaveViewSet, basename='palabras-clave')
-router.register(r'objetivos', ObjetivoViewSet, basename='objetivos')
+router_categorias = DefaultRouter()
+router_categorias.register(r'categorias', CategoriaViewSet, basename='categorias')
 
-urlpatterns = router.urls
+router_palabras = DefaultRouter()
+router_palabras.register(r'palabras-clave', PalabraClaveViewSet, basename='palabras-clave')
+
+router_objetivos = DefaultRouter()
+router_objetivos.register(r'objetivos', ObjetivoViewSet, basename='objetivos')
