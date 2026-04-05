@@ -22,8 +22,6 @@ from .serializers import (
     request_body=InscripcionSerializer
 )
 
-
-#@swagger_auto_schema(method='post', request_body=InscripcionSerializer)
 @api_view(['POST'])
 def inscribir_usuario(request):
     serializer = InscripcionSerializer(data=request.data)
@@ -56,7 +54,6 @@ def detalle_inscripcion(request, pk):
     elif request.method == 'DELETE':
         inscripcion.delete()
         return Response({"mensaje": "Eliminado correctamente"}, status=204)
-
 
 # =========================
 # CONCEPTOS BASICOS
@@ -97,7 +94,6 @@ def conceptos_detalle(request, pk):
         obj.delete()
         return Response({"mensaje": "Eliminado"}, status=204)
 
-
 # =========================
 # PRACTICAS
 # =========================
@@ -116,7 +112,6 @@ def practicas_list(request):
             serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
-
 
 @swagger_auto_schema(method='put', request_body=PracticasSerializer)
 @api_view(['PUT', 'DELETE'])
@@ -137,7 +132,6 @@ def practicas_detalle(request, pk):
         obj.delete()
         return Response({"mensaje": "Eliminado"}, status=204)
 
-
 # =========================
 # PROCEDIMIENTOS
 # =========================
@@ -156,7 +150,6 @@ def procedimientos_list(request):
             serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
-
 
 @swagger_auto_schema(method='put', request_body=ProcedimientosSerializer)
 @api_view(['PUT', 'DELETE'])
