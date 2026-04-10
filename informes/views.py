@@ -5,5 +5,5 @@ from .serializers import InformeSerializer
 
 # Create your views here.
 class InformeViewSet(viewsets.ModelViewSet):
-    query = Informe.objects.all()
+    queryset = Informe.objects.all()
     serializer_class = InformeSerializer
