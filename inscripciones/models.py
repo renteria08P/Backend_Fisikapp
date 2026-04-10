@@ -58,3 +58,29 @@ class Inscripcion(models.Model):
 
     def __str__(self):
         return f"{self.estudiante} - {self.laboratorio}"
+    
+#Tabla Formulas
+
+class Formulas(models.Model):
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField()
+    expresion = models.TextField()
+
+    def __str__(self):
+        return self.nombre
+    
+#Tabla Bibliografia
+
+
+class Bibliografia(models.Model):
+    autor = models.CharField(max_length=100)
+    titulo = models.CharField(max_length=200)
+    tipo_fuente = models.CharField(max_length=100)
+    anio = models.IntegerField()
+    editorial = models.CharField(max_length=150)
+    url = models.URLField()
+    fecha_consulta = models.DateField()
+    descripcion = models.TextField()
+
+    def __str__(self):
+        return self.titulo
