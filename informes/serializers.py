@@ -28,3 +28,10 @@ class InformeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Informe
         fields = '__all__'
+
+
+class ResultadoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Resultado
+        fields = '__all__'
+

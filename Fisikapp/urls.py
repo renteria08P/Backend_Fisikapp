@@ -23,7 +23,6 @@ from informes.routers import router as informes_router
 
 
 
-
 schema_view = get_schema_view(
    openapi.Info(
       title="Snippets API",
@@ -40,9 +39,24 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Swagger
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
     path("api-auth/", include("rest_framework.urls")),
-    path('api/', include(informes_router.urls)),
+
+    # TU APP (inscripciones) 
+    path('api/', include('inscripciones.urls')),
+
+    # Rutas de develop 
+    path('informes/', include(routers.router_informes.urls)),
+    path('resultados/', include(routers.router_resultados.urls)),
+    path('laboratorios/', include(router_laboratorios.urls)),
+    path('categorias/', include(router_categorias.urls)),
+    path('palabras-clave/', include(router_palabras.urls)),
+    path('objetivos/', include(router_objetivos.urls)),
+    path('api/users/', include('users.urls')),
+    
 ]
