@@ -59,10 +59,10 @@ urlpatterns = [
 
     # Rutas de develop 
  
-    path('laboratorios/', include(router_laboratorios.urls)),
-    path('categorias/', include(router_categorias.urls)),
-    path('palabras-clave/', include(router_palabras.urls)),
-    path('objetivos/', include(router_objetivos.urls)),
+    path('api/', include(router_laboratorios.urls)),
+    path('api/', include(router_categorias.urls)),
+    path('api/', include(router_palabras.urls)),
+    path('api/', include(router_objetivos.urls)),
     path('api/users/', include('users.urls')),
 
     path('api/informes/', include(informes_router.urls)),
