@@ -1,20 +1,28 @@
-from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Informe
-from .models import Resultado
-from .serializers import InformeSerializer
-from .serializers import ResultadoSerializer
-from drf_yasg.utils import swagger_auto_schema
+from .models import Informe, Resultado, Conclusiones, Recomendaciones
+from .serializers import (
+    InformeSerializer,
+    ResultadoSerializer,
+    ConclusionesSerializer,
+    RecomendacionesSerializer
+)
 
-
-# Create your views here.
 
 class InformeViewSet(viewsets.ModelViewSet):
     queryset = Informe.objects.all()
     serializer_class = InformeSerializer
 
-    
 
 class ResultadoViewSet(viewsets.ModelViewSet):
     queryset = Resultado.objects.all()
     serializer_class = ResultadoSerializer
+
+
+class ConclusionesViewSet(viewsets.ModelViewSet):
+    queryset = Conclusiones.objects.all()
+    serializer_class = ConclusionesSerializer
+
+
+class RecomendacionesViewSet(viewsets.ModelViewSet):
+    queryset = Recomendaciones.objects.all()
+    serializer_class = RecomendacionesSerializer

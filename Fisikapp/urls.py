@@ -19,6 +19,8 @@ from django.urls import include, path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+#from informes.routers import router as informes_router
+from informes.routers import router
 from laboratorios.api.router import (
     router_laboratorios,
     router_categorias,
@@ -26,7 +28,6 @@ from laboratorios.api.router import (
     router_objetivos
 )
 
-from informes import routers
 
 
 
@@ -54,15 +55,19 @@ urlpatterns = [
 
     path("api-auth/", include("rest_framework.urls")),
 
-    # Rutas de develop ✅
+    # TUS APPS
     path('api/', include('inscripciones.urls')),
-    path('informes/', include(routers.router_informes.urls)),
-    path('resultados/', include(routers.router_resultados.urls)),
-    path('laboratorios/', include(router_laboratorios.urls)),
-    path('categorias/', include(router_categorias.urls)),
-    path('palabras-clave/', include(router_palabras.urls)),
-    path('objetivos/', include(router_objetivos.urls)),
-    path('api/users/', include('users.urls')),
     path('api/contenido/', include('contenido.urls')),
-    
+
+    #  INFORMES
+    path('', include(router.urls)),
+
+    # LABORATORIOS
+    path('', include(router_laboratorios.urls)),
+    path('', include(router_categorias.urls)),
+    path('', include(router_palabras.urls)),
+    path('', include(router_objetivos.urls)),
+
+    # USERS
+    path('api/users/', include('users.urls')),
 ]
