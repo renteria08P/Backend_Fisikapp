@@ -1,3 +1,6 @@
+import random
+import string
+
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,7 +10,7 @@ from laboratorios.models import (
     Laboratorio,
     Categoria,
     PalabraClave,
-    Objetivo
+    Objetivo,
 )
 
 from .serializers import (
@@ -62,3 +65,15 @@ class LaboratorioViewSet(ModelViewSet):
         if nombre:
             queryset = queryset.filter(titulo_lab__icontains=nombre)
         return queryset
+    
+    def generar_codigo(self):
+        while True:
+            codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            if not Laboratorio.objects.filter(codigo_lab=codigo).exists():
+                return codigo
+
+    def perform_create(self, serializer):
+        serializer.save(
+            creador=self.request.user,
+            codigo_lab=self.generar_codigo()  # ← se genera automáticamente
+        )
