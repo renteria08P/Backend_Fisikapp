@@ -17,6 +17,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save()
+        
 
     def perform_update(self, serializer):
         password = self.request.data.get('password')
