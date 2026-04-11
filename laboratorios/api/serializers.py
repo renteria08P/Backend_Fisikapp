@@ -27,6 +27,7 @@ class PalabraClaveSerializer(serializers.ModelSerializer):
 
 class LaboratorioSerializer(serializers.ModelSerializer):
     creador = serializers.PrimaryKeyRelatedField(read_only=True)
+    codigo_lab = serializers.CharField(read_only=True)
 
     class Meta:
         model = Laboratorio
