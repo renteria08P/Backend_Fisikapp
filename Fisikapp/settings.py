@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'inscripciones',
     'informes',
     'notificaciones',
-
+    'parametros',
     'users',
     'rest_framework',
 ]
