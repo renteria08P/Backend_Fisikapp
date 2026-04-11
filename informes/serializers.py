@@ -21,14 +21,16 @@ class RecomendacionesSerializer(serializers.ModelSerializer):
 
 
 class InformeSerializer(serializers.ModelSerializer):
-    resultados = ResultadoSerializer(many=True, read_only=True)
-    conclusiones = ConclusionesSerializer(many=True, read_only=True)
-    recomendaciones = RecomendacionesSerializer(many=True, read_only=True)
-
     class Meta:
         model = Informe
-        fields = '__all__'
-
+        fields = [
+            'id',
+            'laboratorio',
+            'desarrollo',
+            'analisis',
+            'autor',
+            'fecha'
+        ]
 
 class ResultadoSerializer(serializers.ModelSerializer):
     class Meta:

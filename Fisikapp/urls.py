@@ -19,15 +19,14 @@ from django.urls import include, path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-#from informes.routers import router as informes_router
-from informes.routers import router
+from informes.routers import router as informes_router
+from notificaciones.routers import router
 from laboratorios.api.router import (
     router_laboratorios,
     router_categorias,
     router_palabras,
     router_objetivos
 )
-
 
 
 

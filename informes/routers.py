@@ -7,7 +7,8 @@ from .views import (
 )
 
 router = DefaultRouter()
-router.register(r'informes', InformeViewSet, basename='informes')
-router.register(r'resultados', ResultadoViewSet, basename='resultados')
-router.register(r'conclusiones', ConclusionesViewSet, basename='conclusiones')
-router.register(r'recomendaciones', RecomendacionesViewSet, basename='recomendaciones')
+
+router.register('', InformeViewSet)
+router.register('resultados', ResultadoViewSet)
+router.register('conclusiones', ConclusionesViewSet)
+router.register('recomendaciones', RecomendacionesViewSet)

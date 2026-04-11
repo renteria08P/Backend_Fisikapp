@@ -1,8 +1,6 @@
-from rest_framework.routers import DefaultRouter
-from .views import LogViewSet, NotificacionViewSet
+from django.urls import path, include
+from .routers import router
 
-router = DefaultRouter()
-router.register(r'logs', LogViewSet)
-router.register(r'notificaciones', NotificacionViewSet)
-
-urlpatterns = router.urls
+urlpatterns = [
+    path('', include(router.urls)),
+]
