@@ -7,7 +7,18 @@ import re
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = '__all__'
+        fields = [
+            'id',
+            'nombre',
+            'correo',
+            'password',
+            'rol',
+            'estado',
+            'fecha_nacimiento',
+            'identificacion',
+            'institucion'
+        ]
+        
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -30,7 +41,7 @@ class UsersSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password')
         
         user = Users(**validated_data)
-        user.password = make_password(password)
+        user.set_password(password) 
         user.save()
         
         return user
@@ -42,7 +53,7 @@ class UsersSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
 
         if password:
-            instance.password = make_password(password)
+            instance.set_password(password) 
 
         instance.save()
         return instance
