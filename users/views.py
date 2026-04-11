@@ -3,10 +3,11 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .models import Users
 from .serializers import UsersSerializer, LoginSerializer
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import serializers
 
 
 # CRUD COMPLETO
@@ -55,6 +56,9 @@ def login_usuario(request):
 
 
 #  RECUPERAR PASSWORD
+class RecuperarPasswordSerializer(serializers.Serializer):
+    correo=serializers.EmailField()
+@swagger_auto_schema(method='post', request_body=RecuperarPasswordSerializer)
 @api_view(['POST'])
 def recuperar_password(request):
     correo = request.data.get('correo')
@@ -73,6 +77,10 @@ def recuperar_password(request):
 
 
 # RESTABLECER PASSWORD
+class RestablecerPasswordSerializer(serializers.Serializer):
+    user_id=serializers.IntegerField()
+    password= serializers.CharField()
+@swagger_auto_schema(method='post', request_body=RestablecerPasswordSerializer)
 @api_view(['POST'])
 def restablecer_password(request):
     user_id = request.data.get('user_id')
