@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import UsersViewSet, recuperar_password, restablecer_password, login_usuario
 
 router = DefaultRouter()
-router.register(r'usuarios', UsersViewSet)
+router.register(r'Registrar', UsersViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
