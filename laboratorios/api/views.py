@@ -75,5 +75,5 @@ class LaboratorioViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(
             creador=self.request.user,
-            codigo_lab=self.generar_codigo()  # ← se genera automáticamente
+            codigo_lab=self.generar_codigo()  
         )

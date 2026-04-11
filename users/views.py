@@ -6,8 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Users
 from .serializers import UsersSerializer, LoginSerializer
 from drf_yasg.utils import swagger_auto_schema
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers
+
 
 
 # CRUD COMPLETO
@@ -17,6 +17,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save()
+        
 
     def perform_update(self, serializer):
         password = self.request.data.get('password')
@@ -80,8 +81,8 @@ def recuperar_password(request):
 class RestablecerPasswordSerializer(serializers.Serializer):
     user_id=serializers.IntegerField()
     password= serializers.CharField()
-@swagger_auto_schema(method='post', request_body=RestablecerPasswordSerializer)
-@api_view(['POST'])
+@swagger_auto_schema(method='patch', request_body=RestablecerPasswordSerializer)
+@api_view(['PATCH'])
 def restablecer_password(request):
     user_id = request.data.get('user_id')
     nueva_password = request.data.get('password')

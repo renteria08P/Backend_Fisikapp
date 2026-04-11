@@ -39,13 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'drf_yasg',
 
-    'rest_framework_simplejwt',  # ✔️ coma aquí
+    'rest_framework_simplejwt',  
 
     'laboratorios',
     'inscripciones',
     'informes',
     'notificaciones',
-
+    'parametros',
     'users',
     'rest_framework',
     'contenido',
