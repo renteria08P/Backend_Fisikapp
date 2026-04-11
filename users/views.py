@@ -17,7 +17,6 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save()
-        
 
     def perform_update(self, serializer):
         password = self.request.data.get('password')
@@ -26,10 +25,34 @@ class UsersViewSet(viewsets.ModelViewSet):
         else:
             serializer.save()
 
+    #  Swagger tags para TODO el CRUD
+    @swagger_auto_schema(tags=['Usuarios'])
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['Usuarios'])
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['Usuarios'])
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['Usuarios'])
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['Usuarios'])
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['Usuarios'])
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
 # LOGIN USUARIO 
 
-@swagger_auto_schema(method='post', request_body=LoginSerializer)
+@swagger_auto_schema(method='post', request_body=LoginSerializer, tags=['Usuarios'])
 @api_view(['POST'])
 def login_usuario(request):
     correo = request.data.get('correo')
@@ -59,7 +82,7 @@ def login_usuario(request):
 #  RECUPERAR PASSWORD
 class RecuperarPasswordSerializer(serializers.Serializer):
     correo=serializers.EmailField()
-@swagger_auto_schema(method='post', request_body=RecuperarPasswordSerializer)
+@swagger_auto_schema(method='post', request_body=RecuperarPasswordSerializer, tags=['Usuarios'])
 @api_view(['POST'])
 def recuperar_password(request):
     correo = request.data.get('correo')
@@ -81,7 +104,7 @@ def recuperar_password(request):
 class RestablecerPasswordSerializer(serializers.Serializer):
     user_id=serializers.IntegerField()
     password= serializers.CharField()
-@swagger_auto_schema(method='patch', request_body=RestablecerPasswordSerializer)
+@swagger_auto_schema(method='patch', request_body=RestablecerPasswordSerializer, tags=['Usuarios'])
 @api_view(['PATCH'])
 def restablecer_password(request):
     user_id = request.data.get('user_id')
