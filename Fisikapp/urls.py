@@ -54,18 +54,19 @@ urlpatterns = [
 
     path("api-auth/", include("rest_framework.urls")),
 
-    # TU APP (inscripciones) 
+    # TUS APPS
     path('api/', include('inscripciones.urls')),
+    path('api/contenido/', include('contenido.urls')),
 
-    # Rutas de develop 
- 
-    path('api/', include(router_laboratorios.urls)),
-    path('api/', include(router_categorias.urls)),
-    path('api/', include(router_palabras.urls)),
-    path('api/', include(router_objetivos.urls)),
+    #  INFORMES
+    path('', include(router.urls)),
+
+    # LABORATORIOS
+    path('', include(router_laboratorios.urls)),
+    path('', include(router_categorias.urls)),
+    path('', include(router_palabras.urls)),
+    path('', include(router_objetivos.urls)),
+
+    # USERS
     path('api/users/', include('users.urls')),
-
-    path('api/informes/', include(informes_router.urls)),
-    path('api/notificaciones/', include(router.urls)),
-    
 ]
