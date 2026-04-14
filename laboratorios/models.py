@@ -34,7 +34,6 @@ class Laboratorio(models.Model):
 
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     creador = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='laboratorios_creados')
-    estudiante = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='laboratorios_estudiante', null=True, blank=True)
     objetivo = models.ForeignKey(Objetivo, on_delete=models.CASCADE)
 
     palabras_clave = models.ManyToManyField(PalabraClave)
