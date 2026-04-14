@@ -21,6 +21,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from informes.routers import router as informes_router
 from notificaciones.routers import router
+from django.http import HttpResponse
 from laboratorios.api.router import (
     router_laboratorios,
     router_categorias,
@@ -44,7 +45,12 @@ schema_view = get_schema_view(
 )
 
 
+
+def home(request): 
+    return HttpResponse("Backend funcionando 🚀")
+
 urlpatterns = [
+    path('', home),
     path('admin/', admin.site.urls),
 
     # Swagger

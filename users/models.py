@@ -43,3 +43,10 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.nombre
+
+    # PERMISOS
+    def has_perm(self, perm, obj=None):
+        return True
+
+    def has_module_perms(self, app_label):
+        return True
