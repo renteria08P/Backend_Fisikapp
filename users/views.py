@@ -72,7 +72,13 @@ def login_usuario(request):
         return Response({
             "message": "Login exitoso",
             "refresh": str(refresh),
-            "access": str(refresh.access_token)
+            "access": str(refresh.access_token),
+            "user": {
+                "id": user.id,
+                "nombre": user.nombre,
+                "correo": user.correo,
+                "rol": user.rol,
+            }
         })
 
     except Users.DoesNotExist:
