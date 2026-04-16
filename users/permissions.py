@@ -2,32 +2,40 @@ from rest_framework.permissions import BasePermission
 from parametros.utils.helpers import get_parametro
 
 
-class IsAdmin(BasePermission):
-    def has_permission(self, request, view):
-        if not request.user.is_authenticated:
-            return False
+def get_roles():
+    return {
+        "admin": get_parametro("ROLE_ADMIN"),
+        "profesor": get_parametro("ROLE_PROFESOR"),
+        "estudiante": get_parametro("ROLE_ESTUDIANTE"),
+        "superadmin": get_parametro("ROLE_SUPERADMIN"),
+    }
 
-        return request.user.rol == get_parametro("ROLE_ADMIN")
-    
-class IsProfesor(BasePermission):
-    def has_permission(self, request, view):
-        if not request.user.is_authenticated:
-            return False
-
-        return request.user.rol == get_parametro("ROLE_PROFESOR")
-    
 
 class IsSuperAdmin(BasePermission):
     def has_permission(self, request, view):
-        if not request.user.is_authenticated:
-            return False
+        roles = get_roles()
+        return request.user.is_authenticated and request.user.rol == roles["superadmin"]
 
-        return request.user.rol == get_parametro("ROLE_SUPERADMIN")
-    
 
-class IsEstudiante(BasePermission):
+class IsAdmin(BasePermission):
     def has_permission(self, request, view):
-        if not request.user.is_authenticated:
-            return False
+        roles = get_roles()
+        return request.user.is_authenticated and request.user.rol == roles["admin"]
 
-        return request.user.rol == get_parametro("ROLE_ESTUDIANTE")
+
+class IsAdminOrSuperAdmin(BasePermission):
+    def has_permission(self, request, view):
+        roles = get_roles()
+        return (
+            request.user.is_authenticated and
+            request.user.rol in [
+                roles["admin"],
+                roles["superadmin"]
+            ]
+        )
+
+
+class IsProfesor(BasePermission):
+    def has_permission(self, request, view):
+        roles = get_roles()
+        return request.user.is_authenticated and request.user.rol == roles["profesor"]
