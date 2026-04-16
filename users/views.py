@@ -227,8 +227,8 @@ def restablecer_password(request):
 def register_user(request):
     """
     Registro público:
-    👉 Siempre crea usuarios con rol = estudiante
-    👉 No permite elegir rol (seguridad)
+    Siempre crea usuarios con rol = estudiante
+    No permite elegir rol (seguridad)
     """
     serializer = UsersSerializer(data=request.data)
 

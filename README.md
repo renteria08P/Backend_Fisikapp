@@ -58,4 +58,5 @@ pip install djangorestframework
 pip install drf-yasg  
 pip install djangorestframework-simplejwt  
 pip install django-cors-headers  
-pip install whitenoise  
+pip install whitenoise 
+python -m pip install Pillow
