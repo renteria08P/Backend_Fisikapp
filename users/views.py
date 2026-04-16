@@ -25,32 +25,32 @@ class UsersViewSet(viewsets.ModelViewSet):
     # Permite subir imágenes (foto perfil)
     parser_classes = [MultiPartParser, FormParser]
 
-    @swagger_auto_schema(tags=['Usuarios'])
+    @swagger_auto_schema(tags=['users'])
     def list(self, request, *args, **kwargs):
         """Listar todos los usuarios"""
         return super().list(request, *args, **kwargs)
 
-    @swagger_auto_schema(tags=['Usuarios'])
+    @swagger_auto_schema(tags=['users'])
     def create(self, request, *args, **kwargs):
         """Crear usuario (solo admin)"""
         return super().create(request, *args, **kwargs)
 
-    @swagger_auto_schema(tags=['Usuarios'])
+    @swagger_auto_schema(tags=['users'])
     def retrieve(self, request, *args, **kwargs):
         """Obtener usuario por ID"""
         return super().retrieve(request, *args, **kwargs)
 
-    @swagger_auto_schema(tags=['Usuarios'])
+    @swagger_auto_schema(tags=['users'])
     def update(self, request, *args, **kwargs):
         """Actualizar usuario"""
         return super().update(request, *args, **kwargs)
 
-    @swagger_auto_schema(tags=['Usuarios'])
+    @swagger_auto_schema(tags=['users'])
     def partial_update(self, request, *args, **kwargs):
         """Actualizar parcialmente"""
         return super().partial_update(request, *args, **kwargs)
 
-    @swagger_auto_schema(tags=['Usuarios'])
+    @swagger_auto_schema(tags=['users'])
     def destroy(self, request, *args, **kwargs):
         """Eliminar usuario"""
         return super().destroy(request, *args, **kwargs)
@@ -59,7 +59,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 # =========================================================
 # LOGIN
 # =========================================================
-@swagger_auto_schema(method='post', request_body=LoginSerializer, tags=['Usuarios'])
+@swagger_auto_schema(method='post', request_body=LoginSerializer, tags=['users'])
 @api_view(['POST'])
 def login_usuario(request):
     """
@@ -220,7 +220,7 @@ def restablecer_password(request):
 @swagger_auto_schema(
     method='post',
     operation_description="Registro de usuario",
-    tags=['Usuarios']
+    tags=['users']
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])

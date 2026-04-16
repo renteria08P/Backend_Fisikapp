@@ -8,7 +8,7 @@ def crear_parametros(apps, schema_editor):
         ('ROLE_ESTUDIANTE', 'estudiante'),
         ('ROL_SUPERADMIN', 'superadmin'),
         ('ROL_PROFESOR', 'profesor'),
-        ('ROL_ADMIN', 'administrador'),
+        ('ROL_ADMIN', 'admin'),
     ]
     for clave, valor in datos:
         Parametro.objects.get_or_create(clave=clave, defaults={'valor': valor})
