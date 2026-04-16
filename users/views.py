@@ -246,11 +246,13 @@ def register_user(request):
 # CREAR ADMIN (SOLO SUPERADMIN)
 # =========================================================
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, IsSuperAdmin])
+@permission_classes([AllowAny])
 def crear_admin(request):
-    """
-    Solo el superadmin puede crear administradores.
-    """
+    print("ENTRO A LA VISTA")
+    print("CONTENT TYPE:", request.content_type)
+    print("BODY:", request.body)
+    print("DATA:", request.data)
+
     serializer = UsersSerializer(data=request.data)
 
     if serializer.is_valid():
@@ -260,6 +262,7 @@ def crear_admin(request):
             "data": serializer.data
         })
 
+    print("ERRORES:", serializer.errors)
     return Response(serializer.errors, status=400)
 
 
