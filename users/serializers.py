@@ -16,16 +16,21 @@ class UsersSerializer(serializers.ModelSerializer):
             'estado',
             'fecha_nacimiento',
             'identificacion',
-            'institucion'
+            'institucion',
+            'foto'
         ]
         
         extra_kwargs = {
-            'password': {'write_only': True}
+            'password': {'write_only': True, 'required': False},
+            'rol': {'read_only': True},    
+            'estado': {'read_only': True},   
         }
+
+    # VALIDACIÓN DE CONTRASEÑA    
     
     def validate_password(self, value):
         if len(value) < 6:
-            raise serializers.ValidationError("La contraseña debe tener al menos 8 caracteres.")
+            raise serializers.ValidationError("La contraseña debe tener al menos 6 caracteres.")
         
         if not re.search(r'[A-Z]', value):
             raise serializers.ValidationError("La contraseña debe contener al menos una letra mayúscula.")
@@ -36,16 +41,20 @@ class UsersSerializer(serializers.ModelSerializer):
         return value
     
 
-
+     # CREAR USUARIO
     def create(self, validated_data):
-        password = validated_data.pop('password')
+        password = validated_data.pop('password', None)
         
         user = Users(**validated_data)
-        user.set_password(password) 
+
+        if password:
+
+            user.set_password(password) 
         user.save()
-        
         return user
 
+
+      # ACTUALIZAR USUARIO
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
 
