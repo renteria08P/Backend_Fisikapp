@@ -29,7 +29,8 @@ from laboratorios.api.router import (
     router_objetivos
 )
 
-
+from django.conf import settings
+from django.conf.urls.static import static
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -79,3 +80,6 @@ urlpatterns = [
     # USERS
     path('api/users/', include('users.urls')),
 ]
+
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
