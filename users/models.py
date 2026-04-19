@@ -46,7 +46,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     # ROLES DEFINIDOS 
     ROLES = (
         ('superadmin', 'SuperAdmin'),
-        ('administrador', 'Admin'),
+        ('admin', 'Admin'),
         ('profesor', 'Profesor'),
         ('estudiante', 'Estudiante'),
     )

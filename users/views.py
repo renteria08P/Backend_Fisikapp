@@ -8,8 +8,8 @@ from .models import Users
 from .serializers import UsersSerializer, LoginSerializer
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers
-from rest_framework.parsers import MultiPartParser, FormParser
-from .permissions import IsAdmin, IsSuperAdmin, IsAdminOrSuperAdmin # PERMISOS PERSONALIZADOS
+from rest_framework.parsers import MultiPartParser, FormParser,JSONParser
+from .permissions import IsAdminOrSuperAdmin # PERMISOS PERSONALIZADOS
 
 
 # =========================================================
@@ -20,10 +20,10 @@ class UsersViewSet(viewsets.ModelViewSet):
     serializer_class = UsersSerializer
 
     # Solo admin puede gestionar usuarios
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated, IsAdminOrSuperAdmin]
 
     # Permite subir imágenes (foto perfil)
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser,JSONParser]
 
     @swagger_auto_schema(tags=['users'])
     def list(self, request, *args, **kwargs):
@@ -33,6 +33,10 @@ class UsersViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(tags=['users'])
     def create(self, request, *args, **kwargs):
         """Crear usuario (solo admin)"""
+        print("DATA RECIBIDA:", request.data)
+        s = UsersSerializer(data=request.data)
+        print("VALIDO:", s.is_valid())
+        print("ERRORES:", s.errors)
         return super().create(request, *args, **kwargs)
 
     @swagger_auto_schema(tags=['users'])
@@ -54,6 +58,10 @@ class UsersViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         """Eliminar usuario"""
         return super().destroy(request, *args, **kwargs)
+    
+    def perform_create(self, serializer):
+        rol = self.request.data.get('rol', 'estudiante')
+        serializer.save(rol=rol)
 
 
 # =========================================================
