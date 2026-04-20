@@ -10,6 +10,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers
 from rest_framework.parsers import MultiPartParser, FormParser,JSONParser
 from .permissions import IsAdminOrSuperAdmin # PERMISOS PERSONALIZADOS
+from django.utils import timezone
 
 
 # =========================================================
@@ -28,6 +29,9 @@ class UsersViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(tags=['users'])
     def list(self, request, *args, **kwargs):
         """Listar todos los usuarios"""
+        roles = request.query_params.getlist('rol',)
+        if roles:
+            self.queryset = Users.objects.filter(rol__in=roles)
         return super().list(request, *args, **kwargs)
 
     @swagger_auto_schema(tags=['users'])
@@ -91,6 +95,10 @@ def login_usuario(request):
                 {"error": "Contraseña incorrecta"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        user.last_login = timezone.now()
+        user.save(update_fields=['last_login'])
+        
+
 
         # Generación de tokens
         refresh = RefreshToken.for_user(user)
@@ -112,6 +120,8 @@ def login_usuario(request):
             {"error": "Usuario no existe"},
             status=status.HTTP_404_NOT_FOUND
         )
+    
+    
 
 
 # =========================================================

@@ -17,7 +17,8 @@ class UsersSerializer(serializers.ModelSerializer):
             'fecha_nacimiento',
             'identificacion',
             'institucion',
-            'foto'
+            'foto',
+            'last_login',
         ]
         
         extra_kwargs = {
