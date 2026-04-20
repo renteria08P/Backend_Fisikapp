@@ -67,9 +67,6 @@ class Users(AbstractBaseUser, PermissionsMixin):
     # Foto de perfil
     foto = models.ImageField(upload_to='usuarios/', null=True, blank=True)
 
-    # Campo para reconocimiento 
-    embedded = models.JSONField(null=True, blank=True)
-
     # CAMPOS REQUERIDOS POR DJANGO
     is_staff = models.BooleanField(default=False)  
     is_active = models.BooleanField(default=True)
