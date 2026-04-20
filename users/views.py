@@ -146,43 +146,59 @@ def user_profile(request):
 # =========================================================
 # CAMBIO DE CONTRASEÑA
 # =========================================================
-class ChangePasswordSerializer(serializers.Serializer):
-    old_password = serializers.CharField()
-    new_password = serializers.CharField()
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def change_password(request):
-    """
-    Permite al usuario cambiar su contraseña validando la actual.
-    """
     user = request.user
-    serializer = ChangePasswordSerializer(data=request.data)
 
-    if serializer.is_valid():
-        if not user.check_password(serializer.validated_data['old_password']):
-            return Response(
-                {"error": "Contraseña actual incorrecta"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    old_password = request.data.get('old_password')
+    new_password = request.data.get('new_password')
+    confirmar_password = request.data.get('confirmar_password')
 
-        user.set_password(serializer.validated_data['new_password'])
-        user.save()
+    # Validar campos
+    if not old_password or not new_password or not confirmar_password:
+        return Response({"error": "Todos los campos son requeridos"}, status=400)
 
-        return Response({"message": "Contraseña actualizada correctamente"})
+    # Validar contraseña actual
+    if not user.check_password(old_password):
+        return Response({"error": "Contraseña actual incorrecta"}, status=400)
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # Validar que coincidan
+    if new_password != confirmar_password:
+        return Response({"error": "Las contraseñas no coinciden"}, status=400)
 
+    # Validaciones de seguridad
+    import re
+    if len(new_password) < 8:
+        return Response({"error": "Mínimo 8 caracteres"}, status=400)
+    if not re.search(r"[A-Z]", new_password):
+        return Response({"error": "Debe tener una mayúscula"}, status=400)
+    if not re.search(r"[0-9]", new_password):
+        return Response({"error": "Debe tener un número"}, status=400)
+
+    # Evitar misma contraseña
+    if user.check_password(new_password):
+        return Response({"error": "La nueva contraseña no puede ser igual a la anterior"}, status=400)
+
+    # Guardar
+    user.set_password(new_password)
+    user.save()
+
+    return Response({"message": "Contraseña actualizada correctamente"})
 
 # =========================================================
 # RECUPERAR PASSWORD
 # =========================================================
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
+
+token_generator = PasswordResetTokenGenerator()
+
 @api_view(['POST'])
 def recuperar_password(request):
-    """
-    Verifica si el correo existe para iniciar recuperación.
-    """
     correo = request.data.get('correo')
 
     if not correo:
@@ -190,37 +206,75 @@ def recuperar_password(request):
 
     try:
         user = Users.objects.get(correo=correo)
-        return Response({
-            "message": "Usuario encontrado",
-            "user_id": user.id
-        })
     except Users.DoesNotExist:
-        return Response({"error": "Usuario no existe"}, status=404)
+        # Seguridad: no revelar si existe o no
+        return Response({"message": "Si el correo existe, se enviará un enlace"})
 
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = token_generator.make_token(user)
 
+    # BACKEND (actual)
+    reset_link = f"http://127.0.0.1:8000/api/users/restablecer-password/?uid={uid}&token={token}"
+
+    # FRONT (futuro)
+    # reset_link = f"http://localhost:5173/reset-password?uid={uid}&token={token}"
+
+    html_content = render_to_string('emails/reset_password.html', {
+        'user': user,
+        'reset_link': reset_link
+    })
+
+    email = EmailMultiAlternatives(
+        subject='Recuperación de contraseña - FisikApp',
+        body='Usa un cliente compatible con HTML',
+        from_email='FisikApp <fisikapp7@gmail.com>',
+        to=[correo],
+    )
+
+    email.attach_alternative(html_content, "text/html")
+    email.send(fail_silently=False)
+
+    return Response({"message": "Si el correo existe, se enviará un enlace"})
 # =========================================================
 # RESTABLECER PASSWORD
 # =========================================================
-@api_view(['PATCH'])
-def restablecer_password(request):
-    """
-    Cambia la contraseña usando el user_id.
-    """
-    user_id = request.data.get('user_id')
-    nueva_password = request.data.get('password')
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+import re
 
-    if not user_id or not nueva_password:
-        return Response({"error": "Datos requeridos"}, status=400)
+@api_view(['POST'])
+def restablecer_password(request):
+    uid = request.query_params.get('uid')
+    token = request.query_params.get('token')
+    new_password = request.data.get('new_password')
+
+    if not uid or not token:
+        return Response({"error": "Datos inválidos"}, status=400)
 
     try:
-        user = Users.objects.get(id=user_id)
-        user.set_password(nueva_password)
-        user.save()
+        uid_decoded = force_str(urlsafe_base64_decode(uid))
+        user = Users.objects.get(pk=uid_decoded)
+    except:
+        return Response({"error": "Usuario inválido"}, status=400)
 
-        return Response({"message": "Contraseña actualizada"})
-    except Users.DoesNotExist:
-        return Response({"error": "Usuario no existe"}, status=404)
+    if not token_generator.check_token(user, token):
+        return Response({"error": "Token inválido o expirado"}, status=400)
 
+    if not new_password:
+        return Response({"error": "Nueva contraseña requerida"}, status=400)
+
+    # Validación fuerte
+    if len(new_password) < 8:
+        return Response({"error": "Mínimo 8 caracteres"}, status=400)
+    if not re.search(r"[A-Z]", new_password):
+        return Response({"error": "Debe tener una mayúscula"}, status=400)
+    if not re.search(r"[0-9]", new_password):
+        return Response({"error": "Debe tener un número"}, status=400)
+
+    user.set_password(new_password)
+    user.save()
+
+    return Response({"message": "Contraseña restablecida correctamente"})
 
 # =========================================================
 # REGISTRO DE USUARIO

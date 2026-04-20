@@ -20,7 +20,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from informes.routers import router as informes_router
-from notificaciones.routers import router
+from notificaciones.routers import router as notificaciones_router
 from django.http import HttpResponse
 from laboratorios.api.router import (
     router_laboratorios,
@@ -66,7 +66,10 @@ urlpatterns = [
     path('api/contenido/', include('contenido.urls')),
 
     #  INFORMES
-    path('api/', include(router.urls)),
+    path('api/informes/', include(informes_router.urls)),
+
+   # NOTIFICACIONES
+   path('api/notificaciones/', include(notificaciones_router.urls)),
 
     # LABORATORIOS
     path('api/', include(router_laboratorios.urls)),

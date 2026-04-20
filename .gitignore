@@ -1,4 +1,4 @@
-#Python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -12,6 +12,7 @@ ENV/
 
 # Variables de entorno
 .env
+.env.*
 
 # Base de datos
 db.sqlite3
@@ -20,6 +21,10 @@ db.sqlite3
 # Archivos estáticos y media
 /staticfiles/
 /media/
+
+# Migraciones cache
+**/migrations/__pycache__/
+**/migrations/*.pyc
 
 # Archivos de distribución
 build/

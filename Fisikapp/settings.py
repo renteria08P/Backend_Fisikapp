@@ -85,7 +85,7 @@ ROOT_URLCONF = 'Fisikapp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -173,5 +173,20 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
+#CORREO CON LINK DE RECUPERAR PASSWORD
+import os
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 
- 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = SENDGRID_API_KEY 
+
+
+DEFAULT_FROM_EMAIL = 'FisikApp <fisikapp7@gmail.com>'
+
+
