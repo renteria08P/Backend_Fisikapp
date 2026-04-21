@@ -65,7 +65,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     # Foto de perfil
-    foto = models.ImageField(upload_to='usuarios/', null=True, blank=True)
+    foto = models.URLField(null=True, blank=True)
 
     # Campo para reconocimiento 
     embedded = models.JSONField(null=True, blank=True)

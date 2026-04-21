@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Users
-from django.contrib.auth.hashers import make_password
 import re
 
 
@@ -27,7 +26,6 @@ class UsersSerializer(serializers.ModelSerializer):
         }
 
     # VALIDACIÓN DE CONTRASEÑA    
-    
     def validate_password(self, value):
         if len(value) < 6:
             raise serializers.ValidationError("La contraseña debe tener al menos 6 caracteres.")
@@ -35,26 +33,24 @@ class UsersSerializer(serializers.ModelSerializer):
         if not re.search(r'[A-Z]', value):
             raise serializers.ValidationError("La contraseña debe contener al menos una letra mayúscula.")
         
-        if not re.search(r'\d',value):
+        if not re.search(r'\d', value):
             raise serializers.ValidationError("La contraseña debe contener al menos un número.")
         
         return value
-    
 
-     # CREAR USUARIO
+    # CREAR USUARIO
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         
         user = Users(**validated_data)
 
         if password:
+            user.set_password(password)
 
-            user.set_password(password) 
         user.save()
         return user
 
-
-      # ACTUALIZAR USUARIO
+    # ACTUALIZAR USUARIO
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
 
@@ -62,7 +58,7 @@ class UsersSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
 
         if password:
-            instance.set_password(password) 
+            instance.set_password(password)
 
         instance.save()
         return instance
