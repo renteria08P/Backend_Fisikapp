@@ -1,20 +1,36 @@
 # Backend Fisikapp
 
-Backend desarrollado en **Django + Django REST Framework** para la gestión de laboratorios de física.
+Backend desarrollado en **Django + Django REST Framework** para la gestión de laboratorios de física, incluyendo autenticación, usuarios, notificaciones y envío de correos.
 
 ---
 
 ## Tecnologías utilizadas
 
-- Python 
-- Django 
+- Python
+- Django
 - Django REST Framework
-- JWT (SimpleJWT)
-- Swagger (drf-yasg)
+- JWT (SimpleJWT) – Autenticación
+- Swagger (drf-yasg) – Documentación de API
 - CORS Headers
-- Whitenoise
+- Whitenoise – Archivos estáticos
+- SendGrid – Envío de correos
 
 ---
+
+## Estructura del Proyecto
+
+Backend_Fisikapp/
+│── Fisikapp/          # Configuración principal
+│── users/             # Gestión de usuarios
+│── laboratorios/      # Lógica de laboratorios
+│── inscripciones/     # Inscripción a prácticas
+│── informes/          # Reportes
+│── notificaciones/    # Sistema de notificaciones
+│── contenido/         # Contenido educativo
+│── parametros/        # Configuración dinámica
+│── manage.py
+│── requirements.txt
+│── .env.example
 
 ## Instalación del proyecto
 
@@ -43,6 +59,18 @@ Backend desarrollado en **Django + Django REST Framework** para la gestión de l
 
 ---
 
+## Variables de Entorno
+Este proyecto utiliza variables de entorno para proteger información sensible.
+
+❗ El archivo .env NO está incluido en el repositorio por seguridad.
+
+Configuración
+1. Crear un archivo .env en la raíz del proyecto
+2. Copiar el contenido de .env.example
+3. Reemplazar los valores con tus credenciales
+    Ejemplo (.env.example)
+
+
 ## ⚠️ Problemas comunes
 
 Si aparece un error como: ModuleNotFoundError: No module named 'xxxx'
@@ -60,3 +88,10 @@ pip install djangorestframework-simplejwt
 pip install django-cors-headers  
 pip install whitenoise 
 python -m pip install Pillow
+pip install python-dotenv
+
+
+
+## Autor
+
+Proyecto desarrollado como parte de una aplicación educativa para la creación y gestión de laboratorios de física con enfoque en simulación y aprendizaje interactivo.

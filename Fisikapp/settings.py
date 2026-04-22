@@ -174,8 +174,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 #CORREO CON LINK DE RECUPERAR PASSWORD 
-
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
