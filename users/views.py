@@ -18,6 +18,10 @@ from django.core.mail import EmailMultiAlternatives
 import re
 
 token_generator = PasswordResetTokenGenerator()
+from rest_framework import serializers
+from rest_framework.parsers import MultiPartParser, FormParser,JSONParser
+from .permissions import IsAdminOrSuperAdmin # PERMISOS PERSONALIZADOS
+from django.utils import timezone
 
 
 # =========================================================
@@ -28,6 +32,46 @@ class UsersViewSet(viewsets.ModelViewSet):
     serializer_class = UsersSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSuperAdmin]
 
+    # Permite subir imágenes (foto perfil)
+    parser_classes = [MultiPartParser, FormParser,JSONParser]
+
+    @swagger_auto_schema(tags=['users'])
+    def list(self, request, *args, **kwargs):
+        """Listar todos los usuarios"""
+        roles = request.query_params.getlist('rol',)
+        if roles:
+            self.queryset = Users.objects.filter(rol__in=roles)
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['users'])
+    def create(self, request, *args, **kwargs):
+        """Crear usuario (solo admin)"""
+        print("DATA RECIBIDA:", request.data)
+        s = UsersSerializer(data=request.data)
+        print("VALIDO:", s.is_valid())
+        print("ERRORES:", s.errors)
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['users'])
+    def retrieve(self, request, *args, **kwargs):
+        """Obtener usuario por ID"""
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['users'])
+    def update(self, request, *args, **kwargs):
+        """Actualizar usuario"""
+        return super().update(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['users'])
+    def partial_update(self, request, *args, **kwargs):
+        """Actualizar parcialmente"""
+        return super().partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['users'])
+    def destroy(self, request, *args, **kwargs):
+        """Eliminar usuario"""
+        return super().destroy(request, *args, **kwargs)
+    
     def perform_create(self, serializer):
         rol = self.request.data.get('rol', 'estudiante')
         serializer.save(rol=rol)
@@ -50,6 +94,14 @@ def login_usuario(request):
 
         if not check_password(password, user.password):
             return Response({"error": "Contraseña incorrecta"}, status=400)
+            return Response(
+                {"error": "Contraseña incorrecta"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        user.last_login = timezone.now()
+        user.save(update_fields=['last_login'])
+        
+
 
         refresh = RefreshToken.for_user(user)
 
@@ -67,6 +119,12 @@ def login_usuario(request):
 
     except Users.DoesNotExist:
         return Response({"error": "Usuario no existe"}, status=404)
+        return Response(
+            {"error": "Usuario no existe"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    
 
 
 # =========================================================
@@ -261,3 +319,76 @@ def restablecer_password(request):
     user.save()
 
     return Response({"message": "Contraseña restablecida correctamente"})
+# =========================================================
+# REGISTRO DE USUARIO
+# =========================================================
+@swagger_auto_schema(
+    method='post',
+    operation_description="Registro de usuario",
+    tags=['users']
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    """
+    Registro público:
+    Siempre crea usuarios con rol = estudiante
+    No permite elegir rol (seguridad)
+    """
+    serializer = UsersSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save(rol='estudiante') 
+        return Response({
+            "message": "Usuario registrado correctamente",
+            "data": serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# =========================================================
+# CREAR ADMIN (SOLO SUPERADMIN)
+# =========================================================
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def crear_admin(request):
+    print("ENTRO A LA VISTA")
+    print("CONTENT TYPE:", request.content_type)
+    print("BODY:", request.body)
+    print("DATA:", request.data)
+
+    serializer = UsersSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save(rol='administrador')
+        return Response({
+            "message": "Admin creado",
+            "data": serializer.data
+        })
+
+    print("ERRORES:", serializer.errors)
+    return Response(serializer.errors, status=400)
+
+
+# =========================================================
+# CREAR PROFESOR (ADMIN O SUPERADMIN)
+# =========================================================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminOrSuperAdmin])
+def crear_profesor(request):
+    """
+    Admin y superadmin pueden crear profesores.
+    """
+
+    serializer = UsersSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save(rol='profesor')
+        return Response({
+            "message": "Profesor creado",
+            "data": serializer.data
+        })
+
+
+    return Response(serializer.errors, status=400)
