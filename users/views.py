@@ -274,7 +274,7 @@ def crear_admin(request):
     serializer = UsersSerializer(data=request.data)
 
     if serializer.is_valid():
-        serializer.save(rol='admin')
+        serializer.save(rol='administrador')
         return Response({
             "message": "Admin creado",
             "data": serializer.data
