@@ -16,6 +16,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
+from rest_framework.parsers import MultiPartParser, FormParser
 
 import re
 
@@ -29,6 +30,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all() 
     serializer_class = UsersSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSuperAdmin]
+    parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
         roles = self.request.query_params.getlist('rol')

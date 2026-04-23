@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 import json
-
+from cloudinary.models import CloudinaryField
 
 
 # =========================================================
@@ -66,8 +66,8 @@ class Users(AbstractBaseUser, PermissionsMixin):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
-    # Foto de perfil
-    foto = models.URLField(null=True, blank=True)
+    # Foto de perfil con Cloudinary
+    foto = CloudinaryField('image', null=True, blank=True)
 
     # Campo para reconocimiento 
     embedded = models.TextField(null=True, blank=True)
