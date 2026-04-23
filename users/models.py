@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+import json
+
 
 
 # =========================================================
@@ -68,7 +70,13 @@ class Users(AbstractBaseUser, PermissionsMixin):
     foto = models.URLField(null=True, blank=True)
 
     # Campo para reconocimiento 
-    embedded = models.JSONField(null=True, blank=True)
+    embedded = models.TextField(null=True, blank=True)
+    def save(self, *args, **kwargs):
+        # Si viene como dict o lista → lo convierte a string JSON
+        if isinstance(self.embedded, (dict, list)):
+            self.embedded = json.dumps(self.embedded)
+
+        super().save(*args, **kwargs)
 
     # CAMPOS REQUERIDOS POR DJANGO
     is_staff = models.BooleanField(default=False)  
