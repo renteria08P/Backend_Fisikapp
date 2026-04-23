@@ -200,7 +200,6 @@ DEFAULT_FROM_EMAIL = 'FisikApp <fisikapp7@gmail.com>'
 
 
 #CLOUDINARY
-
 cloudinary.config(
     cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
     api_key=os.getenv("CLOUDINARY_API_KEY"),

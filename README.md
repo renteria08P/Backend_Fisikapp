@@ -92,7 +92,6 @@ pip install python-dotenv
 pip install cloudinary
 
 
-
 ## Autor
 
 Proyecto desarrollado como parte de una aplicación educativa para la creación y gestión de laboratorios de física con enfoque en simulación y aprendizaje interactivo.
