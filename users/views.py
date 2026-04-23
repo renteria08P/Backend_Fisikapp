@@ -16,6 +16,10 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import parser_classes
+from rest_framework.decorators import parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
 
 import re
 
@@ -86,6 +90,7 @@ def login_usuario(request):
 # =========================================================
 @api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser]) 
 def user_profile(request):
 
     user = request.user
@@ -95,7 +100,9 @@ def user_profile(request):
 
     print("DATA PERFIL:", request.data)
     print("FILES:", request.FILES)
+
     serializer = UsersSerializer(user, data=request.data, partial=True)
+
     print("VALIDO:", serializer.is_valid())
     print("ERRORES:", serializer.errors)
 
@@ -154,6 +161,7 @@ def change_password(request):
 # =========================================================
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@parser_classes([MultiPartParser, FormParser]) 
 def register_user(request):
 
     serializer = UsersSerializer(data=request.data)
