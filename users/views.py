@@ -2,11 +2,12 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from django.contrib.auth.hashers import check_password
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.hashers import check_password
+from django.utils import timezone
+
 from .models import Users
 from .serializers import UsersSerializer, LoginSerializer
-from drf_yasg.utils import swagger_auto_schema
 from .permissions import IsAdminOrSuperAdmin
 from .utils import generar_password, enviar_credenciales
 
@@ -15,63 +16,26 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
+
 import re
 
 token_generator = PasswordResetTokenGenerator()
-from rest_framework import serializers
-from rest_framework.parsers import MultiPartParser, FormParser,JSONParser
-from .permissions import IsAdminOrSuperAdmin # PERMISOS PERSONALIZADOS
-from django.utils import timezone
 
 
 # =========================================================
-# CRUD USUARIOS
+# USERS 
 # =========================================================
 class UsersViewSet(viewsets.ModelViewSet):
-    queryset = Users.objects.all()
+    queryset = Users.objects.all() 
     serializer_class = UsersSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSuperAdmin]
 
-    # Permite subir imágenes (foto perfil)
-    parser_classes = [MultiPartParser, FormParser,JSONParser]
-
-    @swagger_auto_schema(tags=['users'])
-    def list(self, request, *args, **kwargs):
-        """Listar todos los usuarios"""
-        roles = request.query_params.getlist('rol',)
+    def get_queryset(self):
+        roles = self.request.query_params.getlist('rol')
         if roles:
-            self.queryset = Users.objects.filter(rol__in=roles)
-        return super().list(request, *args, **kwargs)
+            return Users.objects.filter(rol__in=roles)
+        return Users.objects.all()
 
-    @swagger_auto_schema(tags=['users'])
-    def create(self, request, *args, **kwargs):
-        """Crear usuario (solo admin)"""
-        print("DATA RECIBIDA:", request.data)
-        s = UsersSerializer(data=request.data)
-        print("VALIDO:", s.is_valid())
-        print("ERRORES:", s.errors)
-        return super().create(request, *args, **kwargs)
-
-    @swagger_auto_schema(tags=['users'])
-    def retrieve(self, request, *args, **kwargs):
-        """Obtener usuario por ID"""
-        return super().retrieve(request, *args, **kwargs)
-
-    @swagger_auto_schema(tags=['users'])
-    def update(self, request, *args, **kwargs):
-        """Actualizar usuario"""
-        return super().update(request, *args, **kwargs)
-
-    @swagger_auto_schema(tags=['users'])
-    def partial_update(self, request, *args, **kwargs):
-        """Actualizar parcialmente"""
-        return super().partial_update(request, *args, **kwargs)
-
-    @swagger_auto_schema(tags=['users'])
-    def destroy(self, request, *args, **kwargs):
-        """Eliminar usuario"""
-        return super().destroy(request, *args, **kwargs)
-    
     def perform_create(self, serializer):
         rol = self.request.data.get('rol', 'estudiante')
         serializer.save(rol=rol)
@@ -80,28 +44,24 @@ class UsersViewSet(viewsets.ModelViewSet):
 # =========================================================
 # LOGIN
 # =========================================================
-@swagger_auto_schema(method='post', request_body=LoginSerializer, tags=['users'])
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def login_usuario(request):
-    correo = request.data.get('correo')
-    password = request.data.get('password')
 
-    if not correo or not password:
-        return Response({"error": "Correo y contraseña son requeridos"}, status=400)
+    serializer = LoginSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    correo = serializer.validated_data['correo']
+    password = serializer.validated_data['password']
 
     try:
         user = Users.objects.get(correo=correo)
 
         if not check_password(password, user.password):
-            return Response({"error": "Contraseña incorrecta"}, status=400)
-            return Response(
-                {"error": "Contraseña incorrecta"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Credenciales inválidas"}, status=400)
+
         user.last_login = timezone.now()
         user.save(update_fields=['last_login'])
-        
-
 
         refresh = RefreshToken.for_user(user)
 
@@ -118,13 +78,7 @@ def login_usuario(request):
         })
 
     except Users.DoesNotExist:
-        return Response({"error": "Usuario no existe"}, status=404)
-        return Response(
-            {"error": "Usuario no existe"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    
-    
+        return Response({"error": "Credenciales inválidas"}, status=404)
 
 
 # =========================================================
@@ -133,64 +87,66 @@ def login_usuario(request):
 @api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
+
     user = request.user
 
     if request.method == 'GET':
-        serializer = UsersSerializer(user)
-        return Response(serializer.data)
+        return Response(UsersSerializer(user).data)
 
-    elif request.method == 'PATCH':
-        serializer = UsersSerializer(user, data=request.data, partial=True)
+    serializer = UsersSerializer(user, data=request.data, partial=True)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                "message": "Perfil actualizado",
-                "data": serializer.data
-            })
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            "message": "Perfil actualizado",
+            "data": serializer.data
+        })
 
-        return Response(serializer.errors, status=400)
+    return Response(serializer.errors, status=400)
 
 
 # =========================================================
-# CAMBIO DE CONTRASEÑA
+# CAMBIO PASSWORD
 # =========================================================
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def change_password(request):
+
     user = request.user
 
-    old_password = request.data.get('old_password')
-    new_password = request.data.get('new_password')
-    confirmar_password = request.data.get('confirmar_password')
+    old = request.data.get('old_password')
+    new = request.data.get('new_password')
+    confirm = request.data.get('confirmar_password')
 
-    if not old_password or not new_password or not confirmar_password:
-        return Response({"error": "Todos los campos son requeridos"}, status=400)
+    if not all([old, new, confirm]):
+        return Response({"error": "Campos requeridos"}, status=400)
 
-    if not user.check_password(old_password):
+    if not user.check_password(old):
         return Response({"error": "Contraseña actual incorrecta"}, status=400)
 
-    if new_password != confirmar_password:
-        return Response({"error": "Las contraseñas no coinciden"}, status=400)
+    if new != confirm:
+        return Response({"error": "No coinciden"}, status=400)
 
-    if len(new_password) < 8:
+    if len(new) < 8:
         return Response({"error": "Mínimo 8 caracteres"}, status=400)
-    if not re.search(r"[A-Z]", new_password):
-        return Response({"error": "Debe tener una mayúscula"}, status=400)
-    if not re.search(r"[0-9]", new_password):
-        return Response({"error": "Debe tener un número"}, status=400)
 
-    if user.check_password(new_password):
-        return Response({"error": "No puede ser igual a la anterior"}, status=400)
+    if not re.search(r"[A-Z]", new):
+        return Response({"error": "Debe tener mayúscula"}, status=400)
 
-    user.set_password(new_password)
+    if not re.search(r"[0-9]", new):
+        return Response({"error": "Debe tener número"}, status=400)
+
+    if user.check_password(new):
+        return Response({"error": "No puede ser igual"}, status=400)
+
+    user.set_password(new)
     user.save()
 
-    return Response({"message": "Contraseña actualizada correctamente"})
+    return Response({"message": "Contraseña actualizada"})
 
 
 # =========================================================
-# REGISTRO
+# REGISTER
 # =========================================================
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -200,31 +156,23 @@ def register_user(request):
 
     if serializer.is_valid():
         serializer.save(rol='estudiante')
-
-        return Response({
-            "message": "Usuario registrado correctamente",
-            "data": serializer.data
-        }, status=201)
+        return Response({"message": "Usuario registrado"}, status=201)
 
     return Response(serializer.errors, status=400)
 
 
 # =========================================================
-# CREAR ADMIN
+# CREAR ADMIN (PROTEGIDO CORRECTAMENTE)
 # =========================================================
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated, IsAdminOrSuperAdmin])
 def crear_admin(request):
 
     serializer = UsersSerializer(data=request.data)
 
     if serializer.is_valid():
         serializer.save(rol='admin')
-
-        return Response({
-            "message": "Admin creado",
-            "data": serializer.data
-        })
+        return Response({"message": "Admin creado"})
 
     return Response(serializer.errors, status=400)
 
@@ -248,10 +196,7 @@ def crear_profesor(request):
 
         enviar_credenciales(user, password)
 
-        return Response({
-            "message": "Profesor creado",
-            "data": serializer.data
-        })
+        return Response({"message": "Profesor creado"})
 
     return Response(serializer.errors, status=400)
 
@@ -260,55 +205,61 @@ def crear_profesor(request):
 # RECUPERAR PASSWORD
 # =========================================================
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def recuperar_password(request):
+
     correo = request.data.get('correo')
 
     if not correo:
-        return Response({"error": "Correo es requerido"}, status=400)
+        return Response({"error": "Correo requerido"}, status=400)
 
     try:
         user = Users.objects.get(correo=correo)
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = token_generator.make_token(user)
+
+        reset_link = f"http://127.0.0.1:8000/reset-password/?uid={uid}&token={token}"
+
+        html = render_to_string('emails/reset_password.html', {
+            'user': user,
+            'reset_link': reset_link
+        })
+
+        email = EmailMultiAlternatives(
+            subject="Recuperar contraseña",
+            body="",
+            from_email="FisikApp <fisikapp7@gmail.com>",
+            to=[correo],
+        )
+
+        email.attach_alternative(html, "text/html")
+        email.send()
+
     except Users.DoesNotExist:
-        return Response({"message": "Si el correo existe, se enviará un enlace"})
+        pass  # seguridad
 
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = token_generator.make_token(user)
-
-    reset_link = f"http://127.0.0.1:8000/api/users/restablecer-password/?uid={uid}&token={token}"
-
-    html_content = render_to_string('emails/reset_password.html', {
-        'user': user,
-        'reset_link': reset_link
-    })
-
-    email = EmailMultiAlternatives(
-        subject='Recuperación de contraseña',
-        body='HTML required',
-        from_email='FisikApp <fisikapp7@gmail.com>',
-        to=[correo],
-    )
-
-    email.attach_alternative(html_content, "text/html")
-    email.send()
-
-    return Response({"message": "Si el correo existe, se enviará un enlace"})
+    return Response({"message": "Si existe, se enviará correo"})
 
 
 # =========================================================
-# RESTABLECER PASSWORD
+# RESET PASSWORD
 # =========================================================
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def restablecer_password(request):
+
     uid = request.query_params.get('uid')
     token = request.query_params.get('token')
     new_password = request.data.get('new_password')
 
-    if not uid or not token:
+    if not all([uid, token, new_password]):
         return Response({"error": "Datos inválidos"}, status=400)
 
     try:
-        uid_decoded = force_str(urlsafe_base64_decode(uid))
-        user = Users.objects.get(pk=uid_decoded)
+        user_id = force_str(urlsafe_base64_decode(uid))
+        user = Users.objects.get(pk=user_id)
+
     except:
         return Response({"error": "Usuario inválido"}, status=400)
 
@@ -318,77 +269,4 @@ def restablecer_password(request):
     user.set_password(new_password)
     user.save()
 
-    return Response({"message": "Contraseña restablecida correctamente"})
-# =========================================================
-# REGISTRO DE USUARIO
-# =========================================================
-@swagger_auto_schema(
-    method='post',
-    operation_description="Registro de usuario",
-    tags=['users']
-)
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def register_user(request):
-    """
-    Registro público:
-    Siempre crea usuarios con rol = estudiante
-    No permite elegir rol (seguridad)
-    """
-    serializer = UsersSerializer(data=request.data)
-
-    if serializer.is_valid():
-        serializer.save(rol='estudiante') 
-        return Response({
-            "message": "Usuario registrado correctamente",
-            "data": serializer.data
-        }, status=status.HTTP_201_CREATED)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# =========================================================
-# CREAR ADMIN (SOLO SUPERADMIN)
-# =========================================================
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def crear_admin(request):
-    print("ENTRO A LA VISTA")
-    print("CONTENT TYPE:", request.content_type)
-    print("BODY:", request.body)
-    print("DATA:", request.data)
-
-    serializer = UsersSerializer(data=request.data)
-
-    if serializer.is_valid():
-        serializer.save(rol='administrador')
-        return Response({
-            "message": "Admin creado",
-            "data": serializer.data
-        })
-
-    print("ERRORES:", serializer.errors)
-    return Response(serializer.errors, status=400)
-
-
-# =========================================================
-# CREAR PROFESOR (ADMIN O SUPERADMIN)
-# =========================================================
-@api_view(['POST'])
-@permission_classes([IsAuthenticated, IsAdminOrSuperAdmin])
-def crear_profesor(request):
-    """
-    Admin y superadmin pueden crear profesores.
-    """
-
-    serializer = UsersSerializer(data=request.data)
-
-    if serializer.is_valid():
-        serializer.save(rol='profesor')
-        return Response({
-            "message": "Profesor creado",
-            "data": serializer.data
-        })
-
-
-    return Response(serializer.errors, status=400)
+    return Response({"message": "Contraseña restablecida"})

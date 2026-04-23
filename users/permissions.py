@@ -1,41 +1,47 @@
 from rest_framework.permissions import BasePermission
-from parametros.utils.helpers import get_parametro
 
 
-def get_roles():
-    return {
-        "admin": get_parametro("ROLE_ADMIN"),
-        "profesor": get_parametro("ROLE_PROFESOR"),
-        "estudiante": get_parametro("ROLE_ESTUDIANTE"),
-        "superadmin": get_parametro("ROLE_SUPERADMIN"),
-    }
+class Roles:
+    ADMIN = "admin"
+    PROFESOR = "profesor"
+    ESTUDIANTE = "estudiante"
+    SUPERADMIN = "superadmin"
 
 
 class IsSuperAdmin(BasePermission):
     def has_permission(self, request, view):
-        roles = get_roles()
-        return request.user.is_authenticated and request.user.rol == roles["superadmin"]
+        return (
+            request.user and
+            request.user.is_authenticated and
+            request.user.rol == Roles.SUPERADMIN
+        )
 
 
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
-        roles = get_roles()
-        return request.user.is_authenticated and request.user.rol == roles["admin"]
+        return (
+            request.user and
+            request.user.is_authenticated and
+            request.user.rol == Roles.ADMIN
+        )
 
 
 class IsAdminOrSuperAdmin(BasePermission):
     def has_permission(self, request, view):
-        roles = get_roles()
         return (
+            request.user and
             request.user.is_authenticated and
             request.user.rol in [
-                roles["admin"],
-                roles["superadmin"]
+                Roles.ADMIN,
+                Roles.SUPERADMIN
             ]
         )
 
 
 class IsProfesor(BasePermission):
     def has_permission(self, request, view):
-        roles = get_roles()
-        return request.user.is_authenticated and request.user.rol == roles["profesor"]
+        return (
+            request.user and
+            request.user.is_authenticated and
+            request.user.rol == Roles.PROFESOR
+        )

@@ -45,11 +45,11 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     # ROLES DEFINIDOS 
     ROLES = (
-        ('superadmin', 'SuperAdmin'),
-        ('admin', 'Administrador'),
-        ('profesor', 'Profesor'),
-        ('estudiante', 'Estudiante'),
-    )
+    ('superadmin', 'SuperAdmin'),
+    ('admin', 'Admin'),
+    ('profesor', 'Profesor'),
+    ('estudiante', 'Estudiante'),
+)
 
     nombre = models.CharField(max_length=100)
     fecha_nacimiento = models.DateField(null=True, blank=True)
