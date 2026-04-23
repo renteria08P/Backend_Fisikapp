@@ -95,7 +95,11 @@ def user_profile(request):
     if request.method == 'GET':
         return Response(UsersSerializer(user).data)
 
+    print("DATA PERFIL:", request.data)
+    print("FILES:", request.FILES)
     serializer = UsersSerializer(user, data=request.data, partial=True)
+    print("VALIDO:", serializer.is_valid())
+    print("ERRORES:", serializer.errors)
 
     if serializer.is_valid():
         serializer.save()
