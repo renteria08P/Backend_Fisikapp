@@ -4,6 +4,7 @@ import re
 
 
 class UsersSerializer(serializers.ModelSerializer):
+    foto = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Users
@@ -33,10 +34,11 @@ class UsersSerializer(serializers.ModelSerializer):
     # =====================================================
     def validate_correo(self, value):
         value = value.lower()
-
-        if Users.objects.filter(correo=value).exists():
+        qs = Users.objects.filter(correo=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise serializers.ValidationError("El correo ya existe")
-
         return value
 
     # =====================================================

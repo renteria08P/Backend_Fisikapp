@@ -69,7 +69,7 @@ urlpatterns = [
     path('api/informes/', include(informes_router.urls)),
 
    # NOTIFICACIONES
-   path('api/notificaciones/', include(notificaciones_router.urls)),
+    path('api/', include(notificaciones_router.urls)),
 
     # LABORATORIOS
     path('api/', include(router_laboratorios.urls)),
