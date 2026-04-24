@@ -79,6 +79,10 @@ urlpatterns = [
 
     # USERS
     path('api/users/', include('users.urls')),
+
+    #url de ia
+
+    path('api/ia/', include('laboratorios.urls')),
 ]
 
 
