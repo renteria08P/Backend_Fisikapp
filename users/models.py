@@ -89,6 +89,9 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
         super().save(*args, **kwargs)
 
+    # Autorización de tratamiento de datos
+    autorizacion_datos = models.BooleanField(default=False)
+
     # CAMPOS REQUERIDOS POR DJANGO
     is_staff = models.BooleanField(default=False)  
     is_active = models.BooleanField(default=True)
