@@ -32,6 +32,17 @@ ALLOWED_HOSTS = ['*']
 
 import os
 
+from pathlib import Path
+from datetime import timedelta
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+import os
+from dotenv import load_dotenv
+import ssl
+import certifi
+
+
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -173,22 +184,17 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-#CORREO CON LINK DE RECUPERAR PASSWORD 
-from dotenv import load_dotenv
-import os
-
+# =========================
+# ENV VARIABLES
+# =========================
 load_dotenv()
+
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+# =========================
+# SSL FIX 
+# =========================
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
-EMAIL_HOST_USER = 'apikey'
-EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
-
-
-DEFAULT_FROM_EMAIL = 'FisikApp <fisikapp7@gmail.com>'
 
