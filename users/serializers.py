@@ -2,8 +2,15 @@ from rest_framework import serializers
 from .models import Users
 import re
 
+from rest_framework import serializers
+from .models import Users
+import re
+
 
 class UsersSerializer(serializers.ModelSerializer):
+
+    foto_url = serializers.SerializerMethodField()
+    foto = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Users
@@ -18,6 +25,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'identificacion',
             'institucion',
             'foto',
+            'foto_url', 
             'last_login',
         ]
 
@@ -28,15 +36,24 @@ class UsersSerializer(serializers.ModelSerializer):
             'last_login': {'read_only': True},
         }
 
+
+    def get_foto_url(self, obj):
+        if obj.foto:
+            return obj.foto.url
+        
+        return "https://res.cloudinary.com/dyirgkxjq/image/upload/v1/default_avatar.png"
+
+
     # =====================================================
     # VALIDAR CORREO
     # =====================================================
     def validate_correo(self, value):
         value = value.lower()
-
-        if Users.objects.filter(correo=value).exists():
+        qs = Users.objects.filter(correo=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise serializers.ValidationError("El correo ya existe")
-
         return value
 
     # =====================================================

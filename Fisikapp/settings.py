@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+import os
 
 
 
@@ -187,6 +191,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # =========================
 # ENV VARIABLES
 # =========================
+#CORREO CON LINK DE RECUPERAR PASSWORD - CREDENCIALES PROFESOR 
+from dotenv import load_dotenv
+import os
+
 load_dotenv()
 
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
@@ -197,4 +205,16 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 # =========================
 ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
+
+DEFAULT_FROM_EMAIL = 'FisikApp <fisikapp7@gmail.com>'
+
+
+
+#CLOUDINARY
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    secure=True
+)
 
