@@ -216,6 +216,10 @@ def crear_profesor(request):
 # =========================================================
 # RECUPERAR PASSWORD
 # =========================================================
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+import os
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def recuperar_password(request):
@@ -238,18 +242,23 @@ def recuperar_password(request):
             'reset_link': reset_link
         })
 
-        email = EmailMultiAlternatives(
-            subject="Recuperar contraseña",
-            body="",
-            from_email="FisikApp <fisikapp7@gmail.com>",
-            to=[correo],
+        message = Mail(
+            from_email='fisikapp7@gmail.com',  
+            to_emails=correo,
+            subject='Recuperar contraseña',
+            html_content=html
         )
 
-        email.attach_alternative(html, "text/html")
-        email.send()
+        sg = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+        response = sg.send(message)
+
+        print("STATUS:", response.status_code)
 
     except Users.DoesNotExist:
-        pass  # seguridad
+        print("Usuario no existe")
+
+    except Exception as e:
+        print("ERROR:", str(e))
 
     return Response({"message": "Si existe, se enviará correo"})
 
