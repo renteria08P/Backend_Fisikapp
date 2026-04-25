@@ -3,7 +3,9 @@ import random
 import string
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
-
+from sendgrid.helpers.mail import Mail
+import os
+from sendgrid import SendGridAPIClient
 
 # GENERAR PASSWORD AUTOMÁTICO
 def generar_password(length=10):
@@ -13,29 +15,22 @@ def generar_password(length=10):
 
 # ENVIAR CORREO CON CREDENCIALES
 def enviar_credenciales(user, password):
-
-    # SOLO PARA LOCAL (evita error SSL)
-    context = ssl._create_unverified_context()
-
-    connection = get_connection(
-        backend='django.core.mail.backends.smtp.EmailBackend',
-        fail_silently=False
-    )
-    connection.ssl_context = context
-
     html_content = render_to_string('emails/credenciales_profesor.html', {
         'nombre': user.nombre,
         'correo': user.correo,
         'password': password,
     })
 
-    email = EmailMultiAlternatives(
+    message = Mail(
+        from_email='fisikapp7@gmail.com',
+        to_emails=user.correo,
         subject='Acceso a FisikApp',
-        body='Tu cuenta ha sido creada',
-        from_email='FisikApp <fisikapp7@gmail.com>',
-        to=[user.correo],
-        connection=connection
+        html_content=html_content
     )
 
-    email.attach_alternative(html_content, "text/html")
-    email.send()
+    try:
+        sg = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+        response = sg.send(message)
+        print("Correo enviado:", response.status_code)
+    except Exception as e:
+        print("Error al enviar correo:", str(e))

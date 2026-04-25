@@ -89,7 +89,9 @@ pip install django-cors-headers
 pip install whitenoise 
 python -m pip install Pillow
 pip install python-dotenv
-
+pip install cloudinary
+pip install groq
+pip install certifi
 
 
 ## Autor

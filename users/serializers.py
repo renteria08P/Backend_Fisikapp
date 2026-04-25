@@ -2,8 +2,14 @@ from rest_framework import serializers
 from .models import Users
 import re
 
+from rest_framework import serializers
+from .models import Users
+import re
+
 
 class UsersSerializer(serializers.ModelSerializer):
+
+    foto_url = serializers.SerializerMethodField()
     foto = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
@@ -19,6 +25,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'identificacion',
             'institucion',
             'foto',
+            'foto_url', 
             'last_login',
         ]
 
@@ -28,6 +35,14 @@ class UsersSerializer(serializers.ModelSerializer):
             'estado': {'read_only': True},
             'last_login': {'read_only': True},
         }
+
+
+    def get_foto_url(self, obj):
+        if obj.foto:
+            return obj.foto.url
+        
+        return "https://res.cloudinary.com/dyirgkxjq/image/upload/v1/default_avatar.png"
+
 
     # =====================================================
     # VALIDAR CORREO

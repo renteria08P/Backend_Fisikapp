@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 import json
-
-
+from cloudinary.models import CloudinaryField
+from django.core.exceptions import ValidationError
 
 # =========================================================
 # MANAGER PERSONALIZADO
@@ -66,17 +66,31 @@ class Users(AbstractBaseUser, PermissionsMixin):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
-    # Foto de perfil
-    foto = models.URLField(null=True, blank=True)
+    # Foto de perfil con Cloudinary
+    foto = CloudinaryField('image', folder='usuarios', null=True, blank=True)
+    def save(self, *args, **kwargs):
+        if self.pk:
+            try:
+                old = Users.objects.get(pk=self.pk)
+                if old.foto and old.foto != self.foto:
+                    old.foto.delete()  
+            except Users.DoesNotExist:
+                pass
+
+        super().save(*args, **kwargs)
 
     # Campo para reconocimiento 
     embedded = models.TextField(null=True, blank=True)
     def save(self, *args, **kwargs):
-        # Si viene como dict o lista → lo convierte a string JSON
-        if isinstance(self.embedded, (dict, list)):
-            self.embedded = json.dumps(self.embedded)
+        self.full_clean()
+        if self.embedded:
+            if isinstance(self.embedded, (dict, list)):
+                self.embedded = json.dumps(self.embedded)
 
         super().save(*args, **kwargs)
+
+    # Autorización de tratamiento de datos
+    autorizacion_datos = models.BooleanField(default=False)
 
     # CAMPOS REQUERIDOS POR DJANGO
     is_staff = models.BooleanField(default=False)  
