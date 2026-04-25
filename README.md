@@ -92,6 +92,8 @@ pip install python-dotenv
 pip install cloudinary
 pip install groq
 pip install certifi
+pip install sendgrid
+
 
 
 ## Autor
