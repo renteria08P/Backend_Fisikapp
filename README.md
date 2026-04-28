@@ -81,12 +81,13 @@ Ejecutar:
 
 Si el problema persiste, instalar manualmente:
 
-pip install django  
-pip install djangorestframework  
-pip install drf-yasg  
-pip install djangorestframework-simplejwt  
-pip install django-cors-headers  
-pip install whitenoise 
+```bash
+pip install django
+pip install djangorestframework
+pip install drf-yasg
+pip install djangorestframework-simplejwt
+pip install django-cors-headers
+pip install whitenoise
 python -m pip install Pillow
 pip install python-dotenv
 pip install cloudinary
@@ -95,7 +96,7 @@ pip install certifi
 pip install sendgrid
 pip install psycopg[binary]
 
-
+```
 
 ## Autor
 
