@@ -32,7 +32,6 @@ class UsersSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True}, 
             'rol': {'read_only': True},
-            'estado': {'read_only': True},
             'last_login': {'read_only': True},
         }
 

@@ -61,6 +61,13 @@ def login_usuario(request):
     try:
         user = Users.objects.get(correo=correo)
 
+        #Bloqueo por Estado
+        #Si el estado es 0, no se permite el ingreso a la cuenta
+        if user.estado == 0:
+            return Response({
+                "error": "Acceso Restringido. Tu cuneta se encuentra inactiva. Contacta al administrador"
+            }, status=status.HTTP_403_FORBIDDEN)
+
         if not check_password(password, user.password):
             return Response({"error": "Credenciales inválidas"}, status=400)
 

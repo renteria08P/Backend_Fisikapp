@@ -93,6 +93,7 @@ pip install cloudinary
 pip install groq
 pip install certifi
 pip install sendgrid
+pip install psycopg[binary]
 
 
 

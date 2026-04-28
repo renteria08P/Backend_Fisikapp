@@ -14,6 +14,10 @@ urlpatterns = [
     path('conceptos/', conceptos_list),
     path('conceptos/<int:pk>/', conceptos_detalle),
 
+    # Recursos
+    path('recursos/', views.recursos_list),
+    path('recursos/<int:pk>/', views.recursos_detalle),
+
     # Practicas
     path('practicas/', practicas_list),
     path('practicas/<int:pk>/', practicas_detalle),

@@ -6,14 +6,21 @@ from rest_framework import status
 from datetime import date
 from drf_yasg.utils import swagger_auto_schema
 
-from .models import ConceptosBasicos, Practicas, Procedimientos, Formulas, Bibliografia
+from .models import ConceptosBasicos, Practicas, Procedimientos, Formulas, Bibliografia, Recursos
 from .serializers import (
     ConceptosBasicosSerializer,
     PracticasSerializer,
     ProcedimientosSerializer,
     FormulasSerializer,
-    BibliografiaSerializer
+    BibliografiaSerializer, 
+    RecursosSerializer
 )
+
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+
+
 
 # Create your views here.
 
@@ -234,3 +241,53 @@ def detalle_bibliografia(request, pk):
     elif request.method == 'DELETE':
         biblio.delete()
         return Response({"mensaje": "Eliminado correctamente"}, status=204)
+
+
+# =========================
+# RECURSOS
+# =========================
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Recursos
+from .serializers import RecursosSerializer
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+
+@api_view(['GET', 'POST'])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
+def recursos_list(request):
+    if request.method == 'GET':
+        recursos = Recursos.objects.all()
+        serializer = RecursosSerializer(recursos, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = RecursosSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
+def recursos_detalle(request, pk):
+    try:
+        recurso = Recursos.objects.get(pk=pk)
+    except Recursos.DoesNotExist:
+        return Response(status=404)
+
+    if request.method == 'GET':
+        serializer = RecursosSerializer(recurso)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = RecursosSerializer(recurso, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    elif request.method == 'DELETE':
+        recurso.delete()
+        return Response(status=204)

@@ -13,10 +13,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-import os
+from dotenv import load_dotenv
+import ssl
+import certifi
+import os  
 
+
+load_dotenv()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -33,18 +36,6 @@ SECRET_KEY = 'django-insecure-l+aw(&2l5p^y-qelo(e)^n&fuh&_r*8f7mh@5h6j7*8543@-qg
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
-import os
-
-from pathlib import Path
-from datetime import timedelta
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-import os
-from dotenv import load_dotenv
-import ssl
-import certifi
 
 
 STATIC_URL = 'static/'
@@ -118,10 +109,16 @@ WSGI_APPLICATION = 'Fisikapp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+import os
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('PGDATABASE'),
+        'USER': os.environ.get('PGUSER'),
+        'PASSWORD': os.environ.get('PGPASSWORD'),
+        'HOST': os.environ.get('PGHOST'),
+        'PORT': os.environ.get('PGPORT'),
     }
 }
 
@@ -192,11 +189,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # ENV VARIABLES
 # =========================
 #CORREO CON LINK DE RECUPERAR PASSWORD - CREDENCIALES PROFESOR 
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 
 
@@ -207,7 +199,6 @@ ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=ce
 
 
 DEFAULT_FROM_EMAIL = 'FisikApp <fisikapp7@gmail.com>'
-
 
 
 #CLOUDINARY
