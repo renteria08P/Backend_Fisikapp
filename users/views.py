@@ -187,13 +187,21 @@ def register_user(request):
 @permission_classes([IsAuthenticated, IsAdminOrSuperAdmin])
 def crear_admin(request):
 
-    serializer = UsersSerializer(data=request.data)
+    data = request.data.copy()
+
+    # Ignorar cualquier contraseña que venga del front
+    password = generar_password()
+    data['password'] = password
+
+    serializer = UsersSerializer(data=data)
 
     if serializer.is_valid():
-        serializer.save(rol='admin')
-        return Response({"message": "Admin creado"})
+        user = serializer.save(rol='admin')
+        enviar_credenciales(user, password)
+        return Response({"message": "Admin creado y credenciales enviadas"})
 
     return Response(serializer.errors, status=400)
+
 
 
 # =========================================================
@@ -205,6 +213,7 @@ def crear_profesor(request):
 
     data = request.data.copy()
 
+    # Ignorar cualquier contraseña que venga del front
     password = generar_password()
     data['password'] = password
 
@@ -212,12 +221,11 @@ def crear_profesor(request):
 
     if serializer.is_valid():
         user = serializer.save(rol='profesor')
-
         enviar_credenciales(user, password)
-
-        return Response({"message": "Profesor creado"})
+        return Response({"message": "Profesor creado y credenciales enviadas"})
 
     return Response(serializer.errors, status=400)
+
 
 
 # =========================================================
