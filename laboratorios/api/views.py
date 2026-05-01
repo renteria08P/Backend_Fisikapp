@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from groq import Groq
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework import viewsets, filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 from laboratorios.models import (
     Laboratorio,
@@ -42,44 +44,45 @@ class PalabraClaveViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-class LaboratorioViewSet(ModelViewSet):
+class LaboratorioViewSet(viewsets.ModelViewSet):
     queryset = Laboratorio.objects.all()
     serializer_class = LaboratorioSerializer
     permission_classes = [IsAuthenticated]
 
+    # Filtros, búsqueda y ordenamiento
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['categoria', 'objetivo', 'creador', 'estado', 'ra']
+    search_fields = ['titulo_lab', 'codigo_lab', 'resumen', 'introduccion', 'marco_teorico']
+    ordering_fields = ['titulo_lab', 'codigo_lab', 'fecha_creacion', 'fecha_actualizacion']
+    ordering = ['fecha_creacion']  # orden por defecto
+
     def perform_create(self, serializer):
-        serializer.save(creador=self.request.user)
+        serializer.save(
+            creador=self.request.user,
+            codigo_lab=self.generar_codigo()
+        )
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response(
-            {
-                "mensaje": "Laboratorio creado con éxito",
-                "data": serializer.data
-            },
+            {"mensaje": "Laboratorio creado con éxito", "data": serializer.data},
             status=status.HTTP_201_CREATED
-        ) 
+        )
 
-    def get_queryset(self):          
+    def get_queryset(self):
         queryset = Laboratorio.objects.all()
-        nombre = self.request.query_params.get('nombre', None)  
+        nombre = self.request.query_params.get('nombre', None)
         if nombre:
             queryset = queryset.filter(titulo_lab__icontains=nombre)
         return queryset
-    
+
     def generar_codigo(self):
         while True:
             codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
             if not Laboratorio.objects.filter(codigo_lab=codigo).exists():
                 return codigo
-
-    def perform_create(self, serializer):
-        serializer.save(
-            creador=self.request.user,
-            codigo_lab=self.generar_codigo()  
-        )
 
 
 @api_view(['POST'])

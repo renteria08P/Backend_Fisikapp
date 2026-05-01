@@ -6,7 +6,6 @@ from rest_framework import serializers
 from .models import Users
 import re
 
-
 class UsersSerializer(serializers.ModelSerializer):
 
     foto_url = serializers.SerializerMethodField()
@@ -90,7 +89,7 @@ class UsersSerializer(serializers.ModelSerializer):
 
         return user
 
-    # =====================================================
+    # ==============================
     # UPDATE
     # =====================================================
     def update(self, instance, validated_data):
@@ -113,3 +112,17 @@ class UsersSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     correo = serializers.EmailField()
     password = serializers.CharField()
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
+    new_password = serializers.CharField()
+    confirmar_password = serializers.CharField()
+
+
+class RecuperarPasswordSerializer(serializers.Serializer):
+    correo = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField()

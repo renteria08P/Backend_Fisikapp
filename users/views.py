@@ -5,11 +5,19 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
 from django.utils import timezone
+from drf_yasg.utils import swagger_auto_schema
 
 from .models import Users
-from .serializers import UsersSerializer, LoginSerializer
 from .permissions import IsAdminOrSuperAdmin
 from .utils import generar_password, enviar_credenciales
+from .serializers import (
+    UsersSerializer,
+    LoginSerializer,
+    ChangePasswordSerializer,
+    RecuperarPasswordSerializer,
+    ResetPasswordSerializer,
+)
+
 
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -21,10 +29,12 @@ from rest_framework.decorators import parser_classes
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+
 import re
 
 token_generator = PasswordResetTokenGenerator()
-
 
 # =========================================================
 # USERS 
@@ -33,6 +43,19 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all() 
     serializer_class = UsersSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSuperAdmin]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
+
+    # Campos para filtrar directamente con query params
+    filterset_fields = ['rol', 'estado', 'institucion']
+
+    # Campos para búsqueda con ?search=texto
+    search_fields = ['nombre', 'correo', 'identificacion']
+
+    # Campos para ordenar con ?ordering=campo
+    ordering_fields = ['nombre', 'fecha_nacimiento', 'last_login']
+    ordering = ['nombre'] 
 
     def get_queryset(self):
         roles = self.request.query_params.getlist('rol')
@@ -48,6 +71,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 # =========================================================
 # LOGIN
 # =========================================================
+@swagger_auto_schema(method='post', request_body=LoginSerializer)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_usuario(request):
@@ -126,6 +150,7 @@ def user_profile(request):
 # =========================================================
 # CAMBIO PASSWORD
 # =========================================================
+@swagger_auto_schema(method='post', request_body=ChangePasswordSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def change_password(request):
@@ -166,6 +191,7 @@ def change_password(request):
 # =========================================================
 # REGISTER
 # =========================================================
+@swagger_auto_schema(method='post', request_body=UsersSerializer)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @parser_classes([MultiPartParser, FormParser, JSONParser]) 
@@ -235,6 +261,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import os
 
+@swagger_auto_schema(method='post', request_body=RecuperarPasswordSerializer)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def recuperar_password(request):
@@ -281,6 +308,7 @@ def recuperar_password(request):
 # =========================================================
 # RESET PASSWORD
 # =========================================================
+@swagger_auto_schema(method='post', request_body=ResetPasswordSerializer)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def restablecer_password(request):

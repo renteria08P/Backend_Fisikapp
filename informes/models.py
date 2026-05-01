@@ -10,6 +10,10 @@ class Informe(models.Model):
     autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     fecha = models.DateField(auto_now_add=True)
 
+    def clean(self):
+        if not Inscripcion.objects.filter(usuario=self.autor, laboratorio=self.laboratorio).exists():
+            raise ValidationError("El autor debe estar inscrito en el laboratorio.")
+
     def __str__(self):
         return f"Informe {self.id} - {self.laboratorio}"
 
@@ -25,7 +29,7 @@ class Resultado(models.Model):
     def __str__(self):
         return f"Resultado {self.id} - Informe {self.informe.id}"
     
-#Conclisiones
+#Conclusiones
 class Conclusiones(models.Model):
     informe = models.ForeignKey(
         Informe,

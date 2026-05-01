@@ -9,7 +9,23 @@ from .models import Inscripcion
 from .serializers import InscripcionSerializer
 from datetime import date
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
+from .models import Inscripcion
+from .serializers import InscripcionSerializer
+
+class InscripcionesViewSet(viewsets.ModelViewSet):
+    queryset = Inscripcion.objects.all()
+    serializer_class = InscripcionSerializer
+    permission_classes = [IsAuthenticated]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
+    filterset_fields = ['usuario', 'laboratorio', 'fecha_inscripcion']
+    ordering_fields = ['fecha_inscripcion']
 
 
 @swagger_auto_schema(

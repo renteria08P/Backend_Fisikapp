@@ -20,10 +20,98 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+
+from .models import ConceptosBasicos
+from .serializers import ConceptosBasicosSerializer
+
+class ConceptosBasicosViewSet(viewsets.ModelViewSet):
+    queryset = ConceptosBasicos.objects.all()
+    serializer_class = ConceptosBasicosSerializer
+    permission_classes = [IsAuthenticated]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
+    filterset_fields = ['id']  # ajusta según tu modelo
+    search_fields = ['titulo', 'descripcion']  # ajusta según tus campos
+    ordering_fields = ['fecha_creacion', 'fecha_actualizacion']
+    ordering = ['fecha_creacion']
+
+class PracticasViewSet(viewsets.ModelViewSet):
+    queryset = Practicas.objects.all()
+    serializer_class = PracticasSerializer
+    permission_classes = [IsAuthenticated]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
+    filterset_fields = ['id']
+    search_fields = ['titulo', 'descripcion']
+    ordering_fields = ['fecha_creacion', 'fecha_actualizacion']
+    ordering = ['fecha_creacion']
 
 
-# Create your views here.
+class ConceptosBasicosViewSet(viewsets.ModelViewSet):
+    queryset = ConceptosBasicos.objects.all()
+    serializer_class = ConceptosBasicosSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['id']
+    search_fields = ['titulo', 'descripcion']
+    ordering_fields = ['fecha_creacion', 'fecha_actualizacion']
+    ordering = ['fecha_creacion']
 
+class PracticasViewSet(viewsets.ModelViewSet):
+    queryset = Practicas.objects.all()
+    serializer_class = PracticasSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['id']
+    search_fields = ['titulo', 'descripcion']
+    ordering_fields = ['fecha_creacion', 'fecha_actualizacion']
+    ordering = ['fecha_creacion']
+
+class ProcedimientosViewSet(viewsets.ModelViewSet):
+    queryset = Procedimientos.objects.all()
+    serializer_class = ProcedimientosSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['id']
+    search_fields = ['titulo', 'descripcion']
+    ordering_fields = ['fecha_creacion', 'fecha_actualizacion']
+    ordering = ['fecha_creacion']
+
+class FormulasViewSet(viewsets.ModelViewSet):
+    queryset = Formulas.objects.all()
+    serializer_class = FormulasSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['id']
+    search_fields = ['nombre', 'descripcion']
+    ordering_fields = ['fecha_creacion', 'fecha_actualizacion']
+    ordering = ['fecha_creacion']
+
+class BibliografiaViewSet(viewsets.ModelViewSet):
+    queryset = Bibliografia.objects.all()
+    serializer_class = BibliografiaSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['id']
+    search_fields = ['titulo', 'autor']
+    ordering_fields = ['fecha_creacion', 'fecha_actualizacion']
+    ordering = ['fecha_creacion']
+
+class RecursosViewSet(viewsets.ModelViewSet):
+    queryset = Recursos.objects.all()
+    serializer_class = RecursosSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['id', 'tipo']
+    search_fields = ['nombre', 'descripcion']
+    ordering_fields = ['fecha_creacion', 'fecha_actualizacion']
+    ordering = ['fecha_creacion']
 # =========================
 # CONCEPTOS BASICOS
 # =========================

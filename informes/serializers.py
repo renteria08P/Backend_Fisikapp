@@ -2,12 +2,6 @@ from rest_framework import serializers
 from .models import Informe, Resultado, Conclusiones, Recomendaciones
 
 
-class ResultadoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Resultado
-        fields = '__all__'
-
-
 class ConclusionesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conclusiones
