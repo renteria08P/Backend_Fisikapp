@@ -34,6 +34,6 @@ urlpatterns = [
 
 
     # RECUPERACIÓN
-    path('recuperar-password/', recuperar_password),
-    path('restablecer-password/', restablecer_password),
+    path('recuperar-contrasena/', recuperar_password),
+    path('restablecer-contrasena/', restablecer_password),
 ]

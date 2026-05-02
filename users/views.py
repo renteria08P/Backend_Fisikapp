@@ -250,7 +250,7 @@ def recuperar_password(request):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = token_generator.make_token(user)
 
-        reset_link = f"http://127.0.0.1:8000/reset-password/?uid={uid}&token={token}"
+        reset_link = f"http://127.0.0.1:8000/restablecer-contrasena/?uid={uid}&token={token}"
 
         html = render_to_string('emails/reset_password.html', {
             'user': user,
