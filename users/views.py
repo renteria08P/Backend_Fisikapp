@@ -20,6 +20,15 @@ from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.decorators import parser_classes
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
+from drf_yasg.utils import swagger_auto_schema
+
+from .serializers import (
+    UsersSerializer,
+    LoginSerializer,
+    ChangePasswordSerializer,
+    RecuperarPasswordSerializer,
+    ResetPasswordSerializer,
+)
 
 import re
 
@@ -48,6 +57,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 # =========================================================
 # LOGIN
 # =========================================================
+@swagger_auto_schema(method='post', request_body=LoginSerializer)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_usuario(request):
@@ -65,10 +75,10 @@ def login_usuario(request):
         #Si el estado es 0, no se permite el ingreso a la cuenta
         if user.estado == 0:
             return Response({
-                "error": "Acceso Restringido. Tu cuneta se encuentra inactiva. Contacta al administrador"
+                "error": "Acceso Restringido. Tu cunta se encuentra inactiva. Contacta al administrador"
             }, status=status.HTTP_403_FORBIDDEN)
-
-        if not check_password(password, user.password):
+        
+        if not user.check_password(password):
             return Response({"error": "Credenciales inválidas"}, status=400)
 
         user.last_login = timezone.now()
@@ -126,6 +136,7 @@ def user_profile(request):
 # =========================================================
 # CAMBIO PASSWORD
 # =========================================================
+@swagger_auto_schema(method='post', request_body=ChangePasswordSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def change_password(request):
@@ -166,6 +177,7 @@ def change_password(request):
 # =========================================================
 # REGISTER
 # =========================================================
+@swagger_auto_schema(method='post', request_body=UsersSerializer)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @parser_classes([MultiPartParser, FormParser, JSONParser]) 
@@ -226,8 +238,6 @@ def crear_profesor(request):
 
     return Response(serializer.errors, status=400)
 
-
-
 # =========================================================
 # RECUPERAR PASSWORD
 # =========================================================
@@ -235,11 +245,15 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import os
 
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+
+@swagger_auto_schema(method='post', request_body=RecuperarPasswordSerializer)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def recuperar_password(request):
 
     correo = request.data.get('correo')
+
 
     if not correo:
         return Response({"error": "Correo requerido"}, status=400)
@@ -250,8 +264,9 @@ def recuperar_password(request):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = token_generator.make_token(user)
 
-        reset_link = f"http://127.0.0.1:8000/restablecer-contrasena/?uid={uid}&token={token}"
-
+        reset_link = f"{FRONTEND_URL}/restablecer-contrasena?uid={uid}&token={token}"
+        
+    
         html = render_to_string('emails/reset_password.html', {
             'user': user,
             'reset_link': reset_link
@@ -268,6 +283,7 @@ def recuperar_password(request):
         response = sg.send(message)
 
         print("STATUS:", response.status_code)
+    
 
     except Users.DoesNotExist:
         print("Usuario no existe")
@@ -281,21 +297,41 @@ def recuperar_password(request):
 # =========================================================
 # RESET PASSWORD
 # =========================================================
+@swagger_auto_schema(method='post', request_body=ResetPasswordSerializer)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def restablecer_password(request):
 
+    print("DATA:", request.data)
+
     uid = request.query_params.get('uid')
     token = request.query_params.get('token')
-    new_password = request.data.get('new_password')
+
+    new_password = (
+        request.data.get('new_password') or
+        request.data.get('password') or
+        request.data.get('password1') or
+        request.data.get('newPassword')
+    )
+
+    confirm_password = (
+        request.data.get('confirm_password') or
+        request.data.get('password2') or
+        request.data.get('confirmPassword')
+    )
+
+    print("NEW:", new_password)
+    print("CONFIRM:", confirm_password)
 
     if not all([uid, token, new_password]):
         return Response({"error": "Datos inválidos"}, status=400)
+    
+    if confirm_password and new_password != confirm_password:
+        return Response({"error": "Las contraseñas no coinciden"}, status=400)
 
     try:
         user_id = force_str(urlsafe_base64_decode(uid))
         user = Users.objects.get(pk=user_id)
-
     except:
         return Response({"error": "Usuario inválido"}, status=400)
 
@@ -304,5 +340,7 @@ def restablecer_password(request):
 
     user.set_password(new_password)
     user.save()
+
+    print("PASSWORD ACTUALIZADO ✔")
 
     return Response({"message": "Contraseña restablecida"})

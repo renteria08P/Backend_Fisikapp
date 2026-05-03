@@ -2,10 +2,6 @@ from rest_framework import serializers
 from .models import Users
 import re
 
-from rest_framework import serializers
-from .models import Users
-import re
-
 
 class UsersSerializer(serializers.ModelSerializer):
 
@@ -25,34 +21,56 @@ class UsersSerializer(serializers.ModelSerializer):
             'identificacion',
             'institucion',
             'foto',
-            'foto_url', 
+            'foto_url',
             'last_login',
         ]
 
         extra_kwargs = {
-            'password': {'write_only': True}, 
+            'password': {'write_only': True},
             'rol': {'read_only': True},
             'last_login': {'read_only': True},
         }
 
-
+    # =====================================================
+    # FOTO URL
+    # =====================================================
     def get_foto_url(self, obj):
         if obj.foto:
             return obj.foto.url
-        
-        return "https://res.cloudinary.com/dyirgkxjq/image/upload/v1/default_avatar.png"
 
+        return "https://res.cloudinary.com/dyirgkxjq/image/upload/v1/default_avatar.png"
 
     # =====================================================
     # VALIDAR CORREO
     # =====================================================
     def validate_correo(self, value):
         value = value.lower()
+
         qs = Users.objects.filter(correo=value)
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
+
         if qs.exists():
             raise serializers.ValidationError("El correo ya existe")
+
+        return value
+
+    # =====================================================
+    # VALIDAR IDENTIFICACIÓN
+    # =====================================================
+    def validate_identificacion(self, value):
+
+        value = str(value).strip()
+
+        if value in ["", "null", "None"]:
+            return None
+
+        if self.instance and self.instance.identificacion == value:
+            return value
+
+        if Users.objects.filter(identificacion=value).exclude(pk=self.instance.pk).exists():
+            raise serializers.ValidationError("La identificación ya existe")
+
         return value
 
     # =====================================================
@@ -81,7 +99,6 @@ class UsersSerializer(serializers.ModelSerializer):
     # CREATE
     # =====================================================
     def create(self, validated_data):
-
         password = validated_data.pop('password')
 
         user = Users(**validated_data)
@@ -110,6 +127,21 @@ class UsersSerializer(serializers.ModelSerializer):
 # =========================================================
 # LOGIN
 # =========================================================
+
 class LoginSerializer(serializers.Serializer):
     correo = serializers.EmailField()
     password = serializers.CharField()
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
+    new_password = serializers.CharField()
+    confirmar_password = serializers.CharField()
+
+
+class RecuperarPasswordSerializer(serializers.Serializer):
+    correo = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField()

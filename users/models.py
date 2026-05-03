@@ -55,7 +55,12 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     nombre = models.CharField(max_length=100)
     fecha_nacimiento = models.DateField(null=True, blank=True)
-    identificacion = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    identificacion = models.CharField(
+        max_length=20,
+        unique=True,
+        null=True,
+        blank=True
+    )
     correo = models.EmailField(unique=True)
     institucion = models.CharField(max_length=100, null=True, blank=True)
 
@@ -69,25 +74,34 @@ class Users(AbstractBaseUser, PermissionsMixin):
     # Foto de perfil con Cloudinary
     foto = CloudinaryField('image', folder='usuarios', null=True, blank=True)
     def save(self, *args, **kwargs):
+
+    #limpiar identificación correctamente
+        if hasattr(self, "identificacion"):
+            if self.identificacion is not None:
+                if str(self.identificacion).strip() == "":
+                    self.identificacion = None
+
+    # embedded seguro
+        if hasattr(self, "embedded") and self.embedded:
+            if isinstance(self.embedded, (dict, list)):
+                self.embedded = json.dumps(self.embedded)
+
+    #foto anterior
         if self.pk:
             try:
                 old = Users.objects.get(pk=self.pk)
                 if old.foto and old.foto != self.foto:
-                    old.foto.delete()  
+                    old.foto.delete()
             except Users.DoesNotExist:
                 pass
 
         super().save(*args, **kwargs)
 
-    # Campo para reconocimiento 
-    embedded = models.TextField(null=True, blank=True)
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        if self.embedded:
-            if isinstance(self.embedded, (dict, list)):
-                self.embedded = json.dumps(self.embedded)
 
-        super().save(*args, **kwargs)
+    def clean_identificacion(value):
+        if value in ["", "null", "None"]:
+            return None
+        return value
 
     # Autorización de tratamiento de datos
     autorizacion_datos = models.BooleanField(default=False)

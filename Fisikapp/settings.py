@@ -16,7 +16,8 @@ import cloudinary
 from dotenv import load_dotenv
 import ssl
 import certifi
-import os  
+import os 
+from dotenv import load_dotenv
 
 
 load_dotenv()
