@@ -16,14 +16,21 @@ router = DefaultRouter()
 router.register(r'usuarios', UsersViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
 
+    
+    # RECUPERACIÓN
+    path('recuperar-contrasena/', recuperar_password),
+    path('restablecer-contrasena/', restablecer_password),
+
+    
     # AUTH PUBLICO
     path('register/', register_user),
     path('login/', login_usuario),
 
 
-     # PERFIL (LOGIN REQUIRED)
+    path('', include(router.urls)),
+
+    # PERFIL (LOGIN REQUIRED)
     path('perfil/', user_profile),  
     path('change-password/', change_password), 
 
@@ -32,8 +39,4 @@ urlpatterns = [
     path('crear-admin/', crear_admin),
     path('crear-profesor/', crear_profesor),
 
-
-    # RECUPERACIÓN
-    path('recuperar-contrasena/', recuperar_password),
-    path('restablecer-contrasena/', restablecer_password),
 ]

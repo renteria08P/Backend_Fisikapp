@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 import json
 from cloudinary.models import CloudinaryField
 from django.core.exceptions import ValidationError
+import cloudinary.uploader
 
 # =========================================================
 # MANAGER PERSONALIZADO
@@ -91,7 +92,8 @@ class Users(AbstractBaseUser, PermissionsMixin):
             try:
                 old = Users.objects.get(pk=self.pk)
                 if old.foto and old.foto != self.foto:
-                    old.foto.delete()
+                    if old.foto.public_id:
+                        cloudinary.uploader.destroy(old.foto.public_id)
             except Users.DoesNotExist:
                 pass
 

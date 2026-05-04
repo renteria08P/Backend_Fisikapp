@@ -304,8 +304,8 @@ def restablecer_password(request):
 
     print("DATA:", request.data)
 
-    uid = request.query_params.get('uid')
-    token = request.query_params.get('token')
+    uid = request.data.get('uid')
+    token = request.data.get('token')
 
     new_password = (
         request.data.get('new_password') or

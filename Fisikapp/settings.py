@@ -186,20 +186,24 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
-# =========================
-# ENV VARIABLES
-# =========================
-#CORREO CON LINK DE RECUPERAR PASSWORD - CREDENCIALES PROFESOR 
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+# ==============================
+# CONFIGURACIÓN DE CORREO (SendGrid)
+# ==============================
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'apikey'  # Esto debe decir 'apikey' literalmente
+EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY")  # Toma la llave de tu .env
+
+# El remitente que configuraste en SendGrid
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "fisikapp7@gmail.com")
 
 # =========================
 # SSL FIX 
 # =========================
 ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
-
-
-DEFAULT_FROM_EMAIL = 'FisikApp <fisikapp7@gmail.com>'
 
 
 #CLOUDINARY
