@@ -48,7 +48,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
 
     # Campos para filtrar directamente con query params
-    filterset_fields = ['rol', 'estado', 'institucion']
+    filterset_fields = ['rol', 'estado', 'institucion'] 
 
     # Campos para búsqueda con ?search=texto
     search_fields = ['nombre', 'correo', 'identificacion']
