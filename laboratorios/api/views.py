@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from groq import Groq
+from rest_framework import viewsets, filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view, permission_classes
 
 from laboratorios.models import (
@@ -46,6 +48,13 @@ class LaboratorioViewSet(ModelViewSet):
     queryset = Laboratorio.objects.all()
     serializer_class = LaboratorioSerializer
     permission_classes = [IsAuthenticated]
+
+    # Filtros, búsqueda y ordenamiento
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['categoria', 'objetivo', 'creador', 'estado', 'ra']
+    search_fields = ['titulo_lab', 'codigo_lab', 'resumen', 'introduccion', 'marco_teorico']
+    ordering_fields = ['titulo_lab', 'codigo_lab', 'fecha_creacion', 'fecha_actualizacion']
+    ordering = ['fecha_creacion']  # orden por defecto
 
     def perform_create(self, serializer):
         serializer.save(creador=self.request.user)

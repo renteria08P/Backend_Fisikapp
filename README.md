@@ -96,6 +96,7 @@ pip install certifi
 pip install sendgrid
 pip install psycopg[binary]
 pip install reportlab
+pip install django-filter
 
 ```
 

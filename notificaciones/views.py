@@ -2,6 +2,8 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .models import Log, Notificacion
 from .serializers import LogSerializer, NotificacionSerializer
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -9,6 +11,12 @@ from rest_framework.response import Response
 class LogViewSet(viewsets.ModelViewSet):
     serializer_class = LogSerializer
     permission_classes = [IsAuthenticated]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['usuario', 'accion', 'fecha']
+    search_fields = ['accion', 'detalle']
+    ordering_fields = ['fecha']
+    ordering = ['-fecha']
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):

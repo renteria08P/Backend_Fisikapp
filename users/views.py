@@ -30,6 +30,9 @@ from .serializers import (
     ResetPasswordSerializer,
 )
 
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+
 import re
 
 token_generator = PasswordResetTokenGenerator()
@@ -42,6 +45,18 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all() 
     serializer_class = UsersSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSuperAdmin]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
+    # Campos para filtrar directamente con query params
+    filterset_fields = ['rol', 'estado', 'institucion'] 
+
+    # Campos para búsqueda con ?search=texto
+    search_fields = ['nombre', 'correo', 'identificacion']
+
+    # Campos para ordenar con ?ordering=campo
+    ordering_fields = ['nombre', 'fecha_nacimiento', 'last_login']
+    ordering = ['nombre'] 
 
     def get_queryset(self):
         roles = self.request.query_params.getlist('rol')

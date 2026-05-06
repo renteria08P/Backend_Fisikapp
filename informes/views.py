@@ -15,11 +15,20 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 from io import BytesIO
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 
 class InformeViewSet(viewsets.ModelViewSet):
     queryset = Informe.objects.all()
     serializer_class = InformeSerializer
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['laboratorio', 'autor', 'fecha']
+    search_fields = ['desarrollo', 'analisis']
+    ordering_fields = ['fecha']
+    ordering = ['fecha']
+
 
     @action(detail=True, methods=['get'], url_path='descargar-pdf')
     def descargar_pdf(self, request, pk=None):
