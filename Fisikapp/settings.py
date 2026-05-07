@@ -32,11 +32,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = "django-insecure-l+aw(&2l5p^y-qelo(e)^n&fuh&_r*8f7mh@5h6j7*8543@-qg"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False") == "True"
-
+DEBUG = True
+ 
 ALLOWED_HOSTS = ['*']
 
 
@@ -125,12 +125,6 @@ DATABASES = {
         'PORT': os.environ.get('PGPORT'),
     }
 }
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://tu-frontend.up.railway.app",
-]
 
 
 # Password validation
