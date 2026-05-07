@@ -17,7 +17,6 @@ from dotenv import load_dotenv
 import ssl
 import certifi
 import os 
-import dj_database_url
 from dotenv import load_dotenv
 
 
@@ -38,7 +37,6 @@ SECRET_KEY = "django-insecure-l+aw(&2l5p^y-qelo(e)^n&fuh&_r*8f7mh@5h6j7*8543@-qg
 DEBUG = True
  
 ALLOWED_HOSTS = ['*']
-
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
