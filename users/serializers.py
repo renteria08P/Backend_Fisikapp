@@ -65,14 +65,22 @@ class UsersSerializer(serializers.ModelSerializer):
         if value in ["", "null", "None"]:
             return None
 
-        if self.instance and self.instance.identificacion == value:
-            return value
+        query = Users.objects.filter(identificacion=value)
 
-        if Users.objects.filter(identificacion=value).exclude(pk=self.instance.pk).exists():
-            raise serializers.ValidationError("La identificación ya existe")
+    # Si es actualización
+        if self.instance:
+            if self.instance.identificacion == value:
+                return value
+
+            query = query.exclude(pk=self.instance.pk)
+
+        if query.exists():
+            raise serializers.ValidationError(
+                "La identificación ya existe"
+        )
 
         return value
-
+    # =================
     # =====================================================
     # VALIDAR PASSWORD
     # =====================================================
