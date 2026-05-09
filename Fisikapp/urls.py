@@ -22,11 +22,13 @@ from drf_yasg import openapi
 from informes.routers import router as informes_router
 from notificaciones.routers import router as notificaciones_router
 from django.http import HttpResponse
+from laboratorios.api.views import MisLaboratoriosView
 from laboratorios.api.router import (
     router_laboratorios,
     router_categorias,
     router_palabras,
-    router_objetivos
+    router_objetivos,
+    router
 )
 
 from django.conf import settings
@@ -76,6 +78,14 @@ urlpatterns = [
     path('api/', include(router_categorias.urls)),
     path('api/', include(router_palabras.urls)),
     path('api/', include(router_objetivos.urls)),
+    path('api/', include(router.urls)),
+    
+    
+    path(
+        'api/laboratorio-profesor/mis_laboratorios/',
+        MisLaboratoriosView.as_view(),
+        name='mis-laboratorios'
+    ),
 
     # USERS
     path('api/users/', include('users.urls')),

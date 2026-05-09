@@ -18,6 +18,11 @@ import ssl
 import certifi
 import os 
 from dotenv import load_dotenv
+from django.contrib import admin
+from django.urls import path, include
+
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 load_dotenv()
