@@ -69,7 +69,7 @@ class Laboratorio(models.Model):
 
 
 # =========================================================
-# LABORATORIO PROFESOR
+# LABORATORIO PROFESOR -- CON CODIGO
 # =========================================================
 
 class LaboratorioProfesor(models.Model):
