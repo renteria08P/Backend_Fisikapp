@@ -8,9 +8,17 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from groq import Groq
-from rest_framework import viewsets, filters
+from rest_framework import  filters
+from rest_framework.decorators import action
+from inscripciones.models import Inscripcion
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.decorators import api_view, permission_classes
+from datetime import date
+from inscripciones.serializers import InscripcionSerializer
+from rest_framework.decorators import (
+    api_view,
+    permission_classes,
+    action
+)
 
 from laboratorios.models import (
     Laboratorio,
@@ -250,7 +258,7 @@ class LaboratorioProfesorViewSet(ModelViewSet):
             ).exists():
 
                 return codigo
-
+            
 
     def perform_create(self, serializer):
 
@@ -267,16 +275,34 @@ class LaboratorioProfesorViewSet(ModelViewSet):
             marco_teorico=laboratorio.marco_teorico,
         )
 
-
-    from rest_framework.decorators import action
-    from rest_framework.response import Response
-
     @action(detail=False, methods=['get'])
     def mis_laboratorios(self, request):
         qs = self.queryset.filter(profesor=request.user)
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
     
+
+    @action(detail=True, methods=['get'])
+    def estudiantes(self, request, pk=None):
+
+        laboratorio = self.get_object()
+
+        inscripciones = Inscripcion.objects.filter(
+            laboratorio=laboratorio
+        )
+
+        estudiantes = []
+
+        for inscripcion in inscripciones:
+
+            estudiantes.append({
+                "id": inscripcion.usuario.id,
+                "nombre": inscripcion.usuario.nombre,
+                "correo": inscripcion.usuario.correo,
+                "fecha_inscripcion": inscripcion.fecha_inscripcion
+            })
+
+        return Response(estudiantes)
 # =========================================================
 # LABORATORIOS PROFESOR
 # =========================================================
@@ -296,3 +322,48 @@ class MisLaboratoriosView(APIView):
         )
 
         return Response(serializer.data)
+    
+
+# =========================================================
+# INSCRIBIR USUARIO POR CODIGO
+# =========================================================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def inscribir_usuario(request):
+
+    codigo = request.data.get('codigo_lab')
+
+    try:
+        laboratorio = LaboratorioProfesor.objects.get(
+            codigo_lab=codigo
+        )
+
+    except LaboratorioProfesor.DoesNotExist:
+
+        return Response(
+            {"error": "Código inválido"},
+            status=404
+        )
+
+    # EVITAR INSCRIPCIONES DUPLICADAS
+    existe = Inscripcion.objects.filter(
+        usuario=request.user,
+        laboratorio=laboratorio
+    ).exists()
+
+    if existe:
+
+        return Response(
+            {"error": "Ya estás inscrito en este laboratorio"},
+            status=400
+        )
+
+    inscripcion = Inscripcion.objects.create(
+        usuario=request.user,
+        laboratorio=laboratorio,
+        fecha_inscripcion=date.today()
+    )
+
+    serializer = InscripcionSerializer(inscripcion)
+
+    return Response(serializer.data, status=201)
