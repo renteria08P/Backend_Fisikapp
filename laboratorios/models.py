@@ -16,7 +16,7 @@ class Categoria(models.Model):
 
 
 # =========================================================
-# ONBJETIVOS
+# OBJETIVOS
 # =========================================================
 
 class Objetivo(models.Model):
