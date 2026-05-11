@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 
 from django.urls import include, path
+from laboratorios.api.views import MisLaboratoriosView, inscribir_usuario, generar_contenido_ia
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -24,14 +25,14 @@ from drf_yasg import openapi
 from informes.routers import router as informes_router
 from notificaciones.routers import router as notificaciones_router
 from django.http import HttpResponse
-from laboratorios.api.views import MisLaboratoriosView, inscribir_usuario
+
 from laboratorios.api.router import (
     router_laboratorios,
     router_categorias,
     router_palabras,
     router_objetivos,
     router,
-    urlpatterns as laboratorios_urlpatterns 
+   
 )
 
 from django.conf import settings
@@ -89,9 +90,11 @@ urlpatterns = [
     # USERS
     path('api/users/', include('users.urls')),
 
+
+    path('api/laboratorios/generar-ia/', generar_contenido_ia, name='generar_ia'),
+
    
 ]
 
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-urlpatterns += laboratorios_urlpatterns

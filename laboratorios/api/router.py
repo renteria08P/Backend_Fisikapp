@@ -26,7 +26,7 @@ router = DefaultRouter()
 router.register(r'laboratorio-profesor',LaboratorioProfesorViewSet,  basename='laboratorio-profesor')
 
 urlpatterns = [
-    path('api/laboratorios/generar-ia/', generar_contenido_ia, name='generar_ia'),
+     path('generar-ia/', generar_contenido_ia, name='generar_ia'),
 ]
 
 
