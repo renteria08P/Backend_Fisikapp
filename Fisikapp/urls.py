@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+
 from django.urls import include, path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -81,6 +82,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/laboratorio-profesor/mis_laboratorios/',MisLaboratoriosView.as_view(),name='mis-laboratorios'),
     path('api/inscribir/',inscribir_usuario, name='inscribir_usuario'),
+   
 
     # USERS
     path('api/users/', include('users.urls')),

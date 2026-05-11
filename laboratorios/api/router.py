@@ -1,4 +1,6 @@
 from rest_framework.routers import DefaultRouter
+from django.urls import path
+from .views import generar_contenido_ia
 from .views import (
     LaboratorioViewSet,
     CategoriaViewSet,
@@ -22,6 +24,10 @@ router_objetivos.register(r'objetivos', ObjetivoViewSet, basename='objetivos')
 
 router = DefaultRouter()
 router.register(r'laboratorio-profesor',LaboratorioProfesorViewSet,  basename='laboratorio-profesor')
+
+urlpatterns = [
+    path('generar-ia/', generar_contenido_ia, name='generar_ia'),
+]
 
 
 

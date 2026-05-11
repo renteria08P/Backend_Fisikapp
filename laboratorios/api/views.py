@@ -283,3 +283,33 @@ def inscribir_usuario(request):
     serializer = InscripcionSerializer(inscripcion)
 
     return Response(serializer.data, status=201)
+
+
+# =========================================================
+# GENERAR CONTENIDO CON IA
+# =========================================================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generar_contenido_ia(request):
+    try:
+        campo = request.data.get("campo")
+        categoria = request.data.get("categoria")
+        objetivo = request.data.get("objetivo")
+        palabras_clave = request.data.get("palabras_clave")
+
+        ia = requests.post(
+            "https://agentes-ia-9heysq.fly.dev/generar-contenido",
+            json={
+                "categoria": categoria,
+                "objetivo": objetivo,
+                "palabras_clave": palabras_clave
+            },
+            timeout=30
+        ).json()
+
+        return Response({
+            "campo": campo,
+            "contenido": ia.get(campo, "")
+        })
+    except:
+        return Response({"error": "No se pudo conectar con la IA"}, status=500)
