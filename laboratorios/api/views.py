@@ -1,6 +1,8 @@
 import random
 import string
 import os
+import requests  # ← agrega esta línea
+
 
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
@@ -190,6 +192,33 @@ class LaboratorioProfesorViewSet(ModelViewSet):
             })
 
         return Response(estudiantes)
+    
+   
+    @action(detail=True, methods=['post'])
+    def generar_con_ia(self, request, pk=None):
+        lab = self.get_object()
+    
+        try:
+            ia = requests.post(
+                "https://agentes-ia-9heysq.fly.dev/generar-contenido",
+                json={
+                    "categoria": str(lab.categoria),
+                    "objetivo": str(lab.objetivo),
+                    "palabras_clave": str(lab.titulo_lab)
+                },
+                timeout=30
+            ).json()
+        except:
+            return Response({"error": "No se pudo conectar con la IA"}, status=500)
+
+        lab.resumen = ia.get("resumen", "")
+        lab.prologo = ia.get("prologo", "")
+        lab.introduccion = ia.get("introduccion", "")
+        lab.marco_teorico = ia.get("marco_teorico", "")
+        lab.generado_ia = True
+        lab.save()
+
+        return Response({"mensaje": "Contenido generado", "data": LaboratorioProfesorSerializer(lab).data})
 # =========================================================
 # LABORATORIOS PROFESOR
 # =========================================================
