@@ -71,7 +71,10 @@ def conceptos_detalle(request, pk):
 @api_view(['GET', 'POST'])
 def practicas_list(request):
     if request.method == 'GET':
+        laboratorio_id = request.query_params.get('laboratorio', None)     # ← NUEVO
         data = Practicas.objects.all()
+        if laboratorio_id:                                               # ← NUEVO
+            data = data.filter(laboratorio=laboratorio_id)                # ← NUEVO
         serializer = PracticasSerializer(data, many=True)
         return Response(serializer.data)
 
@@ -109,7 +112,10 @@ def practicas_detalle(request, pk):
 @api_view(['GET', 'POST'])
 def procedimientos_list(request):
     if request.method == 'GET':
+        laboratorio_id = request.query_params.get('laboratorio', None)
         data = Procedimientos.objects.all()
+        if laboratorio_id:                                               # ← NUEVO
+            data = data.filter(laboratorio=laboratorio_id) 
         serializer = ProcedimientosSerializer(data, many=True)
         return Response(serializer.data)
 
@@ -147,7 +153,10 @@ def procedimientos_detalle(request, pk):
 @api_view(['GET', 'POST'])
 def lista_formulas(request):
     if request.method == 'GET':
+        laboratorio_id = request.query_params.get('laboratorio', None)  # ← NUEVO
         formulas = Formulas.objects.all()
+        if laboratorio_id:                                               # ← NUEVO
+            formulas = formulas.filter(laboratorio=laboratorio_id)        # ← NUEVO
         serializer = FormulasSerializer(formulas, many=True)
         return Response(serializer.data)
 
@@ -199,7 +208,10 @@ def detalle_formula(request, pk):
 @api_view(['GET', 'POST'])
 def lista_bibliografia(request):
     if request.method == 'GET':
+        laboratorio_id = request.query_params.get('laboratorio', None)  # ← NUEVO
         biblios = Bibliografia.objects.all()
+        if laboratorio_id:                                               # ← NUEVO
+            biblios = biblios.filter(laboratorio=laboratorio_id)          # ← NUEVO
         serializer = BibliografiaSerializer(biblios, many=True)
         return Response(serializer.data)
 

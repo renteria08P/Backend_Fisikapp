@@ -13,6 +13,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
+from rest_framework.decorators import api_view, permission_classes  
 
 class InscripcionesViewSet(viewsets.ModelViewSet):
     queryset = Inscripcion.objects.all()
@@ -61,4 +62,18 @@ def detalle_inscripcion(request, pk):
     elif request.method == 'DELETE':
         inscripcion.delete()
         return Response({"mensaje": "Eliminado correctamente"}, status=204)
+    
+# =============================================
+#  MIS LABORATORIOS ESTUDIANTE
+# =============================================
+    
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def mis_laboratorios(request):
+    inscripciones = Inscripcion.objects.filter(
+        usuario=request.user
+    ).order_by('-fecha_inscripcion')
+    serializer = InscripcionSerializer(inscripciones, many=True)
+    return Response(serializer.data)
 
