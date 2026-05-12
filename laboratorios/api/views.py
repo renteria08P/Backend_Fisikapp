@@ -3,7 +3,8 @@ import string
 import os
 import requests  # ← agrega esta línea
 
-
+from laboratorios.models import Etapa, ProgresoEstudiante
+from datetime import date
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -19,6 +20,7 @@ from rest_framework.decorators import (
     api_view,
     permission_classes,
     action
+    
 )
 
 from laboratorios.models import (
@@ -27,6 +29,8 @@ from laboratorios.models import (
     PalabraClave,
     Objetivo,
     LaboratorioProfesor,
+    Etapa,              # ← NUEVO
+    ProgresoEstudiante,
 )
 
 from .serializers import (
@@ -219,6 +223,47 @@ class LaboratorioProfesorViewSet(ModelViewSet):
         lab.save()
 
         return Response({"mensaje": "Contenido generado", "data": LaboratorioProfesorSerializer(lab).data})
+    
+
+    @action(detail=True, methods=['get'])
+    def progreso(self, request, pk=None):
+        laboratorio = self.get_object()
+        etapas = Etapa.objects.filter(laboratorio=laboratorio).order_by('orden')
+        total = etapas.count()
+        completadas = 0
+        resultado = []
+
+        for etapa in etapas:
+            prog = ProgresoEstudiante.objects.filter(
+                estudiante=request.user, etapa=etapa
+            ).first()
+            hecho = prog.completada if prog else False
+            if hecho:
+                completadas += 1
+            resultado.append({"etapa_id": etapa.id, "nombre": etapa.nombre, "completada": hecho})
+
+        return Response({
+            "porcentaje": int((completadas / total) * 100) if total > 0 else 0,
+            "etapas": resultado
+        })
+
+
+    @action(detail=True, methods=['post'], url_path='etapas/(?P<etapa_id>[^/.]+)/completar')
+    def completar_etapa(self, request, pk=None, etapa_id=None):
+        laboratorio = self.get_object()
+        try:
+            etapa = Etapa.objects.get(id=etapa_id, laboratorio=laboratorio)
+        except Etapa.DoesNotExist:
+            return Response({"error": "Etapa no encontrada"}, status=404)
+
+        prog, _ = ProgresoEstudiante.objects.get_or_create(
+            estudiante=request.user, etapa=etapa
+        )
+        prog.completada = True
+        prog.fecha_completado = date.today()
+        prog.save()
+
+        return Response({"mensaje": f"Etapa '{etapa.nombre}' completada ✅"})
 # =========================================================
 # LABORATORIOS PROFESOR
 # =========================================================

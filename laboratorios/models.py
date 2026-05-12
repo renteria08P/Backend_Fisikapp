@@ -112,3 +112,43 @@ class LaboratorioProfesor(models.Model):
     estado = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+
+    
+
+# =========================================================
+# ETAPAS DEL LABORATORIO
+# =========================================================
+class Etapa(models.Model):
+    laboratorio = models.ForeignKey(
+        LaboratorioProfesor,
+        on_delete=models.CASCADE,
+        related_name='etapas'
+    )
+    nombre = models.CharField(max_length=100)
+    orden = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.orden}. {self.nombre}"
+
+
+# =========================================================
+# PROGRESO DEL ESTUDIANTE
+# =========================================================
+class ProgresoEstudiante(models.Model):
+    estudiante = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    etapa = models.ForeignKey(
+        Etapa,
+        on_delete=models.CASCADE
+    )
+    completada = models.BooleanField(default=False)
+    fecha_completado = models.DateField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ['estudiante', 'etapa']
+
+    def __str__(self):
+        return f"{self.estudiante} - {self.etapa}"
