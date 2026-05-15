@@ -98,6 +98,7 @@ pip install psycopg[binary]
 pip install reportlab
 pip install django-filter
 pip install gunicorn whitenoise psycopg2-binary dj-database-url python-dotenv
+pip install pandas openpyxl
 
 ```
 

@@ -12,10 +12,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import  filters
 from rest_framework.decorators import action
+import pandas as pd
+from django.db import transaction
+from users.models import Users 
 from inscripciones.models import Inscripcion
 from django_filters.rest_framework import DjangoFilterBackend
 from datetime import date
 from inscripciones.serializers import InscripcionSerializer
+
 from rest_framework.decorators import (
     api_view,
     permission_classes,
@@ -93,9 +97,6 @@ class LaboratorioViewSet(ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(creador=self.request.user)
-
-
-
 
 
 # =========================================================
@@ -264,6 +265,51 @@ class LaboratorioProfesorViewSet(ModelViewSet):
         prog.save()
 
         return Response({"mensaje": f"Etapa '{etapa.nombre}' completada ✅"})
+    
+
+    #Excel
+    @action(detail=True, methods=['post'], url_path='cargar-estudiantes')
+    def cargar_estudiantes_excel(self, request, pk=None):
+
+        laboratorio = self.get_object()
+        archivo = request.FILES.get('file')
+
+        if not archivo:
+            return Response({"error": "No se envió archivo"}, status=400)
+
+        try:
+            df = pd.read_excel(archivo)
+        except:
+            return Response({"error": "Archivo inválido"}, status=400)
+
+        creados = 0
+        errores = []
+
+        with transaction.atomic():
+
+            for index, row in df.iterrows():
+
+                try:
+                    usuario = Users.objects.get(correo=row['correo'])
+
+                    Inscripcion.objects.get_or_create(
+                        usuario=usuario,
+                        laboratorio=laboratorio,
+                        defaults={
+                            "fecha_inscripcion": date.today()
+                        }
+                    )
+
+                    creados += 1
+
+                except Users.DoesNotExist:
+                    errores.append(f"Fila {index}: usuario no existe")
+
+        return Response({
+            "mensaje": "Carga finalizada",
+            "creados": creados,
+            "errores": errores
+        })
 # =========================================================
 # LABORATORIOS PROFESOR
 # =========================================================
