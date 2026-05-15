@@ -1,7 +1,7 @@
 import random
 import string
 import os
-import requests  # ← agrega esta línea
+import requests 
 
 from laboratorios.models import Etapa, ProgresoEstudiante
 from datetime import date
@@ -12,13 +12,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import  filters
 from rest_framework.decorators import action
-import pandas as pd
 from django.db import transaction
-from users.models import Users 
+from users.models import Users
+import pandas as pd
 from inscripciones.models import Inscripcion
 from django_filters.rest_framework import DjangoFilterBackend
 from datetime import date
 from inscripciones.serializers import InscripcionSerializer
+from users.permissions import IsProfesor
 
 from rest_framework.decorators import (
     api_view,
@@ -98,6 +99,12 @@ class LaboratorioViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(creador=self.request.user)
 
+
+    def get_permissions(self):
+        if self.action == "cargar_estudiantes_excel":
+            return [IsAuthenticated(), IsProfesor()]
+
+        return [IsAuthenticated()]
 
 # =========================================================
 # LABORATORIO PROFESOR
@@ -265,9 +272,7 @@ class LaboratorioProfesorViewSet(ModelViewSet):
         prog.save()
 
         return Response({"mensaje": f"Etapa '{etapa.nombre}' completada ✅"})
-    
 
-    #Excel
     @action(detail=True, methods=['post'], url_path='cargar-estudiantes')
     def cargar_estudiantes_excel(self, request, pk=None):
 
@@ -286,27 +291,31 @@ class LaboratorioProfesorViewSet(ModelViewSet):
         errores = []
 
         with transaction.atomic():
-
             for index, row in df.iterrows():
 
                 try:
                     usuario = Users.objects.get(correo=row['correo'])
 
-                    Inscripcion.objects.get_or_create(
+                    if usuario.rol != "estudiante":
+                        errores.append(f"Fila {index}: el usuario no es estudiante")
+                        continue
+
+                    inscripcion, created = Inscripcion.objects.get_or_create(
                         usuario=usuario,
                         laboratorio=laboratorio,
-                        defaults={
-                            "fecha_inscripcion": date.today()
-                        }
+                        defaults={"fecha_inscripcion": date.today()}
                     )
 
-                    creados += 1
+                    if created:
+                        creados += 1
+                    else:
+                        errores.append(f"Fila {index}: ya inscrito")
 
                 except Users.DoesNotExist:
                     errores.append(f"Fila {index}: usuario no existe")
 
         return Response({
-            "mensaje": "Carga finalizada",
+            "mensaje": "Inscripción finalizada",
             "creados": creados,
             "errores": errores
         })
@@ -404,3 +413,6 @@ def generar_contenido_ia(request):
         })
     except:
         return Response({"error": "No se pudo conectar con la IA"}, status=500)
+    
+
+

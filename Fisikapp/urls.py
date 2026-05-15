@@ -77,16 +77,11 @@ urlpatterns = [
    # NOTIFICACIONES
     path('api/', include(notificaciones_router.urls)),
 
-    # LABORATORIOS
-    path('api/', include(router_laboratorios.urls)),
-    path('api/', include(router_categorias.urls)),
-    path('api/', include(router_palabras.urls)),
-    path('api/', include(router_objetivos.urls)),
+   # LABORATORIOS
+    path('api/laboratorio-profesor/mis_laboratorios/', MisLaboratoriosView.as_view(), name='mis-laboratorios'),
     path('api/', include(router.urls)),
-    path('api/laboratorio-profesor/mis_laboratorios/',MisLaboratoriosView.as_view(),name='mis-laboratorios'),
-    path('api/inscribir/',inscribir_usuario, name='inscribir_usuario'),
-   
-
+    path('api/inscribir/', inscribir_usuario, name='inscribir_usuario'),
+    
     # USERS
     path('api/users/', include('users.urls')),
 

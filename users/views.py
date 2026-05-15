@@ -16,11 +16,16 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
+from .permissions import IsAdminSuperAdminOrProfesor
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.decorators import parser_classes
-from rest_framework.decorators import parser_classes
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import permission_classes
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
+from users.models import Users
+import pandas as pd
 
 from .serializers import (
     UsersSerializer,
@@ -68,6 +73,59 @@ class UsersViewSet(viewsets.ModelViewSet):
         rol = self.request.data.get('rol', 'estudiante')
         serializer.save(rol=rol)
 
+    def get_permissions(self):
+        if self.action == "cargar_estudiantes":
+            return [IsAuthenticated(), IsAdminSuperAdminOrProfesor()]
+
+        return [IsAuthenticated(), IsAdminOrSuperAdmin()]
+
+    # =========================================================
+    # EXCEL - CARGAR ESTUDIANTES
+    # =========================================================
+    @action(detail=False, methods=['post'], url_path='cargar-estudiantes')
+    def cargar_estudiantes(self, request):
+
+        archivo = request.FILES.get('file')
+
+        if not archivo:
+            return Response({"error": "No se envió archivo"}, status=400)
+
+        try:
+            df = pd.read_excel(archivo)
+        except:
+            return Response({"error": "Archivo inválido"}, status=400)
+
+        creados = 0
+        actualizados = 0
+        errores = []
+
+        for index, row in df.iterrows():
+
+            try:
+                user, created = Users.objects.get_or_create(
+                    correo=row['correo'],
+                    defaults={
+                        "nombre": row.get('nombre', 'Estudiante'),
+                        "rol": "estudiante"
+                    }
+                )
+
+                if created:
+                    user.set_password("Estudiante123456")
+                    user.save()
+                    creados += 1
+                else:
+                    actualizados += 1
+
+            except Exception as e:
+                errores.append(f"Fila {index}: {str(e)}")
+
+        return Response({
+            "mensaje": "Carga de estudiantes finalizada",
+            "creados": creados,
+            "actualizados": actualizados,
+            "errores": errores
+        })
 
 # =========================================================
 # LOGIN
@@ -359,3 +417,5 @@ def restablecer_password(request):
     print("PASSWORD ACTUALIZADO ✔")
 
     return Response({"message": "Contraseña restablecida"})
+
+
