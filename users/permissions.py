@@ -37,6 +37,17 @@ class IsAdminOrSuperAdmin(BasePermission):
             ]
         )
 
+class IsAdminSuperAdminOrProfesor(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user and
+            request.user.is_authenticated and
+            request.user.rol in [
+                Roles.ADMIN,
+                Roles.SUPERADMIN,
+                Roles.PROFESOR
+            ]
+        )
 
 class IsProfesor(BasePermission):
     def has_permission(self, request, view):
@@ -44,4 +55,5 @@ class IsProfesor(BasePermission):
             request.user and
             request.user.is_authenticated and
             request.user.rol == Roles.PROFESOR
+            
         )

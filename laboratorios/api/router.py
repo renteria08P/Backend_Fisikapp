@@ -29,5 +29,7 @@ urlpatterns = [
      path('generar-ia/', generar_contenido_ia, name='generar_ia'),
 ]
 
+urlpatterns += router.urls
+
 
 

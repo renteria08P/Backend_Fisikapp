@@ -98,9 +98,11 @@ pip install psycopg[binary]
 pip install reportlab
 pip install django-filter
 pip install gunicorn whitenoise psycopg2-binary dj-database-url python-dotenv
+pip install pandas openpyxl
+pip install requests
 
 ```
 
 ## Autor
 
-Proyecto desarrollado como parte de una aplicación educativa para la creación y gestión de laboratorios de física con enfoque en simulación y aprendizaje interactivo.
+Proyecto desarrollado como parte de una aplicación educativa orientada a la creación y gestión de laboratorios de física, enfocado en la simulación interactiva y el fortalecimiento del aprendizaje práctico mediante experiencias dinámicas y visuales.
