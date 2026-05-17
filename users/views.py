@@ -318,7 +318,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import os
 
-FRONTEND_URL = os.getenv("FRONTEND_URL")
+FRONTEND_WEB_URL = os.getenv("FRONTEND_WEB_URL")
 
 @swagger_auto_schema(method='post', request_body=RecuperarPasswordSerializer)
 @api_view(['POST'])
@@ -327,46 +327,69 @@ def recuperar_password(request):
 
     correo = request.data.get('correo')
 
-
     if not correo:
-        return Response({"error": "Correo requerido"}, status=400)
+        return Response(
+            {"error": "Correo requerido"},
+            status=400
+        )
 
     try:
+
         user = Users.objects.get(correo=correo)
 
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = token_generator.make_token(user)
 
-        reset_link = f"{FRONTEND_URL}/restablecer-contrasena?uid={uid}&token={token}"
-        
-    
-        html = render_to_string('emails/reset_password.html', {
-            'user': user,
-            'reset_link': reset_link
-        })
+        dispositivo = request.data.get("dispositivo", "web")
 
+        # =====================================================
+        # LINK WEB (FUNCIONA PARA WEB Y MOBILE)
+        # =====================================================
+        reset_link = (
+            f"{FRONTEND_WEB_URL}"
+            f"/restablecer-contrasena"
+            f"?uid={uid}"
+            f"&token={token}"
+            f"&mobile={dispositivo == 'mobile'}"
+        )
+
+        # TEMPLATE HTML
+        html = render_to_string(
+            'emails/reset_password.html',
+            {
+                'user': user,
+                'reset_link': reset_link
+            }
+        )
+
+        # SENDGRID
         message = Mail(
-            from_email='fisikapp7@gmail.com',  
+            from_email='fisikapp7@gmail.com',
             to_emails=correo,
             subject='Recuperar contraseña',
             html_content=html
         )
 
-        sg = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+        sg = SendGridAPIClient(
+            os.getenv('SENDGRID_API_KEY')
+        )
+
         response = sg.send(message)
 
         print("STATUS:", response.status_code)
-    
+        print("LINK:", reset_link)
 
     except Users.DoesNotExist:
+
         print("Usuario no existe")
 
     except Exception as e:
+
         print("ERROR:", str(e))
 
-    return Response({"message": "Si existe, se enviará correo"})
-
-
+    return Response({
+        "message": "Si existe, se enviará correo"
+    })
 # =========================================================
 # RESET PASSWORD
 # =========================================================
