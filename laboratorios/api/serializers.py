@@ -83,4 +83,27 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
     introduccion = serializers.CharField(required=False)
     marco_teorico = serializers.CharField(required=False)
 
-   
+# =========================================================
+# ADMIN - LABORATORIO
+# =========================================================
+class LaboratorioProfesorAdminSerializer(serializers.ModelSerializer):
+
+    titulo = serializers.CharField(source="laboratorio.titulo_lab", read_only=True)
+
+    categoria = serializers.CharField(source="laboratorio.categoria.nombre", read_only=True)
+
+    creador = serializers.CharField(source="profesor.nombre", read_only=True)
+
+    estado = serializers.BooleanField(read_only=True)
+
+    ultimo_ingreso = serializers.DateTimeField(source="fecha_actualizacion", read_only=True)
+
+    class Meta:
+        model = LaboratorioProfesor
+        fields = [
+            "titulo",
+            "categoria",
+            "creador",
+            "estado",
+            "ultimo_ingreso"
+        ]
