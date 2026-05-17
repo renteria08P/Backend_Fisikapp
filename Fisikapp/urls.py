@@ -25,15 +25,7 @@ from drf_yasg import openapi
 from informes.routers import router as informes_router
 from notificaciones.routers import router as notificaciones_router
 from django.http import HttpResponse
-
-from laboratorios.api.router import (
-    router_laboratorios,
-    router_categorias,
-    router_palabras,
-    router_objetivos,
-    router,
-   
-)
+from laboratorios.api.router import router
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -78,18 +70,28 @@ urlpatterns = [
     path('api/', include(notificaciones_router.urls)),
 
    # LABORATORIOS
-    path('api/laboratorio-profesor/mis_laboratorios/', MisLaboratoriosView.as_view(), name='mis-laboratorios'),
+    path(
+        'api/laboratorio-profesor/mis_laboratorios/',
+        MisLaboratoriosView.as_view(),
+        name='mis-laboratorios'
+    ),
+
     path('api/', include(router.urls)),
-    path('api/inscribir/', inscribir_usuario, name='inscribir_usuario'),
+
+    path(
+        'api/inscribir/',
+        inscribir_usuario,
+        name='inscribir_usuario'
+    ),
+
+    path(
+        'api/laboratorios/generar-ia/',
+        generar_contenido_ia,
+        name='generar_ia'
+    ),
     
     # USERS
     path('api/users/', include('users.urls')),
-
-
-    path('api/laboratorios/generar-ia/', generar_contenido_ia, name='generar_ia'),
-
-   
 ]
-
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
