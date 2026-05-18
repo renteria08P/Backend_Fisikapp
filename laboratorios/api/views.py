@@ -19,7 +19,7 @@ from inscripciones.models import Inscripcion
 from django_filters.rest_framework import DjangoFilterBackend
 from datetime import date
 from inscripciones.serializers import InscripcionSerializer
-from users.permissions import IsProfesor
+from users.permissions import IsAdminOrSuperAdmin, IsProfesor
 
 from rest_framework.decorators import (
     api_view,
@@ -39,6 +39,7 @@ from laboratorios.models import (
 )
 
 from .serializers import (
+    LaboratorioProfesorAdminSerializer,
     LaboratorioSerializer,
     CategoriaSerializer,
     PalabraClaveSerializer,
@@ -384,7 +385,16 @@ def inscribir_usuario(request):
 
     return Response(serializer.data, status=201)
 
+# =========================================================
+# LABORATORIOS - ADMIN
+# =========================================================
+class LaboratorioAdminViewSet(ModelViewSet):
+    serializer_class = LaboratorioProfesorAdminSerializer
+    permission_classes = [IsAuthenticated, IsAdminOrSuperAdmin]
 
+    def get_queryset(self):
+        return LaboratorioProfesor.objects.all().order_by('-fecha_actualizacion')
+    
 # =========================================================
 # GENERAR CONTENIDO CON IA
 # =========================================================

@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from django.urls import path
 
 from .views import (
+    LaboratorioAdminViewSet,
     generar_contenido_ia,
     LaboratorioViewSet,
     CategoriaViewSet,
@@ -44,6 +45,13 @@ router.register(
     r'laboratorio-profesor',
     LaboratorioProfesorViewSet,
     basename='laboratorio-profesor'
+)
+
+
+router.register(
+    r'laboratorio-admin',
+    LaboratorioAdminViewSet,
+    basename='laboratorio-admin'
 )
 
 # =========================================================
