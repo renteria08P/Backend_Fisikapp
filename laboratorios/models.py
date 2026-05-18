@@ -108,6 +108,18 @@ class LaboratorioProfesor(models.Model):
         blank=True
     )
 
+    grado = models.CharField(
+        max_length=25,
+        null=True,
+        blank=True
+    )
+
+    jornada = models.CharField(
+        max_length=25,
+        null=True,
+        blank=True
+    )
+
     generado_ia = models.BooleanField(default=False)
     estado = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
