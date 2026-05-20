@@ -396,13 +396,16 @@ def generar_contenido_ia(request):
         categoria = request.data.get("categoria")
         objetivo = request.data.get("objetivo")
         palabras_clave = request.data.get("palabras_clave")
+        titulo = request.data.get("titulo", "")
 
         ia = requests.post(
             "https://agentes-ia-9heysq.fly.dev/generar-contenido",
             json={
+                
                 "categoria": categoria,
                 "objetivo": objetivo,
-                "palabras_clave": palabras_clave
+                "palabras_clave": palabras_clave,
+                "titulo":titulo
             },
             timeout=30
         ).json()
