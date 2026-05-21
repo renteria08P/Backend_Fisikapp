@@ -152,3 +152,50 @@ class ProgresoEstudiante(models.Model):
 
     def __str__(self):
         return f"{self.estudiante} - {self.etapa}"
+    
+
+
+# =========================================================
+# ACTIVIDAD LABORATORIO (GENERADA POR IA)
+# =========================================================
+class ActividadLaboratorio(models.Model):
+
+    NIVELES = [
+        ('Básico', 'Básico'),
+        ('Intermedio', 'Intermedio'),
+        ('Avanzado', 'Avanzado'),
+    ]
+
+    laboratorio = models.ForeignKey(
+        LaboratorioProfesor,
+        on_delete=models.CASCADE,
+        related_name='actividades'
+    )
+    nivel = models.CharField(max_length=20, choices=NIVELES)
+    descripcion = models.TextField()
+    generado_ia = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.laboratorio} - {self.nivel}"
+
+
+# =========================================================
+# DETALLE ACTIVIDAD (GENERADA POR IA)
+# =========================================================
+class DetalleActividad(models.Model):
+
+    actividad = models.OneToOneField(
+        ActividadLaboratorio,
+        on_delete=models.CASCADE,
+        related_name='detalle'
+    )
+    objetivo_especifico = models.TextField()
+    materiales = models.JSONField()
+    procedimiento = models.JSONField()
+    formula = models.TextField(blank=True, null=True)
+    tiempo_estimado = models.CharField(max_length=50)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Detalle de {self.actividad}"

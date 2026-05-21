@@ -4,7 +4,9 @@ from laboratorios.models import (
     Categoria,
     PalabraClave,
     Objetivo,
-    LaboratorioProfesor
+    LaboratorioProfesor,
+    ActividadLaboratorio,  
+    DetalleActividad 
 )
 
 
@@ -83,4 +85,24 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
     introduccion = serializers.CharField(required=False)
     marco_teorico = serializers.CharField(required=False)
 
-   
+
+
+# =========================================================
+# ACTIVIDAD LABORATORIO
+# =========================================================
+class ActividadLaboratorioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActividadLaboratorio
+        fields = '__all__'
+        read_only_fields = ['generado_ia', 'fecha_creacion']
+
+
+# =========================================================
+# DETALLE ACTIVIDAD
+# =========================================================
+class DetalleActividadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DetalleActividad
+        fields = '__all__'
+        read_only_fields = ['fecha_creacion']
+

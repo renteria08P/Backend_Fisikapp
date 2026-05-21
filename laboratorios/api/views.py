@@ -36,6 +36,8 @@ from laboratorios.models import (
     LaboratorioProfesor,
     Etapa,              # ← NUEVO
     ProgresoEstudiante,
+    ActividadLaboratorio,  # ← agrega
+    DetalleActividad 
 )
 
 from .serializers import (
@@ -43,7 +45,9 @@ from .serializers import (
     CategoriaSerializer,
     PalabraClaveSerializer,
     ObjetivoSerializer,
-    LaboratorioProfesorSerializer
+    LaboratorioProfesorSerializer,
+    ActividadLaboratorioSerializer,  # ← agrega
+    DetalleActividadSerializer
 )
 
 
@@ -416,6 +420,105 @@ def generar_contenido_ia(request):
         })
     except:
         return Response({"error": "No se pudo conectar con la IA"}, status=500)
+    
+
+
+# =========================================================
+# GENERAR 3 ACTIVIDADES CON IA
+# =========================================================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generar_actividades_ia(request):
+    try:
+        laboratorio_id = request.data.get("laboratorio_id")
+        laboratorio = LaboratorioProfesor.objects.get(id=laboratorio_id)
+
+        ia = requests.post(
+            "https://agentes-ia-9heysq.fly.dev/generar-actividades",
+            json={
+                "titulo": laboratorio.laboratorio.titulo_lab,
+                "categoria": str(laboratorio.laboratorio.categoria),
+                "objetivo": str(laboratorio.laboratorio.objetivo)
+            },
+            timeout=30
+        ).json()
+
+        return Response(ia)
+    except LaboratorioProfesor.DoesNotExist:
+        return Response({"error": "Laboratorio no encontrado"}, status=404)
+    except:
+        return Response({"error": "No se pudo conectar con la IA"}, status=500)
+
+
+# =========================================================
+# GUARDAR ACTIVIDAD ELEGIDA POR EL PROFESOR
+# =========================================================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def guardar_actividad(request):
+    try:
+        laboratorio_id = request.data.get("laboratorio_id")
+        nivel = request.data.get("nivel")
+        descripcion = request.data.get("descripcion")
+
+        laboratorio = LaboratorioProfesor.objects.get(id=laboratorio_id)
+
+        actividad = ActividadLaboratorio.objects.create(
+            laboratorio=laboratorio,
+            nivel=nivel,
+            descripcion=descripcion,
+            generado_ia=True
+        )
+
+        return Response({
+            "mensaje": "Actividad guardada",
+            "data": ActividadLaboratorioSerializer(actividad).data
+        }, status=201)
+    except LaboratorioProfesor.DoesNotExist:
+        return Response({"error": "Laboratorio no encontrado"}, status=404)
+    except:
+        return Response({"error": "Error al guardar actividad"}, status=500)
+
+
+# =========================================================
+# GENERAR DETALLE DE ACTIVIDAD CON IA
+# =========================================================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generar_detalle_actividad(request):
+    try:
+        actividad_id = request.data.get("actividad_id")
+        actividad = ActividadLaboratorio.objects.get(id=actividad_id)
+
+        ia = requests.post(
+            "https://agentes-ia-9heysq.fly.dev/generar-detalle-actividad",
+            json={
+                "titulo": actividad.laboratorio.laboratorio.titulo_lab,
+                "categoria": str(actividad.laboratorio.laboratorio.categoria),
+                "objetivo": str(actividad.laboratorio.laboratorio.objetivo),
+                "nivel": actividad.nivel,
+                "descripcion": actividad.descripcion
+            },
+            timeout=30
+        ).json()
+
+        detalle = DetalleActividad.objects.create(
+            actividad=actividad,
+            objetivo_especifico=ia.get("objetivo_especifico", ""),
+            materiales=ia.get("materiales", []),
+            procedimiento=ia.get("procedimiento", []),
+            formula=ia.get("formula", ""),
+            tiempo_estimado=ia.get("tiempo_estimado", "")
+        )
+
+        return Response({
+            "mensaje": "Detalle generado y guardado",
+            "data": DetalleActividadSerializer(detalle).data
+        }, status=201)
+    except ActividadLaboratorio.DoesNotExist:
+        return Response({"error": "Actividad no encontrada"}, status=404)
+    except:
+        return Response({"error": "Error al generar detalle"}, status=500)
     
 
 
