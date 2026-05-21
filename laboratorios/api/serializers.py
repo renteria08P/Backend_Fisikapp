@@ -109,3 +109,23 @@ class LaboratorioProfesorAdminSerializer(serializers.ModelSerializer):
             "estado",
             "ultimo_ingreso"
         ]
+        
+
+# =========================================================
+# ACTIVIDAD LABORATORIO
+# =========================================================
+class ActividadLaboratorioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActividadLaboratorio
+        fields = '__all__'
+        read_only_fields = ['generado_ia', 'fecha_creacion']
+
+
+# =========================================================
+# DETALLE ACTIVIDAD
+# =========================================================
+class DetalleActividadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DetalleActividad
+        fields = '__all__'
+        read_only_fields = ['fecha_creacion']

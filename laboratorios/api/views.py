@@ -531,4 +531,48 @@ def generar_detalle_actividad(request):
         return Response({"error": "Error al generar detalle"}, status=500)
     
 
+# =========================================================
+# VISTA ESTUDIANTE - CONTENIDO DEL LABORATORIO
+# =========================================================
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def contenido_estudiante(request, laboratorio_id):
+    try:
+        laboratorio = LaboratorioProfesor.objects.get(id=laboratorio_id)
+        
+        inscrito = Inscripcion.objects.filter(
+            usuario=request.user,
+            laboratorio=laboratorio
+        ).exists()
 
+        if not inscrito:
+            return Response(
+                {"error": "No estás inscrito en este laboratorio"},
+                status=403
+            )
+
+        actividad = ActividadLaboratorio.objects.filter(
+            laboratorio=laboratorio
+        ).first()
+
+        detalle = None
+        if actividad:
+            try:
+                detalle = DetalleActividadSerializer(actividad.detalle).data
+            except:
+                detalle = None
+
+        return Response({
+            "laboratorio": laboratorio.laboratorio.titulo_lab,
+            "resumen": laboratorio.resumen,
+            "introduccion": laboratorio.introduccion,
+            "marco_teorico": laboratorio.marco_teorico,
+            "actividad": {
+                "nivel": actividad.nivel if actividad else None,
+                "descripcion": actividad.descripcion if actividad else None,
+            },
+            "detalle": detalle
+        })
+
+    except LaboratorioProfesor.DoesNotExist:
+        return Response({"error": "Laboratorio no encontrado"}, status=404)

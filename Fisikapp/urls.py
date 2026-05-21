@@ -17,13 +17,7 @@ Including another URLconf
 from django.contrib import admin
 
 from django.urls import include, path
-from laboratorios.api.views import (
-    MisLaboratoriosView, 
-    inscribir_usuario, 
-    generar_contenido_ia, 
-    generar_actividades_ia,   # ← agrega
-    guardar_actividad,         # ← agrega
-    generar_detalle_actividad)
+
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -32,14 +26,17 @@ from informes.routers import router as informes_router
 from notificaciones.routers import router as notificaciones_router
 from django.http import HttpResponse
 
-from laboratorios.api.router import (
-    router_laboratorios,
-    router_categorias,
-    router_palabras,
-    router_objetivos,
-    router,
-    
-   
+
+from laboratorios.api.router import router 
+
+from laboratorios.api.views import (
+    MisLaboratoriosView,
+    inscribir_usuario,
+    generar_contenido_ia,
+    generar_actividades_ia,
+    guardar_actividad,
+    generar_detalle_actividad,
+    contenido_estudiante
 )
 
 from django.conf import settings
@@ -99,12 +96,8 @@ urlpatterns = [
         name='inscribir_usuario'
     ),
 
-    path(
-        'api/laboratorios/generar-ia/',
-        generar_contenido_ia,
-        name='generar_ia'
-    ),
-    
+    path('api/laboratorios/<int:laboratorio_id>/contenido-estudiante/', contenido_estudiante, name='contenido_estudiante'),
+
     # USERS
     path('api/users/', include('users.urls')),
 
