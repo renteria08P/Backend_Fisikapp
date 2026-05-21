@@ -4,7 +4,9 @@ from laboratorios.models import (
     Categoria,
     PalabraClave,
     Objetivo,
-    LaboratorioProfesor
+    LaboratorioProfesor,
+    ActividadLaboratorio,  
+    DetalleActividad 
 )
 
 
