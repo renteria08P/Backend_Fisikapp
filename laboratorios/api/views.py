@@ -20,6 +20,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from datetime import date
 from inscripciones.serializers import InscripcionSerializer
 from users.permissions import IsAdminOrSuperAdmin, IsProfesor
+from django.db.models import Avg
 
 from rest_framework.decorators import (
     api_view,
@@ -206,6 +207,76 @@ class LaboratorioProfesorViewSet(ModelViewSet):
 
         return Response(estudiantes)
     
+
+    # =========================================================
+    # PROGRESO DE UN ESTUDIANTE (VISTA PROFESOR)
+    # =========================================================
+
+    @action(
+        detail=True,
+        methods=['get'],
+        url_path='progreso-estudiante/(?P<estudiante_id>[^/.]+)'
+    )
+    def progreso_estudiante(self, request, pk=None, estudiante_id=None):
+
+        laboratorio = self.get_object()
+
+        try:
+            estudiante = Users.objects.get(
+                id=estudiante_id,
+                rol="estudiante"
+            )
+
+        except Users.DoesNotExist:
+            return Response(
+                {"error": "Estudiante no encontrado"},
+                status=404
+            )
+
+        progresos = ProgresoEstudiante.objects.filter(
+            estudiante=estudiante,
+            etapa__laboratorio=laboratorio
+        ).select_related('etapa')
+
+        total_etapas = progresos.count()
+
+        completadas = progresos.filter(
+            completada=True
+        ).count()
+
+        promedio = progresos.exclude(
+            nota__isnull=True
+        ).aggregate(
+            promedio=Avg('nota')
+        )['promedio']
+
+        calificaciones = []
+
+        for progreso in progresos:
+
+            calificaciones.append({
+                "practica": progreso.etapa.nombre,
+                "estado": progreso.estado,
+                "nota": progreso.nota
+            })
+
+        return Response({
+
+            "estudiante": {
+                "id": estudiante.id,
+                "nombre": estudiante.nombre,
+                "correo": estudiante.correo
+            },
+
+            "labs_completados": completadas,
+
+            "total_labs": total_etapas,
+
+            "promedio_general": round(promedio or 0, 1),
+
+            "calificaciones": calificaciones
+        })
+    
    
     @action(detail=True, methods=['post'])
     def generar_con_ia(self, request, pk=None):
@@ -233,6 +304,10 @@ class LaboratorioProfesorViewSet(ModelViewSet):
 
         return Response({"mensaje": "Contenido generado", "data": LaboratorioProfesorSerializer(lab).data})
     
+
+    # =========================================================
+    # PROGRESO ESTUDIANTE
+    # =========================================================
 
     @action(detail=True, methods=['get'])
     def progreso(self, request, pk=None):

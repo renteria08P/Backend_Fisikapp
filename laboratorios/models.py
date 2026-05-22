@@ -159,6 +159,16 @@ class ProgresoEstudiante(models.Model):
     completada = models.BooleanField(default=False)
     fecha_completado = models.DateField(null=True, blank=True)
 
+    nota = models.FloatField(
+    null=True,
+    blank=True
+    )
+
+    estado = models.CharField(
+    max_length=30,
+    default="En progreso"
+    )
+
     class Meta:
         unique_together = ['estudiante', 'etapa']
 
