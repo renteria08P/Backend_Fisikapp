@@ -92,6 +92,11 @@ urlpatterns = [
     
     # USERS
     path('api/users/', include('users.urls')),
+
+
+    # REPORTES
+    path('api/reportes/', include('reportes.urls')
+),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
