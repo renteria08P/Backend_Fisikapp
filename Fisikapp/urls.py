@@ -102,12 +102,9 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
 
 
-    path('api/laboratorios/generar-ia/', generar_contenido_ia, name='generar_ia'),
-    path('api/laboratorios/generar-actividades/', generar_actividades_ia, name='generar_actividades_ia'),
-    path('api/laboratorios/guardar-actividad/', guardar_actividad, name='guardar_actividad'),
-    path('api/laboratorios/generar-detalle-actividad/', generar_detalle_actividad, name='generar_detalle_actividad'),
-
-   
+    # REPORTES
+    path('api/reportes/', include('reportes.urls')
+),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
