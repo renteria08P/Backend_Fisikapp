@@ -214,7 +214,7 @@ class LaboratorioProfesorViewSet(ModelViewSet):
 
     @action(
         detail=True,
-        methods=['get'],
+        methods=['GET'],
         url_path='progreso-estudiante/(?P<estudiante_id>[^/.]+)'
     )
     def progreso_estudiante(self, request, pk=None, estudiante_id=None):
@@ -264,8 +264,7 @@ class LaboratorioProfesorViewSet(ModelViewSet):
 
             "estudiante": {
                 "id": estudiante.id,
-                "nombre": estudiante.nombre,
-                "correo": estudiante.correo
+                "nombre": estudiante.nombre
             },
 
             "labs_completados": completadas,
