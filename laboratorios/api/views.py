@@ -1,7 +1,6 @@
 import random
 import string
-import os
-import requests 
+
 
 from laboratorios.models import Etapa, ProgresoEstudiante
 from datetime import date
@@ -36,8 +35,7 @@ from laboratorios.models import (
     LaboratorioProfesor,
     Etapa,              # ← NUEVO
     ProgresoEstudiante,
-    ActividadLaboratorio,  # ← agrega
-    DetalleActividad 
+    
 )
 
 from .serializers import (
@@ -47,8 +45,7 @@ from .serializers import (
     PalabraClaveSerializer,
     ObjetivoSerializer,
     LaboratorioProfesorSerializer,
-    ActividadLaboratorioSerializer,  # ← agrega
-    DetalleActividadSerializer
+   
 )
 
 
@@ -211,31 +208,7 @@ class LaboratorioProfesorViewSet(ModelViewSet):
         return Response(estudiantes)
     
    
-    @action(detail=True, methods=['post'])
-    def generar_con_ia(self, request, pk=None):
-        lab = self.get_object()
     
-        try:
-            ia = requests.post(
-                "https://agentes-ia-9heysq.fly.dev/generar-contenido",
-                json={
-                    "categoria": str(lab.categoria),
-                    "objetivo": str(lab.objetivo),
-                    "palabras_clave": str(lab.titulo_lab)
-                },
-                timeout=30
-            ).json()
-        except:
-            return Response({"error": "No se pudo conectar con la IA"}, status=500)
-
-        lab.resumen = ia.get("resumen", "")
-        lab.prologo = ia.get("prologo", "")
-        lab.introduccion = ia.get("introduccion", "")
-        lab.marco_teorico = ia.get("marco_teorico", "")
-        lab.generado_ia = True
-        lab.save()
-
-        return Response({"mensaje": "Contenido generado", "data": LaboratorioProfesorSerializer(lab).data})
     
 
     @action(detail=True, methods=['get'])
@@ -399,180 +372,4 @@ class LaboratorioAdminViewSet(ModelViewSet):
     def get_queryset(self):
         return LaboratorioProfesor.objects.all().order_by('-fecha_actualizacion')
     
-# =========================================================
-# GENERAR CONTENIDO CON IA
-# =========================================================
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def generar_contenido_ia(request):
-    try:
-        campo = request.data.get("campo")
-        categoria = request.data.get("categoria")
-        objetivo = request.data.get("objetivo")
-        palabras_clave = request.data.get("palabras_clave")
-        titulo = request.data.get("titulo", "")
 
-        ia = requests.post(
-            "https://agentes-ia-9heysq.fly.dev/generar-contenido",
-            json={
-                
-                "categoria": categoria,
-                "objetivo": objetivo,
-                "palabras_clave": palabras_clave,
-                "titulo":titulo
-            },
-            timeout=30
-        ).json()
-
-        return Response({
-            "campo": campo,
-            "contenido": ia.get(campo, "")
-        })
-    except:
-        return Response({"error": "No se pudo conectar con la IA"}, status=500)
-    
-
-
-# =========================================================
-# GENERAR 3 ACTIVIDADES CON IA
-# =========================================================
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def generar_actividades_ia(request):
-    try:
-        laboratorio_id = request.data.get("laboratorio_id")
-        laboratorio = LaboratorioProfesor.objects.get(id=laboratorio_id)
-
-        ia = requests.post(
-            "https://agentes-ia-9heysq.fly.dev/generar-actividades",
-            json={
-                "titulo": laboratorio.laboratorio.titulo_lab,
-                "categoria": str(laboratorio.laboratorio.categoria),
-                "objetivo": str(laboratorio.laboratorio.objetivo)
-            },
-            timeout=30
-        ).json()
-
-        return Response(ia)
-    except LaboratorioProfesor.DoesNotExist:
-        return Response({"error": "Laboratorio no encontrado"}, status=404)
-    except:
-        return Response({"error": "No se pudo conectar con la IA"}, status=500)
-
-
-# =========================================================
-# GUARDAR ACTIVIDAD ELEGIDA POR EL PROFESOR
-# =========================================================
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def guardar_actividad(request):
-    try:
-        laboratorio_id = request.data.get("laboratorio_id")
-        nivel = request.data.get("nivel")
-        descripcion = request.data.get("descripcion")
-
-        laboratorio = LaboratorioProfesor.objects.get(id=laboratorio_id)
-
-        actividad = ActividadLaboratorio.objects.create(
-            laboratorio=laboratorio,
-            nivel=nivel,
-            descripcion=descripcion,
-            generado_ia=True
-        )
-
-        return Response({
-            "mensaje": "Actividad guardada",
-            "data": ActividadLaboratorioSerializer(actividad).data
-        }, status=201)
-    except LaboratorioProfesor.DoesNotExist:
-        return Response({"error": "Laboratorio no encontrado"}, status=404)
-    except:
-        return Response({"error": "Error al guardar actividad"}, status=500)
-
-
-# =========================================================
-# GENERAR DETALLE DE ACTIVIDAD CON IA
-# =========================================================
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def generar_detalle_actividad(request):
-    try:
-        actividad_id = request.data.get("actividad_id")
-        actividad = ActividadLaboratorio.objects.get(id=actividad_id)
-
-        ia = requests.post(
-            "https://agentes-ia-9heysq.fly.dev/generar-detalle-actividad",
-            json={
-                "titulo": actividad.laboratorio.laboratorio.titulo_lab,
-                "categoria": str(actividad.laboratorio.laboratorio.categoria),
-                "objetivo": str(actividad.laboratorio.laboratorio.objetivo),
-                "nivel": actividad.nivel,
-                "descripcion": actividad.descripcion
-            },
-            timeout=30
-        ).json()
-
-        detalle = DetalleActividad.objects.create(
-            actividad=actividad,
-            objetivo_especifico=ia.get("objetivo_especifico", ""),
-            materiales=ia.get("materiales", []),
-            procedimiento=ia.get("procedimiento", []),
-            formula=ia.get("formula", ""),
-            tiempo_estimado=ia.get("tiempo_estimado", "")
-        )
-
-        return Response({
-            "mensaje": "Detalle generado y guardado",
-            "data": DetalleActividadSerializer(detalle).data
-        }, status=201)
-    except ActividadLaboratorio.DoesNotExist:
-        return Response({"error": "Actividad no encontrada"}, status=404)
-    except:
-        return Response({"error": "Error al generar detalle"}, status=500)
-    
-
-# =========================================================
-# VISTA ESTUDIANTE - CONTENIDO DEL LABORATORIO
-# =========================================================
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def contenido_estudiante(request, laboratorio_id):
-    try:
-        laboratorio = LaboratorioProfesor.objects.get(id=laboratorio_id)
-        
-        inscrito = Inscripcion.objects.filter(
-            usuario=request.user,
-            laboratorio=laboratorio
-        ).exists()
-
-        if not inscrito:
-            return Response(
-                {"error": "No estás inscrito en este laboratorio"},
-                status=403
-            )
-
-        actividad = ActividadLaboratorio.objects.filter(
-            laboratorio=laboratorio
-        ).first()
-
-        detalle = None
-        if actividad:
-            try:
-                detalle = DetalleActividadSerializer(actividad.detalle).data
-            except:
-                detalle = None
-
-        return Response({
-            "laboratorio": laboratorio.laboratorio.titulo_lab,
-            "resumen": laboratorio.resumen,
-            "introduccion": laboratorio.introduccion,
-            "marco_teorico": laboratorio.marco_teorico,
-            "actividad": {
-                "nivel": actividad.nivel if actividad else None,
-                "descripcion": actividad.descripcion if actividad else None,
-            },
-            "detalle": detalle
-        })
-
-    except LaboratorioProfesor.DoesNotExist:
-        return Response({"error": "Laboratorio no encontrado"}, status=404)

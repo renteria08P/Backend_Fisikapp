@@ -4,12 +4,12 @@ from django.urls import path
 
 from .views import (
     LaboratorioAdminViewSet,
-    generar_contenido_ia,
     LaboratorioViewSet,
     CategoriaViewSet,
     PalabraClaveViewSet,
     ObjetivoViewSet,
-    LaboratorioProfesorViewSet
+    LaboratorioProfesorViewSet,
+
 )
 
 # =========================================================
@@ -59,12 +59,7 @@ router.register(
 # =========================================================
 urlpatterns = [
 
-    # IA
-    path(
-        'generar-ia/',
-        generar_contenido_ia,
-        name='generar_ia'
-    ),
+   
 
 ]
 

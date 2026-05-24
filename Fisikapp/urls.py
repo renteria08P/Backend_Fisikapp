@@ -32,11 +32,7 @@ from laboratorios.api.router import router
 from laboratorios.api.views import (
     MisLaboratoriosView,
     inscribir_usuario,
-    generar_contenido_ia,
-    generar_actividades_ia,
-    guardar_actividad,
-    generar_detalle_actividad,
-    contenido_estudiante
+    
 )
 
 from django.conf import settings
@@ -96,7 +92,7 @@ urlpatterns = [
         name='inscribir_usuario'
     ),
 
-    path('api/laboratorios/<int:laboratorio_id>/contenido-estudiante/', contenido_estudiante, name='contenido_estudiante'),
+   
 
     # USERS
     path('api/users/', include('users.urls')),
