@@ -55,11 +55,9 @@ class HistorialReporteSerializer(serializers.ModelSerializer):
                 "correo": estudiante.correo
             })
 
-        return {
-            "resumen_nombres": ", ".join(nombres),
+            return {
             "lista_detallada": lista
         }
-
     # ======================================
     # PDF ESTUDIANTE
     # ======================================
