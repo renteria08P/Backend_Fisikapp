@@ -317,7 +317,6 @@ class MisLaboratoriosView(APIView):
 
         return Response(serializer.data)
     
-
 # =========================================================
 # INSCRIBIR USUARIO POR CODIGO
 # =========================================================
@@ -339,7 +338,6 @@ def inscribir_usuario(request):
             status=404
         )
 
-    # EVITAR INSCRIPCIONES DUPLICADAS
     existe = Inscripcion.objects.filter(
         usuario=request.user,
         laboratorio=laboratorio
@@ -358,9 +356,15 @@ def inscribir_usuario(request):
         fecha_inscripcion=date.today()
     )
 
-    serializer = InscripcionSerializer(inscripcion)
-
-    return Response(serializer.data, status=201)
+    return Response({
+    "mensaje": "Inscripción exitosa",
+    "redirect_to": f"/laboratorio/{laboratorio.id}",
+    "laboratorio": {
+        "id": laboratorio.id,
+        "titulo": laboratorio.laboratorio.titulo_lab,
+        "codigo": laboratorio.codigo_lab
+    }
+}, status=201)
 
 # =========================================================
 # LABORATORIOS - ADMIN
