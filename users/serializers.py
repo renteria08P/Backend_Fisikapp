@@ -8,6 +8,11 @@ class UsersSerializer(serializers.ModelSerializer):
     foto_url = serializers.SerializerMethodField()
     foto = serializers.ImageField(required=False, allow_null=True)
 
+    # NUEVOS CAMPOS
+    embedded = serializers.JSONField(required=False, allow_null=True)
+    autorizacion_datos = serializers.BooleanField(required=False)
+
+
     class Meta:
         model = Users
         fields = [
@@ -22,11 +27,17 @@ class UsersSerializer(serializers.ModelSerializer):
             'institucion',
             'foto',
             'foto_url',
+            'embedded',
+            'autorizacion_datos',
             'last_login',
         ]
 
         extra_kwargs = {
-            'password': {'write_only': True},
+
+            'nombre': {'required': False},
+            'correo': {'required': False},
+            'password': {'write_only': True, 'required': False},
+
             'rol': {'read_only': True},
             'last_login': {'read_only': True},
         }

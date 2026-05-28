@@ -64,6 +64,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     )
     correo = models.EmailField(unique=True)
     institucion = models.CharField(max_length=100, null=True, blank=True)
+    embedded = models.JSONField(null=True, blank=True)
 
     # Campo clave de roles
     rol = models.CharField(max_length=20, choices=ROLES, default='estudiante')
