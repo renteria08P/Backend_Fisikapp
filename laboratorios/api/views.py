@@ -74,7 +74,7 @@ class LaboratorioViewSet(ModelViewSet):
 
     # Filtros, búsqueda y ordenamiento
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['categoria', 'objetivo', 'creador', 'estado', 'ra']
+    filterset_fields = ['categoria', 'objetivo', 'creador', 'estado']
     search_fields = ['titulo_lab', 'resumen', 'introduccion', 'marco_teorico']
     ordering_fields = ['titulo_lab', 'fecha_creacion', 'fecha_actualizacion']
     ordering = ['fecha_creacion']  # orden por defecto
@@ -207,9 +207,7 @@ class LaboratorioProfesorViewSet(ModelViewSet):
 
         return Response(estudiantes)
     
-   
-    
-    
+
 
     @action(detail=True, methods=['get'])
     def progreso(self, request, pk=None):

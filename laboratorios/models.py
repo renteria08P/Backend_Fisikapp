@@ -45,7 +45,6 @@ class PalabraClave(models.Model):
 
 class Laboratorio(models.Model):
     titulo_lab = models.CharField(max_length=200)
-    codigo_lab = models.CharField(max_length=50, unique=True)
 
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     creador = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='laboratorios_creados')
@@ -59,7 +58,6 @@ class Laboratorio(models.Model):
     marco_teorico = models.TextField()
 
     estado = models.BooleanField(default=True)
-    ra = models.BooleanField(default=False)
 
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
@@ -124,6 +122,7 @@ class LaboratorioProfesor(models.Model):
     estado = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    simulacion = models.BooleanField(default=False)
 
 
     
