@@ -1,7 +1,6 @@
 import random
 import string
 
-
 from laboratorios.models import Etapa, ProgresoEstudiante
 from datetime import date
 from rest_framework.viewsets import ModelViewSet
@@ -32,8 +31,7 @@ from laboratorios.models import (
     Categoria,
     PalabraClave,
     Objetivo,
-    LaboratorioProfesor,
-    Etapa,              # ← NUEVO
+    Etapa,              
     ProgresoEstudiante,
     
 )
@@ -111,10 +109,11 @@ class LaboratorioViewSet(ModelViewSet):
 # =========================================================
 # LABORATORIO PROFESOR
 # =========================================================
-
 class LaboratorioProfesorViewSet(ModelViewSet):
 
-    queryset = LaboratorioProfesor.objects.all()
+    queryset = Laboratorio.objects.filter(
+        id_padre__isnull=False
+    )
 
     serializer_class = LaboratorioProfesorSerializer
 
@@ -134,7 +133,7 @@ class LaboratorioProfesorViewSet(ModelViewSet):
 
     search_fields = [
         'codigo_lab',
-        'laboratorio__titulo_lab'
+        'titulo_lab'
     ]
 
     ordering_fields = [
@@ -143,7 +142,6 @@ class LaboratorioProfesorViewSet(ModelViewSet):
     ]
 
     ordering = ['-fecha_creacion']
-
 
     def generar_codigo(self):
 
@@ -156,27 +154,35 @@ class LaboratorioProfesorViewSet(ModelViewSet):
                 )
             )
 
-            if not LaboratorioProfesor.objects.filter(
+            if not Laboratorio.objects.filter(
                 codigo_lab=codigo
             ).exists():
 
                 return codigo
             
-
     def perform_create(self, serializer):
 
-        laboratorio = serializer.validated_data['laboratorio']
+        laboratorio_base = serializer.validated_data['id_padre']
 
-        serializer.save(
+        nuevo_laboratorio = serializer.save(
             profesor=self.request.user,
             codigo_lab=self.generar_codigo(),
 
-            # COPIA AUTOMÁTICA
-            resumen=laboratorio.resumen,
-            prologo=laboratorio.prologo,
-            introduccion=laboratorio.introduccion,
-            marco_teorico=laboratorio.marco_teorico,
+            titulo_lab=laboratorio_base.titulo_lab,
+            categoria=laboratorio_base.categoria,
+            objetivo=laboratorio_base.objetivo,
+            creador=laboratorio_base.creador,
+
+            resumen=laboratorio_base.resumen,
+            prologo=laboratorio_base.prologo,
+            introduccion=laboratorio_base.introduccion,
+            marco_teorico=laboratorio_base.marco_teorico,
         )
+
+    # Copiar palabras clave
+        nuevo_laboratorio.palabras_clave.set(
+            laboratorio_base.palabras_clave.all()
+    )
 
     @action(detail=False, methods=['get'])
     def mis_laboratorios(self, request):
@@ -207,7 +213,6 @@ class LaboratorioProfesorViewSet(ModelViewSet):
 
         return Response(estudiantes)
     
-
 
     @action(detail=True, methods=['get'])
     def progreso(self, request, pk=None):
@@ -295,6 +300,7 @@ class LaboratorioProfesorViewSet(ModelViewSet):
             "creados": creados,
             "errores": errores
         })
+
 # =========================================================
 # LABORATORIOS PROFESOR
 # =========================================================
@@ -302,10 +308,12 @@ class MisLaboratoriosView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+
         usuario = request.user
 
-        laboratorios = LaboratorioProfesor.objects.filter(
-            profesor=usuario
+        laboratorios = Laboratorio.objects.filter(
+            profesor=usuario,
+            id_padre__isnull=False
         ).order_by('-fecha_actualizacion')
 
         serializer = LaboratorioProfesorSerializer(
@@ -314,7 +322,7 @@ class MisLaboratoriosView(APIView):
         )
 
         return Response(serializer.data)
-    
+
 # =========================================================
 # INSCRIBIR USUARIO POR CODIGO
 # =========================================================
@@ -325,11 +333,11 @@ def inscribir_usuario(request):
     codigo = request.data.get('codigo_lab')
 
     try:
-        laboratorio = LaboratorioProfesor.objects.get(
+        laboratorio = Laboratorio.objects.get(
             codigo_lab=codigo
         )
 
-    except LaboratorioProfesor.DoesNotExist:
+    except Laboratorio.DoesNotExist:
 
         return Response(
             {"error": "Código inválido"},
@@ -348,21 +356,24 @@ def inscribir_usuario(request):
             status=400
         )
 
-    inscripcion = Inscripcion.objects.create(
+    Inscripcion.objects.create(
         usuario=request.user,
         laboratorio=laboratorio,
         fecha_inscripcion=date.today()
     )
 
-    return Response({
-    "mensaje": "Inscripción exitosa",
-    "redirect_to": f"/laboratorio/{laboratorio.id}",
-    "laboratorio": {
-        "id": laboratorio.id,
-        "titulo": laboratorio.laboratorio.titulo_lab,
-        "codigo": laboratorio.codigo_lab
-    }
-}, status=201)
+    return Response(
+        {
+            "mensaje": "Inscripción exitosa",
+            "redirect_to": f"/laboratorio/{laboratorio.id}",
+            "laboratorio": {
+                "id": laboratorio.id,
+                "titulo": laboratorio.titulo_lab,
+                "codigo": laboratorio.codigo_lab
+            }
+        },
+        status=201
+    )
 
 # =========================================================
 # LABORATORIOS - ADMIN
@@ -372,6 +383,6 @@ class LaboratorioAdminViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, IsAdminOrSuperAdmin]
 
     def get_queryset(self):
-        return LaboratorioProfesor.objects.all().order_by('-fecha_actualizacion')
-    
-
+        return Laboratorio.objects.filter(
+            id_padre__isnull=False
+        ).order_by('-fecha_actualizacion')
