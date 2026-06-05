@@ -139,66 +139,6 @@ class Laboratorio(models.Model):
     def __str__(self):
         return self.titulo_lab
 
-
-# =========================================================
-# LABORATORIO PROFESOR -- CON CODIGO
-# =========================================================
-
-class LaboratorioProfesor(models.Model):
-
-    laboratorio = models.ForeignKey(
-        Laboratorio,
-        on_delete=models.CASCADE,
-        related_name='profesores'
-    )
-
-    profesor = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='laboratorios_profesor'
-    )
-
-    codigo_lab = models.CharField(
-        max_length=10,
-        unique=True
-    )
-
-    # COPIA EDITABLE
-    resumen = models.TextField()
-
-    prologo = models.TextField(
-        null=True,
-        blank=True
-    )
-
-    introduccion = models.TextField()
-
-    marco_teorico = models.TextField()
-
-    recursos = models.ManyToManyField(
-        'contenido.Recursos',
-        blank=True
-    )
-
-    grado = models.CharField(
-        max_length=25,
-        null=True,
-        blank=True
-    )
-
-    jornada = models.CharField(
-        max_length=25,
-        null=True,
-        blank=True
-    )
-
-    generado_ia = models.BooleanField(default=False)
-    estado = models.BooleanField(default=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
-    simulacion = models.BooleanField(default=False)
-
-
 # =========================================================
 # ETAPAS DEL LABORATORIO
 # =========================================================

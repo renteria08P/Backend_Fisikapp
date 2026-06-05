@@ -84,6 +84,7 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
             'profesor',
             'titulo_lab',
             'categoria',
+            'palabras_clave',
             'objetivo',
             'creador',
             'resumen',

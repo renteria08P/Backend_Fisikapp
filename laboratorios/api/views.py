@@ -1,8 +1,6 @@
 import random
 import string
 
-from laboratorios.models import Etapa, ProgresoEstudiante
-from datetime import date
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -179,10 +177,10 @@ class LaboratorioProfesorViewSet(ModelViewSet):
             marco_teorico=laboratorio_base.marco_teorico,
         )
 
-    # Copiar palabras clave
+        # Copiar palabras clave
         nuevo_laboratorio.palabras_clave.set(
             laboratorio_base.palabras_clave.all()
-    )
+        )
 
     @action(detail=False, methods=['get'])
     def mis_laboratorios(self, request):
