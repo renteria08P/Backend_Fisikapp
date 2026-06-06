@@ -1,8 +1,7 @@
 from django.db import models
 from django.conf import settings
 
-from laboratorios.models import LaboratorioProfesor
-
+from laboratorios.models import Laboratorio
 
 class ReporteLaboratorio(models.Model):
 
@@ -11,8 +10,8 @@ class ReporteLaboratorio(models.Model):
         ('Pendiente', 'Pendiente'),
     )
 
-    laboratorio_profesor = models.ForeignKey(
-        LaboratorioProfesor,
+    laboratorio = models.ForeignKey(
+        Laboratorio,
         on_delete=models.CASCADE,
         related_name='reportes'
     )
@@ -53,5 +52,4 @@ class ReporteLaboratorio(models.Model):
     )
 
     def __str__(self):
-
-        return f"{self.laboratorio_profesor.codigo_lab}"
+        return f"Reporte - {self.laboratorio.titulo_lab}"

@@ -44,52 +44,29 @@ class PalabraClave(models.Model):
 # =========================================================
 
 class Laboratorio(models.Model):
+
     titulo_lab = models.CharField(max_length=200)
 
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-    creador = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='laboratorios_creados')
-    objetivo = models.ForeignKey(Objetivo, on_delete=models.CASCADE)
-
-    palabras_clave = models.ManyToManyField(PalabraClave)
-
-    resumen = models.TextField()
-    prologo = models.TextField(null=True, blank=True)
-    introduccion = models.TextField()
-    marco_teorico = models.TextField()
-
-    estado = models.BooleanField(default=True)
-
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.titulo_lab
-
-
-# =========================================================
-# LABORATORIO PROFESOR -- CON CODIGO
-# =========================================================
-
-class LaboratorioProfesor(models.Model):
-
-    laboratorio = models.ForeignKey(
-        Laboratorio,
-        on_delete=models.CASCADE,
-        related_name='profesores'
+    categoria = models.ForeignKey(
+        Categoria,
+        on_delete=models.CASCADE
     )
 
-    profesor = models.ForeignKey(
+    creador = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='laboratorios_profesor'
+        related_name='laboratorios_creados'
     )
 
-    codigo_lab = models.CharField(
-        max_length=10,
-        unique=True
+    objetivo = models.ForeignKey(
+        Objetivo,
+        on_delete=models.CASCADE
     )
 
-    # COPIA EDITABLE
+    palabras_clave = models.ManyToManyField(
+        PalabraClave
+    )
+
     resumen = models.TextField()
 
     prologo = models.TextField(
@@ -101,9 +78,34 @@ class LaboratorioProfesor(models.Model):
 
     marco_teorico = models.TextField()
 
-    recursos = models.ManyToManyField(
-        'contenido.Recursos',
-        blank=True
+    estado = models.BooleanField(default=True)
+
+    # =====================================
+    # NUEVOS CAMPOS PARA RELACIÓN REFLEXIVA
+    # =====================================
+
+    id_padre = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='copias'
+    )
+
+    profesor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='laboratorios_asignados'
+    )
+
+    codigo_lab = models.CharField(
+        max_length=10,
+        unique=True,
+        null=True,
+        blank=True,
+        default=None
     )
 
     grado = models.CharField(
@@ -118,21 +120,31 @@ class LaboratorioProfesor(models.Model):
         blank=True
     )
 
-    generado_ia = models.BooleanField(default=False)
-    estado = models.BooleanField(default=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
-    simulacion = models.BooleanField(default=False)
+    simulacion = models.BooleanField(
+        default=False
+    )
 
+    generado_ia = models.BooleanField(
+        default=False
+    )
 
-    
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True
+    )
+
+    def __str__(self):
+        return self.titulo_lab
 
 # =========================================================
 # ETAPAS DEL LABORATORIO
 # =========================================================
 class Etapa(models.Model):
     laboratorio = models.ForeignKey(
-        LaboratorioProfesor,
+        Laboratorio,
         on_delete=models.CASCADE,
         related_name='etapas'
     )
@@ -178,10 +190,11 @@ class ActividadLaboratorio(models.Model):
     ]
 
     laboratorio = models.ForeignKey(
-        LaboratorioProfesor,
+        Laboratorio,
         on_delete=models.CASCADE,
         related_name='actividades'
     )
+    
     nivel = models.CharField(max_length=20, choices=NIVELES)
     descripcion = models.TextField()
     generado_ia = models.BooleanField(default=True)

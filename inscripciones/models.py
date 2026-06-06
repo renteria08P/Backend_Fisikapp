@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 
+
 class Inscripcion(models.Model):
 
     usuario = models.ForeignKey(
@@ -9,7 +10,7 @@ class Inscripcion(models.Model):
     )
 
     laboratorio = models.ForeignKey(
-        'laboratorios.LaboratorioProfesor',
+        'laboratorios.Laboratorio',
         on_delete=models.CASCADE
     )
 

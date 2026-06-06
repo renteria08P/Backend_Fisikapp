@@ -4,35 +4,50 @@ from laboratorios.models import (
     Categoria,
     PalabraClave,
     Objetivo,
-    LaboratorioProfesor,
-    ActividadLaboratorio,  
-    DetalleActividad 
+    ActividadLaboratorio,
+    DetalleActividad
 )
 
 
+# =========================================================
+# CATEGORIA
+# =========================================================
 class CategoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Categoria
         fields = '__all__'
 
 
+# =========================================================
+# OBJETIVO
+# =========================================================
 class ObjetivoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Objetivo
         fields = '__all__'
 
 
+# =========================================================
+# PALABRAS CLAVE
+# =========================================================
 class PalabraClaveSerializer(serializers.ModelSerializer):
     class Meta:
         model = PalabraClave
         fields = '__all__'
 
-# ======================================
+
+# =========================================================
 # LABORATORIO BASE
-# ======================================
+# =========================================================
 class LaboratorioSerializer(serializers.ModelSerializer):
-    creador = serializers.PrimaryKeyRelatedField(read_only=True)
-    codigo_lab = serializers.CharField(read_only=True)
+
+    creador = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+
+    codigo_lab = serializers.CharField(
+        read_only=True
+    )
 
     class Meta:
         model = Laboratorio
@@ -44,64 +59,75 @@ class LaboratorioSerializer(serializers.ModelSerializer):
                 "El código debe tener al menos 5 caracteres"
             )
         return value
-    
+
 
 # =========================================================
 # LABORATORIO PROFESOR
 # =========================================================
-
 class LaboratorioProfesorSerializer(serializers.ModelSerializer):
 
-    profesor_nombre = serializers.CharField(source='profesor.nombre', read_only=True)
+    id_padre = serializers.PrimaryKeyRelatedField(
+        queryset=Laboratorio.objects.all()
+    )
+
+    profesor_nombre = serializers.CharField(
+        source='profesor.nombre',
+        read_only=True
+    )
 
     class Meta:
-        model = LaboratorioProfesor
+        model = Laboratorio
         fields = '__all__'
+
         read_only_fields = [
-            'codigo_lab'
+            'codigo_lab',
+            'profesor',
+            'titulo_lab',
+            'categoria',
+            'palabras_clave',
+            'objetivo',
+            'creador',
+            'resumen',
+            'prologo',
+            'introduccion',
+            'marco_teorico',
+            'fecha_creacion',
+            'fecha_actualizacion'
         ]
 
-    profesor = serializers.PrimaryKeyRelatedField(
-        read_only=True
-    )
 
-    codigo_lab = serializers.CharField(
-        read_only=True
-    )
+# =========================================================
+# ADMIN - LABORATORIOS PROFESOR
+# =========================================================
+class LaboratorioProfesorAdminSerializer(serializers.ModelSerializer):
 
-    # MOSTRAR DATOS DEL LABORATORIO BASE
-    titulo_lab = serializers.CharField(
-        source='laboratorio.titulo_lab',
+    titulo = serializers.CharField(
+        source="titulo_lab",
         read_only=True
     )
 
     categoria = serializers.CharField(
-        source='laboratorio.categoria.nombre',
+        source="categoria.nombre",
         read_only=True
     )
 
-    resumen = serializers.CharField(required=False)
-    prologo = serializers.CharField(required=False)
-    introduccion = serializers.CharField(required=False)
-    marco_teorico = serializers.CharField(required=False)
+    creador = serializers.CharField(
+        source="profesor.nombre",
+        read_only=True
+    )
 
-# =========================================================
-# ADMIN - LABORATORIO
-# =========================================================
-class LaboratorioProfesorAdminSerializer(serializers.ModelSerializer):
+    estado = serializers.BooleanField(
+        read_only=True
+    )
 
-    titulo = serializers.CharField(source="laboratorio.titulo_lab", read_only=True)
-
-    categoria = serializers.CharField(source="laboratorio.categoria.nombre", read_only=True)
-
-    creador = serializers.CharField(source="profesor.nombre", read_only=True)
-
-    estado = serializers.BooleanField(read_only=True)
-
-    ultimo_ingreso = serializers.DateTimeField(source="fecha_actualizacion", read_only=True)
+    ultimo_ingreso = serializers.DateTimeField(
+        source="fecha_actualizacion",
+        read_only=True
+    )
 
     class Meta:
-        model = LaboratorioProfesor
+        model = Laboratorio
+
         fields = [
             "titulo",
             "categoria",
@@ -109,23 +135,30 @@ class LaboratorioProfesorAdminSerializer(serializers.ModelSerializer):
             "estado",
             "ultimo_ingreso"
         ]
-        
+
 
 # =========================================================
 # ACTIVIDAD LABORATORIO
 # =========================================================
 class ActividadLaboratorioSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = ActividadLaboratorio
         fields = '__all__'
-        read_only_fields = ['generado_ia', 'fecha_creacion']
+        read_only_fields = [
+            'generado_ia',
+            'fecha_creacion'
+        ]
 
 
 # =========================================================
 # DETALLE ACTIVIDAD
 # =========================================================
 class DetalleActividadSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = DetalleActividad
         fields = '__all__'
-        read_only_fields = ['fecha_creacion']
+        read_only_fields = [
+            'fecha_creacion'
+        ]
