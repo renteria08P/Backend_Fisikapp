@@ -1,27 +1,46 @@
 """
 URL configuration for Fisikapp project.
-"""
 
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/6.0/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
 from django.contrib import admin
-from django.urls import path, include
+
+from django.urls import include, path
+
+
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from informes.routers import router as informes_router
+from notificaciones.routers import router as notificaciones_router
+from django.http import HttpResponse
 
-# Routers de develop
-from laboratorios.api.router import (
-    router_laboratorios,
-    router_categorias,
-    router_palabras,
-    router_objetivos
+
+from laboratorios.api.router import router 
+
+from laboratorios.api.views import (
+    MisLaboratoriosView,
+    inscribir_usuario,
+    
 )
 
-from informes import routers
-
+from django.conf import settings
+from django.conf.urls.static import static
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="API Fisikapp",
+      title="Snippets API",
       default_version='v1',
       description="Test description",
       terms_of_service="https://www.google.com/policies/terms/",
@@ -33,7 +52,12 @@ schema_view = get_schema_view(
 )
 
 
+
+def home(request): 
+    return HttpResponse("Backend funcionando 🚀")
+
 urlpatterns = [
+    path('', home),
     path('admin/', admin.site.urls),
 
     # Swagger
@@ -43,18 +67,40 @@ urlpatterns = [
 
     path("api-auth/", include("rest_framework.urls")),
 
-    # TU APP (inscripciones) ✅
+    # TUS APPS
     path('api/', include('inscripciones.urls')),
+    path('api/contenido/', include('contenido.urls')),
 
-    # Rutas de develop ✅
-    path('informes/', include(routers.router_informes.urls)),
-    path('resultados/', include(routers.router_resultados.urls)),
-    path('laboratorios/', include(router_laboratorios.urls)),
-    path('categorias/', include(router_categorias.urls)),
-    path('palabras-clave/', include(router_palabras.urls)),
-    path('objetivos/', include(router_objetivos.urls)),
+    #  INFORMES
+    path('api/informes/', include(informes_router.urls)),
+
+   # NOTIFICACIONES
+    path('api/', include(notificaciones_router.urls)),
+
+   # LABORATORIOS
+    path(
+        'api/laboratorio-profesor/mis_laboratorios/',
+        MisLaboratoriosView.as_view(),
+        name='mis-laboratorios'
+    ),
+
+    path('api/', include(router.urls)),
+
+    path(
+        'api/inscribir/',
+        inscribir_usuario,
+        name='inscribir_usuario'
+    ),
+
+   
+
+    # USERS
     path('api/users/', include('users.urls')),
-    
+
+
+    # REPORTES
+    path('api/reportes/', include('reportes.urls')
+),
 ]
 
-
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

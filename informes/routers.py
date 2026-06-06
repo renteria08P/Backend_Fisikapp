@@ -1,8 +1,14 @@
 from rest_framework.routers import DefaultRouter
-from .views import InformeViewSet, ResultadoViewSet
+from .views import (
+    InformeViewSet,
+    ResultadoViewSet,
+    ConclusionesViewSet,
+    RecomendacionesViewSet
+)
 
-router_informes = DefaultRouter()
-router_informes.register(r'informes', InformeViewSet, basename='informes')
+router = DefaultRouter()
 
-router_resultados = DefaultRouter()
-router_resultados.register(r'resultados', ResultadoViewSet, basename='resultados')
+router.register('informes', InformeViewSet)
+router.register('resultados', ResultadoViewSet)
+router.register('conclusiones', ConclusionesViewSet)
+router.register('recomendaciones', RecomendacionesViewSet)

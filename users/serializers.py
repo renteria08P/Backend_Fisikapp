@@ -1,18 +1,166 @@
 from rest_framework import serializers
 from .models import Users
-from django.contrib.auth.hashers import make_password
-from rest_framework import serializers
+import re
+
 
 class UsersSerializer(serializers.ModelSerializer):
+
+    foto_url = serializers.SerializerMethodField()
+    foto = serializers.ImageField(required=False, allow_null=True)
+
+    # NUEVOS CAMPOS
+    embedded = serializers.JSONField(required=False, allow_null=True)
+    autorizacion_datos = serializers.BooleanField(required=False)
+
+
     class Meta:
         model = Users
-        fields = '__all__'
+        fields = [
+            'id',
+            'nombre',
+            'correo',
+            'password',
+            'rol',
+            'estado',
+            'fecha_nacimiento',
+            'identificacion',
+            'institucion',
+            'foto',
+            'foto_url',
+            'embedded',
+            'autorizacion_datos',
+            'last_login',
+        ]
 
+        extra_kwargs = {
+
+            'nombre': {'required': False},
+            'correo': {'required': False},
+            'password': {'write_only': True, 'required': False},
+
+            'rol': {'read_only': True},
+            'last_login': {'read_only': True},
+        }
+
+    # =====================================================
+    # FOTO URL
+    # =====================================================
+    def get_foto_url(self, obj):
+        if obj.foto:
+            return obj.foto.url
+
+        return "https://res.cloudinary.com/dyirgkxjq/image/upload/v1/default_avatar.png"
+
+    # =====================================================
+    # VALIDAR CORREO
+    # =====================================================
+    def validate_correo(self, value):
+        value = value.lower()
+
+        qs = Users.objects.filter(correo=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise serializers.ValidationError("El correo ya existe")
+
+        return value
+
+    # =====================================================
+    # VALIDAR IDENTIFICACIÓN
+    # =====================================================
+    def validate_identificacion(self, value):
+
+        value = str(value).strip()
+
+        if value in ["", "null", "None"]:
+            return None
+
+        query = Users.objects.filter(identificacion=value)
+
+    # Si es actualización
+        if self.instance:
+            if self.instance.identificacion == value:
+                return value
+
+            query = query.exclude(pk=self.instance.pk)
+
+        if query.exists():
+            raise serializers.ValidationError(
+                "La identificación ya existe"
+        )
+
+        return value
+    # =================
+    # =====================================================
+    # VALIDAR PASSWORD
+    # =====================================================
+    def validate_password(self, value):
+
+        if len(value) < 8:
+            raise serializers.ValidationError(
+                "La contraseña debe tener mínimo 8 caracteres."
+            )
+
+        if not re.search(r'[A-Z]', value):
+            raise serializers.ValidationError(
+                "Debe contener al menos una mayúscula."
+            )
+
+        if not re.search(r'\d', value):
+            raise serializers.ValidationError(
+                "Debe contener al menos un número."
+            )
+
+        return value
+
+    # =====================================================
+    # CREATE
+    # =====================================================
     def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data['password'])
-        return super().create(validated_data)
-    
-   
+        password = validated_data.pop('password')
+
+        user = Users(**validated_data)
+        user.set_password(password)
+        user.save()
+
+        return user
+
+    # =====================================================
+    # UPDATE
+    # =====================================================
+    def update(self, instance, validated_data):
+
+        password = validated_data.pop('password', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
+
+
+# =========================================================
+# LOGIN
+# =========================================================
+
 class LoginSerializer(serializers.Serializer):
     correo = serializers.EmailField()
     password = serializers.CharField()
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
+    new_password = serializers.CharField()
+    confirmar_password = serializers.CharField()
+
+
+class RecuperarPasswordSerializer(serializers.Serializer):
+    correo = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField()

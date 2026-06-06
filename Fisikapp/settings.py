@@ -11,6 +11,22 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
+import cloudinary
+from dotenv import load_dotenv
+import ssl
+import certifi
+import os 
+from dotenv import load_dotenv
+from django.contrib import admin
+from django.urls import path, include
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+
+load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,13 +36,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l+aw(&2l5p^y-qelo(e)^n&fuh&_r*8f7mh@5h6j7*8543@-qg'
+SECRET_KEY = "django-insecure-l+aw(&2l5p^y-qelo(e)^n&fuh&_r*8f7mh@5h6j7*8543@-qg"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ 
+ALLOWED_HOSTS = ['*']
 
-ALLOWED_HOSTS = []
-
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Application definition
 
@@ -37,22 +56,36 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
     'drf_yasg',
+    'reportes',
 
-  
+    'rest_framework_simplejwt',  
+
     'laboratorios',
     'inscripciones',
     'informes',
     'notificaciones',
-    'logs',
-
-  
+    'parametros',
     'users',
     'rest_framework',
+    'contenido',
+    'corsheaders',
+
+    
 ]
+AUTH_USER_MODEL = 'users.Users'
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),   
+}
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -66,7 +99,7 @@ ROOT_URLCONF = 'Fisikapp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -84,10 +117,16 @@ WSGI_APPLICATION = 'Fisikapp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+import os
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('PGDATABASE'),
+        'USER': os.environ.get('PGUSER'),
+        'PASSWORD': os.environ.get('PGPASSWORD'),
+        'HOST': os.environ.get('PGHOST'),
+        'PORT': os.environ.get('PGPORT'),
     }
 }
 
@@ -114,7 +153,17 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,  # número de resultados por página
 }
+
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -131,7 +180,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
 
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
@@ -143,3 +191,43 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+
+# codigo para que funcione los cors con frone 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# ==============================
+# CONFIGURACIÓN DE CORREO (SendGrid)
+# ==============================
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'apikey'  # Esto debe decir 'apikey' literalmente
+EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY")  # Toma la llave de tu .env
+
+# El remitente que configuraste en SendGrid
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "fisikapp7@gmail.com")
+
+# =========================
+# SSL FIX 
+# =========================
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
+
+
+#CLOUDINARY
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    secure=True
+)
+
