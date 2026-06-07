@@ -7,8 +7,9 @@ from .views import (
     LaboratorioViewSet,
     CategoriaViewSet,
     PalabraClaveViewSet,
-    ObjetivoViewSet,
     LaboratorioProfesorViewSet,
+    ObjetivoGeneralViewSet,
+    ObjetivoEspecificoViewSet
 
 )
 
@@ -36,9 +37,15 @@ router.register(
 )
 
 router.register(
-    r'objetivos',
-    ObjetivoViewSet,
-    basename='objetivos'
+    r'objetivos-generales',
+    ObjetivoGeneralViewSet,
+    basename='objetivos-generales'
+)
+
+router.register(
+    r'objetivos-especificos',
+    ObjetivoEspecificoViewSet,
+    basename='objetivos-especificos'
 )
 
 router.register(

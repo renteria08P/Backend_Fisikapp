@@ -64,7 +64,6 @@ INSTALLED_APPS = [
 
     'laboratorios',
     'inscripciones',
-    'informes',
     'notificaciones',
     'parametros',
     'users',

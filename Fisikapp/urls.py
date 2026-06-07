@@ -22,7 +22,6 @@ from django.urls import include, path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from informes.routers import router as informes_router
 from notificaciones.routers import router as notificaciones_router
 from django.http import HttpResponse
 
@@ -70,9 +69,6 @@ urlpatterns = [
     # TUS APPS
     path('api/', include('inscripciones.urls')),
     path('api/contenido/', include('contenido.urls')),
-
-    #  INFORMES
-    path('api/informes/', include(informes_router.urls)),
 
    # NOTIFICACIONES
     path('api/', include(notificaciones_router.urls)),

@@ -3,11 +3,9 @@ from laboratorios.models import (
     Laboratorio,
     Categoria,
     PalabraClave,
-    Objetivo,
-    ActividadLaboratorio,
-    DetalleActividad
+    ObjetivoGeneral,
+    ObjetivoEspecifico
 )
-
 
 # =========================================================
 # CATEGORIA
@@ -19,15 +17,6 @@ class CategoriaSerializer(serializers.ModelSerializer):
 
 
 # =========================================================
-# OBJETIVO
-# =========================================================
-class ObjetivoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Objetivo
-        fields = '__all__'
-
-
-# =========================================================
 # PALABRAS CLAVE
 # =========================================================
 class PalabraClaveSerializer(serializers.ModelSerializer):
@@ -35,6 +24,27 @@ class PalabraClaveSerializer(serializers.ModelSerializer):
         model = PalabraClave
         fields = '__all__'
 
+
+# =========================================================
+# OBJETIVOS
+# =========================================================
+class ObjetivoEspecificoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ObjetivoEspecifico
+        fields = '__all__'
+
+
+class ObjetivoGeneralSerializer(serializers.ModelSerializer):
+
+    objetivos_especificos = ObjetivoEspecificoSerializer(
+        many=True,
+        read_only=True
+    )
+
+    class Meta:
+        model = ObjetivoGeneral
+        fields = '__all__'
 
 # =========================================================
 # LABORATORIO BASE
@@ -85,13 +95,13 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
             'titulo_lab',
             'categoria',
             'palabras_clave',
-            'objetivo',
             'creador',
             'resumen',
             'prologo',
             'introduccion',
             'marco_teorico',
             'fecha_creacion',
+            'conceptos_basicos',
             'fecha_actualizacion'
         ]
 
@@ -136,29 +146,3 @@ class LaboratorioProfesorAdminSerializer(serializers.ModelSerializer):
             "ultimo_ingreso"
         ]
 
-
-# =========================================================
-# ACTIVIDAD LABORATORIO
-# =========================================================
-class ActividadLaboratorioSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ActividadLaboratorio
-        fields = '__all__'
-        read_only_fields = [
-            'generado_ia',
-            'fecha_creacion'
-        ]
-
-
-# =========================================================
-# DETALLE ACTIVIDAD
-# =========================================================
-class DetalleActividadSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = DetalleActividad
-        fields = '__all__'
-        read_only_fields = [
-            'fecha_creacion'
-        ]
