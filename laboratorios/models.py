@@ -19,12 +19,32 @@ class Categoria(models.Model):
 # OBJETIVOS
 # =========================================================
 
-class Objetivo(models.Model):
-    tipo_objetivo = models.CharField(max_length=100)
-    descripcion_objetivo = models.TextField()
+class ObjetivoGeneral(models.Model):
+
+    laboratorio = models.OneToOneField(
+        'Laboratorio',
+        on_delete=models.CASCADE,
+        related_name="objetivo_general"
+    )
 
     def __str__(self):
-        return self.tipo_objetivo
+        return self.descripcion[:50]
+
+    descripcion = models.TextField()
+    
+
+class ObjetivoEspecifico(models.Model):
+
+    objetivo_general = models.ForeignKey(
+        ObjetivoGeneral,
+        on_delete=models.CASCADE,
+        related_name="objetivos_especificos"
+    )
+
+    descripcion = models.TextField()
+
+    def __str__(self):
+        return self.descripcion
 
 
 # =========================================================
@@ -58,13 +78,14 @@ class Laboratorio(models.Model):
         related_name='laboratorios_creados'
     )
 
-    objetivo = models.ForeignKey(
-        Objetivo,
-        on_delete=models.CASCADE
-    )
 
     palabras_clave = models.ManyToManyField(
         PalabraClave
+    )
+
+    conceptos_basicos = models.ManyToManyField(
+        'contenido.ConceptosBasicos',
+        blank=True
     )
 
     resumen = models.TextField()
@@ -176,50 +197,3 @@ class ProgresoEstudiante(models.Model):
     def __str__(self):
         return f"{self.estudiante} - {self.etapa}"
     
-
-
-# =========================================================
-# ACTIVIDAD LABORATORIO (GENERADA POR IA)
-# =========================================================
-class ActividadLaboratorio(models.Model):
-
-    NIVELES = [
-        ('Básico', 'Básico'),
-        ('Intermedio', 'Intermedio'),
-        ('Avanzado', 'Avanzado'),
-    ]
-
-    laboratorio = models.ForeignKey(
-        Laboratorio,
-        on_delete=models.CASCADE,
-        related_name='actividades'
-    )
-    
-    nivel = models.CharField(max_length=20, choices=NIVELES)
-    descripcion = models.TextField()
-    generado_ia = models.BooleanField(default=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.laboratorio} - {self.nivel}"
-
-
-# =========================================================
-# DETALLE ACTIVIDAD (GENERADA POR IA)
-# =========================================================
-class DetalleActividad(models.Model):
-
-    actividad = models.OneToOneField(
-        ActividadLaboratorio,
-        on_delete=models.CASCADE,
-        related_name='detalle'
-    )
-    objetivo_especifico = models.TextField()
-    materiales = models.JSONField()
-    procedimiento = models.JSONField()
-    formula = models.TextField(blank=True, null=True)
-    tiempo_estimado = models.CharField(max_length=50)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Detalle de {self.actividad}"

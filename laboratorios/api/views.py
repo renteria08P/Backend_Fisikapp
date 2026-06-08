@@ -28,9 +28,10 @@ from laboratorios.models import (
     Laboratorio,
     Categoria,
     PalabraClave,
-    Objetivo,
     Etapa,              
     ProgresoEstudiante,
+    ObjetivoGeneral,
+    ObjetivoEspecifico
     
 )
 
@@ -39,9 +40,9 @@ from .serializers import (
     LaboratorioSerializer,
     CategoriaSerializer,
     PalabraClaveSerializer,
-    ObjetivoSerializer,
     LaboratorioProfesorSerializer,
-   
+    ObjetivoGeneralSerializer,
+    ObjetivoEspecificoSerializer
 )
 
 
@@ -51,15 +52,20 @@ class CategoriaViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-class ObjetivoViewSet(ModelViewSet):
-    queryset = Objetivo.objects.all()
-    serializer_class = ObjetivoSerializer
-    permission_classes = [IsAuthenticated]
-
-
 class PalabraClaveViewSet(ModelViewSet):
     queryset = PalabraClave.objects.all()
     serializer_class = PalabraClaveSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class ObjetivoGeneralViewSet(ModelViewSet):
+    queryset = ObjetivoGeneral.objects.all()
+    serializer_class = ObjetivoGeneralSerializer
+    permission_classes = [IsAuthenticated]
+
+class ObjetivoEspecificoViewSet(ModelViewSet):
+    queryset = ObjetivoEspecifico.objects.all()
+    serializer_class = ObjetivoEspecificoSerializer
     permission_classes = [IsAuthenticated]
 
 
@@ -70,7 +76,7 @@ class LaboratorioViewSet(ModelViewSet):
 
     # Filtros, búsqueda y ordenamiento
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['categoria', 'objetivo', 'creador', 'estado']
+    filterset_fields = ['categoria', 'creador', 'estado']
     search_fields = ['titulo_lab', 'resumen', 'introduccion', 'marco_teorico']
     ordering_fields = ['titulo_lab', 'fecha_creacion', 'fecha_actualizacion']
     ordering = ['fecha_creacion']  # orden por defecto
@@ -168,7 +174,6 @@ class LaboratorioProfesorViewSet(ModelViewSet):
 
             titulo_lab=laboratorio_base.titulo_lab,
             categoria=laboratorio_base.categoria,
-            objetivo=laboratorio_base.objetivo,
             creador=laboratorio_base.creador,
 
             resumen=laboratorio_base.resumen,
@@ -177,9 +182,12 @@ class LaboratorioProfesorViewSet(ModelViewSet):
             marco_teorico=laboratorio_base.marco_teorico,
         )
 
-        # Copiar palabras clave
         nuevo_laboratorio.palabras_clave.set(
             laboratorio_base.palabras_clave.all()
+        )
+
+        nuevo_laboratorio.conceptos_basicos.set(
+            laboratorio_base.conceptos_basicos.all()
         )
 
     @action(detail=False, methods=['get'])

@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
+from django.conf import settings
 
 # IMPORTANTE: usamos string para evitar errores de import entre apps
 
@@ -46,7 +47,9 @@ class Recursos(models.Model):
 
 class Practicas(models.Model):
     nombre_practica = models.CharField(max_length=100)
-    concepto = models.CharField(max_length=100)
+    conceptos = models.ManyToManyField(
+        ConceptosBasicos
+    )
     objetivo = models.TextField()
     descripcion = models.TextField()
     materiales = models.TextField()
@@ -55,6 +58,35 @@ class Practicas(models.Model):
 
     def __str__(self):
         return self.nombre_practica
+    
+class PracticaEstudiante(models.Model):
+
+    estudiante = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+
+    practica = models.ForeignKey(
+        'contenido.Practicas',
+        on_delete=models.CASCADE
+    )
+
+    estado = models.CharField(
+        max_length=50,
+        default='pendiente'
+    )
+
+    fecha_inicio = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    fecha_entrega = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        unique_together = ['estudiante', 'practica']
 
 
 class Procedimientos(models.Model):

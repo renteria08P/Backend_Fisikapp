@@ -21,9 +21,6 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 
 
-
-# Create your views here.
-
 # =========================
 # CONCEPTOS BASICOS
 # =========================
