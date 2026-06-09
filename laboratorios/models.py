@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 
 # =========================================================
@@ -8,84 +9,147 @@ from django.conf import settings
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True, null=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True
+    )
 
     def __str__(self):
         return self.nombre
 
 
 # =========================================================
-# OBJETIVOS
-# =========================================================
-
-class ObjetivoGeneral(models.Model):
-
-    laboratorio = models.OneToOneField(
-        'Laboratorio',
-        on_delete=models.CASCADE,
-        related_name="objetivo_general"
-    )
-
-    def __str__(self):
-        return self.descripcion[:50]
-
-    descripcion = models.TextField()
-    
-
-class ObjetivoEspecifico(models.Model):
-
-    objetivo_general = models.ForeignKey(
-        ObjetivoGeneral,
-        on_delete=models.CASCADE,
-        related_name="objetivos_especificos"
-    )
-
-    descripcion = models.TextField()
-
-    def __str__(self):
-        return self.descripcion
-
-
-# =========================================================
 # PALABRAS CLAVES
 # =========================================================
 class PalabraClave(models.Model):
-    palabra_clave = models.CharField(max_length=100)
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+
+    palabra_clave = models.CharField(
+        max_length=100
+    )
+
+    categoria = models.ForeignKey(
+        Categoria,
+        on_delete=models.CASCADE,
+        related_name='palabras_clave'
+    )
+
     descripcion = models.TextField()
 
     def __str__(self):
         return self.palabra_clave
-    
+
+
 
 # =========================================================
-# LABORATORIO BASE
+# PLANTILLA DE LABORATORIO (ADMIN)
 # =========================================================
+class PlantillaLaboratorio(models.Model):
 
-class Laboratorio(models.Model):
+    resumen = models.TextField()
 
-    titulo_lab = models.CharField(max_length=200)
-
-    categoria = models.ForeignKey(
-        Categoria,
-        on_delete=models.CASCADE
+    prologo = models.TextField(
+        null=True,
+        blank=True
     )
 
-    creador = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='laboratorios_creados'
-    )
+    introduccion = models.TextField()
 
+    marco_teorico = models.TextField()
 
     palabras_clave = models.ManyToManyField(
-        PalabraClave
+        PalabraClave,
+        blank=True,
+        related_name='plantillas'
     )
 
     conceptos_basicos = models.ManyToManyField(
         'contenido.ConceptosBasicos',
-        blank=True
+        blank=True,
+        related_name='plantillas'
+    )
+
+    ESTADOS = (
+        ('BORRADOR', 'Borrador'),
+        ('PUBLICADO', 'Publicado'),
+        ('ARCHIVADO', 'Archivado'),
+    )
+
+    titulo = models.CharField(
+        max_length=200,
+        unique=True
+    )
+
+    categoria = models.ForeignKey(
+        Categoria,
+        on_delete=models.CASCADE,
+        related_name='plantillas'
+    )
+
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='plantillas_creadas'
+    )
+
+    simulacion = models.BooleanField(
+        default=False
+    )
+
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default='BORRADOR'
+    )
+
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True
+    )
+
+    def __str__(self):
+        return self.titulo
+    
+
+# =========================================================
+# LABORATORIO DEL PROFESOR
+# =========================================================
+class Laboratorio(models.Model):
+
+    ESTADOS = (
+        ('BORRADOR', 'Borrador'),
+        ('ACTIVO', 'Activo'),
+        ('ARCHIVADO', 'Archivado'),
+    )
+
+    plantilla = models.ForeignKey(
+        PlantillaLaboratorio,
+        on_delete=models.CASCADE,
+        related_name='laboratorios'
+    )
+
+    profesor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='laboratorios'
+    )
+
+    palabras_clave = models.ManyToManyField(
+        PalabraClave,
+        blank=True,
+        related_name='laboratorios'
+    )
+
+    conceptos_basicos = models.ManyToManyField(
+        'contenido.ConceptosBasicos',
+        blank=True,
+        related_name='laboratorios'
     )
 
     resumen = models.TextField()
@@ -99,34 +163,11 @@ class Laboratorio(models.Model):
 
     marco_teorico = models.TextField()
 
-    estado = models.BooleanField(default=True)
-
-    # =====================================
-    # NUEVOS CAMPOS PARA RELACIÓN REFLEXIVA
-    # =====================================
-
-    id_padre = models.ForeignKey(
-        'self',
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='copias'
-    )
-
-    profesor = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='laboratorios_asignados'
-    )
-
     codigo_lab = models.CharField(
         max_length=10,
         unique=True,
-        null=True,
         blank=True,
-        default=None
+        null=True
     )
 
     grado = models.CharField(
@@ -141,12 +182,14 @@ class Laboratorio(models.Model):
         blank=True
     )
 
-    simulacion = models.BooleanField(
+    generado_ia = models.BooleanField(
         default=False
     )
 
-    generado_ia = models.BooleanField(
-        default=False
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default='BORRADOR'
     )
 
     fecha_creacion = models.DateTimeField(
@@ -157,43 +200,236 @@ class Laboratorio(models.Model):
         auto_now=True
     )
 
+
+    def save(self, *args, **kwargs):
+
+        if not self.codigo_lab:
+            import uuid
+
+            while True:
+                codigo = uuid.uuid4().hex[:8].upper()
+
+                if not Laboratorio.objects.filter(
+                    codigo_lab=codigo
+                ).exists():
+                    self.codigo_lab = codigo
+                    break
+
+        super().save(*args, **kwargs)
+
+    @property
+    def titulo(self):
+        return self.plantilla.titulo
+
+    @property
+    def categoria(self):
+        return self.plantilla.categoria
+
     def __str__(self):
-        return self.titulo_lab
+        return f"{self.plantilla.titulo} - {self.profesor.nombre}"
+    
+    class Meta:
+        unique_together = ('plantilla', 'profesor')
+        ordering = ['-fecha_creacion']
+
+class ObjetivoGeneral(models.Model):
+
+    laboratorio = models.OneToOneField(
+        Laboratorio,
+        on_delete=models.CASCADE,
+        related_name='objetivo_general'
+    )
+
+    descripcion = models.TextField()
+
+    def __str__(self):
+        return self.descripcion[:50]
+
+class ObjetivoEspecifico(models.Model):
+
+    objetivo_general = models.ForeignKey(
+        ObjetivoGeneral,
+        on_delete=models.CASCADE,
+        related_name='objetivos_especificos'
+    )
+
+    descripcion = models.TextField()
+
+    def __str__(self):
+        return self.descripcion
 
 # =========================================================
-# ETAPAS DEL LABORATORIO
+# OBJETIVO GENERAL PLANTILLA
+# =========================================================
+class PlantillaObjetivoGeneral(models.Model):
+
+    plantilla = models.OneToOneField(
+        PlantillaLaboratorio,
+        on_delete=models.CASCADE,
+        related_name='objetivo_general'
+    )
+
+    descripcion = models.TextField()
+
+    def __str__(self):
+        return self.descripcion[:50]
+
+
+# =========================================================
+# OBJETIVOS ESPECIFICOS PLANTILLA
+# =========================================================
+class PlantillaObjetivoEspecifico(models.Model):
+
+    objetivo_general = models.ForeignKey(
+        PlantillaObjetivoGeneral,
+        on_delete=models.CASCADE,
+        related_name='objetivos_especificos'
+    )
+
+    descripcion = models.TextField()
+
+    def __str__(self):
+        return self.descripcion
+
+# =========================================================
+# ETAPAS
 # =========================================================
 class Etapa(models.Model):
+
+    TIPOS_ETAPA = (
+        ('CONCEPTOS', 'Conceptos Básicos'),
+        ('PRACTICA', 'Práctica'),
+        ('INFORME', 'Informe'),
+    )
+
     laboratorio = models.ForeignKey(
         Laboratorio,
         on_delete=models.CASCADE,
         related_name='etapas'
     )
-    nombre = models.CharField(max_length=100)
-    orden = models.IntegerField()
+
+    nombre = models.CharField(
+        max_length=100
+    )
+
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPOS_ETAPA
+    )
+
+    orden = models.PositiveSmallIntegerField()
+
+    class Meta:
+        unique_together = ('laboratorio', 'tipo')
+        ordering = ['orden']
 
     def __str__(self):
         return f"{self.orden}. {self.nombre}"
 
 
 # =========================================================
-# PROGRESO DEL ESTUDIANTE
+# GRUPO ACADEMICO
 # =========================================================
-class ProgresoEstudiante(models.Model):
-    estudiante = models.ForeignKey(
+class GrupoAcademico(models.Model):
+
+    nombre = models.CharField(
+        max_length=100
+    )
+
+    profesor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='grupos'
     )
-    etapa = models.ForeignKey(
-        Etapa,
-        on_delete=models.CASCADE
+
+    grado = models.CharField(
+        max_length=20
     )
-    completada = models.BooleanField(default=False)
-    fecha_completado = models.DateField(null=True, blank=True)
+
+    jornada = models.CharField(
+        max_length=20
+    )
+
+    activo = models.BooleanField(
+        default=True
+    )
 
     class Meta:
-        unique_together = ['estudiante', 'etapa']
+        unique_together = ('nombre', 'profesor')
+        ordering = ['nombre']
 
     def __str__(self):
-        return f"{self.estudiante} - {self.etapa}"
-    
+        return self.nombre
+
+
+# =========================================================
+# ASIGNACION
+# =========================================================
+class Asignacion(models.Model):
+
+    ESTADOS = (
+        ('PROGRAMADA', 'Programada'),
+        ('ACTIVA', 'Activa'),
+        ('FINALIZADA', 'Finalizada'),
+        ('CANCELADA', 'Cancelada'),
+    )
+
+    laboratorio = models.ForeignKey(
+        Laboratorio,
+        on_delete=models.CASCADE,
+        related_name='asignaciones'
+    )
+
+    profesor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='asignaciones_creadas'
+    )
+
+    grupo = models.ForeignKey(
+        GrupoAcademico,
+        on_delete=models.CASCADE,
+        related_name='asignaciones'
+    )
+
+    fecha_inicio = models.DateTimeField()
+
+    fecha_fin = models.DateTimeField()
+
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default='PROGRAMADA'
+    )
+
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ['-fecha_creacion']
+        unique_together = ('laboratorio', 'grupo')
+
+    def clean(self):
+
+        if self.fecha_fin <= self.fecha_inicio:
+            raise ValidationError(
+                "La fecha fin debe ser mayor que la fecha inicio."
+            )
+
+        if self.profesor != self.grupo.profesor:
+            raise ValidationError(
+                "El grupo no pertenece al profesor."
+            )
+
+        if self.profesor != self.laboratorio.profesor:
+            raise ValidationError(
+                "El laboratorio no pertenece al profesor."
+            )
+        
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.grupo.nombre} - {self.laboratorio.titulo}"

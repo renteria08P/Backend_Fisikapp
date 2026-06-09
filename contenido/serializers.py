@@ -1,6 +1,12 @@
 from rest_framework import serializers
-from .models import ConceptosBasicos, Practicas, Procedimientos, Formulas, Bibliografia, Recursos
-
+from .models import (
+    ConceptosBasicos,
+    Practica,
+    Procedimiento,
+    Formula,
+    Bibliografia,
+    Recursos
+)
 
 class RecursosSerializer(serializers.ModelSerializer):
 
@@ -67,19 +73,19 @@ class ConceptosBasicosSerializer(serializers.ModelSerializer):
 
         return concepto
 
-class PracticasSerializer(serializers.ModelSerializer):
+class PracticaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Practicas
+        model = Practica
         fields = '__all__'
 
-class ProcedimientosSerializer(serializers.ModelSerializer):
+class ProcedimientoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Procedimientos
+        model = Procedimiento
         fields = '__all__'
 
-class FormulasSerializer(serializers.ModelSerializer):
+class FormulaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Formulas
+        model = Formula
         fields = '__all__'
 
 class BibliografiaSerializer(serializers.ModelSerializer):

@@ -1,13 +1,9 @@
 from django.shortcuts import render
-
-# Create your views here.
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Inscripcion
 from .serializers import InscripcionSerializer
-from datetime import date
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -22,7 +18,11 @@ class InscripcionesViewSet(viewsets.ModelViewSet):
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
-    filterset_fields = ['usuario', 'laboratorio', 'fecha_inscripcion']
+    filterset_fields = [
+        'estudiante',
+        'asignacion',
+        'fecha_inscripcion'
+    ]
     ordering_fields = ['fecha_inscripcion']
 
 @swagger_auto_schema(
@@ -31,6 +31,7 @@ class InscripcionesViewSet(viewsets.ModelViewSet):
 )
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def inscribir_usuario(request):
     serializer = InscripcionSerializer(data=request.data)
     if serializer.is_valid():
@@ -66,14 +67,13 @@ def detalle_inscripcion(request, pk):
 # =============================================
 #  MIS LABORATORIOS ESTUDIANTE
 # =============================================
-    
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def mis_laboratorios(request):
+
     inscripciones = Inscripcion.objects.filter(
-        usuario=request.user
-    ).order_by('-fecha_inscripcion')
+        estudiante=request.user
+    )
     serializer = InscripcionSerializer(inscripciones, many=True)
     return Response(serializer.data)
 

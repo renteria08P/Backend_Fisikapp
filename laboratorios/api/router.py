@@ -8,8 +8,10 @@ from .views import (
     CategoriaViewSet,
     PalabraClaveViewSet,
     LaboratorioProfesorViewSet,
-    ObjetivoGeneralViewSet,
-    ObjetivoEspecificoViewSet
+     PlantillaLaboratorioViewSet,
+    GrupoAcademicoViewSet,
+    AsignacionViewSet,
+    InscripcionViewSet,
 
 )
 
@@ -19,9 +21,27 @@ from .views import (
 router = DefaultRouter()
 
 router.register(
-    r'laboratorios',
-    LaboratorioViewSet,
-    basename='laboratorios'
+    r'plantillas',
+    PlantillaLaboratorioViewSet,
+    basename='plantillas'
+)
+
+router.register(
+    r'grupos',
+    GrupoAcademicoViewSet,
+    basename='grupos'
+)
+
+router.register(
+    r'asignaciones',
+    AsignacionViewSet,
+    basename='asignaciones'
+)
+
+router.register(
+    r'inscripciones',
+    InscripcionViewSet,
+    basename='inscripciones'
 )
 
 router.register(
@@ -37,23 +57,10 @@ router.register(
 )
 
 router.register(
-    r'objetivos-generales',
-    ObjetivoGeneralViewSet,
-    basename='objetivos-generales'
-)
-
-router.register(
-    r'objetivos-especificos',
-    ObjetivoEspecificoViewSet,
-    basename='objetivos-especificos'
-)
-
-router.register(
     r'laboratorio-profesor',
     LaboratorioProfesorViewSet,
     basename='laboratorio-profesor'
 )
-
 
 router.register(
     r'laboratorio-admin',
