@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 
 from django.urls import include, path
-
+from laboratorios.api.router import router
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -28,11 +28,6 @@ from django.http import HttpResponse
 
 from laboratorios.api.router import router 
 
-from laboratorios.api.views import (
-    MisLaboratoriosView,
-    inscribir_usuario,
-    
-)
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -74,25 +69,11 @@ urlpatterns = [
     path('api/', include(notificaciones_router.urls)),
 
    # LABORATORIOS
-    path(
-        'api/laboratorio-profesor/mis_laboratorios/',
-        MisLaboratoriosView.as_view(),
-        name='mis-laboratorios'
-    ),
-
     path('api/', include(router.urls)),
 
-    path(
-        'api/inscribir/',
-        inscribir_usuario,
-        name='inscribir_usuario'
-    ),
-
-   
 
     # USERS
     path('api/users/', include('users.urls')),
-
 
     # REPORTES
     path('api/reportes/', include('reportes.urls')

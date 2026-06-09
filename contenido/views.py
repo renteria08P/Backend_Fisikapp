@@ -1,26 +1,56 @@
 from django.shortcuts import render
 
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-from datetime import date
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ModelViewSet
 
-from .models import ConceptosBasicos, Practicas, Procedimientos, Formulas, Bibliografia, Recursos
+from .models import (
+    ConceptosBasicos,
+    Practica,
+    Procedimiento,
+    Formula,
+    Bibliografia,
+    Recursos
+)
 from .serializers import (
     ConceptosBasicosSerializer,
-    PracticasSerializer,
-    ProcedimientosSerializer,
-    FormulasSerializer,
+    PracticaSerializer,
+    ProcedimientoSerializer,
+    FormulaSerializer,
     BibliografiaSerializer, 
     RecursosSerializer
 )
 
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.parsers import MultiPartParser, FormParser
+from .serializers import (
+    ConceptosBasicosSerializer,
+    PracticaSerializer,
+    ProcedimientoSerializer,
+    FormulaSerializer,
+    BibliografiaSerializer,
+    RecursosSerializer,
 
+    PlantillaPracticaSerializer,
+    PlantillaProcedimientoSerializer,
+    PlantillaFormulaSerializer,
+    PlantillaBibliografiaSerializer
+)
+from .models import (
+    ConceptosBasicos,
+    Practica,
+    Procedimiento,
+    Formula,
+    Bibliografia,
+    Recursos,
 
+    PlantillaPractica,
+    PlantillaProcedimiento,
+    PlantillaFormula,
+    PlantillaBibliografia
+)
 # =========================
 # CONCEPTOS BASICOS
 # =========================
@@ -64,34 +94,34 @@ def conceptos_detalle(request, pk):
 # PRACTICAS
 # =========================
 
-@swagger_auto_schema(method='post', request_body=PracticasSerializer)
+@swagger_auto_schema(method='post', request_body=PracticaSerializer)
 @api_view(['GET', 'POST'])
 def practicas_list(request):
     if request.method == 'GET':
         laboratorio_id = request.query_params.get('laboratorio', None)     # ← NUEVO
-        data = Practicas.objects.all()
+        data = Practica.objects.all()
         if laboratorio_id:                                               # ← NUEVO
             data = data.filter(laboratorio=laboratorio_id)                # ← NUEVO
-        serializer = PracticasSerializer(data, many=True)
+        serializer = PracticaSerializer(data, many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = PracticasSerializer(data=request.data)
+        serializer = PracticaSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
-@swagger_auto_schema(method='put', request_body=PracticasSerializer)
+@swagger_auto_schema(method='put', request_body=PracticaSerializer)
 @api_view(['PUT', 'DELETE'])
 def practicas_detalle(request, pk):
     try:
-        obj = Practicas.objects.get(pk=pk)
-    except Practicas.DoesNotExist:
+        obj = Practica.objects.get(pk=pk)
+    except Practica.DoesNotExist:
         return Response({"error": "No existe"}, status=404)
 
     if request.method == 'PUT':
-        serializer = PracticasSerializer(obj, data=request.data)
+        serializer = PracticaSerializer(obj, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -105,34 +135,34 @@ def practicas_detalle(request, pk):
 # PROCEDIMIENTOS
 # =========================
 
-@swagger_auto_schema(method='post', request_body=ProcedimientosSerializer)
+@swagger_auto_schema(method='post', request_body=ProcedimientoSerializer)
 @api_view(['GET', 'POST'])
 def procedimientos_list(request):
     if request.method == 'GET':
         laboratorio_id = request.query_params.get('laboratorio', None)
-        data = Procedimientos.objects.all()
+        data = Procedimiento.objects.all()
         if laboratorio_id:                                               # ← NUEVO
             data = data.filter(laboratorio=laboratorio_id) 
-        serializer = ProcedimientosSerializer(data, many=True)
+        serializer = ProcedimientoSerializer(data, many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = ProcedimientosSerializer(data=request.data)
+        serializer = ProcedimientoSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
-@swagger_auto_schema(method='put', request_body=ProcedimientosSerializer)
+@swagger_auto_schema(method='put', request_body=ProcedimientoSerializer)
 @api_view(['PUT', 'DELETE'])
 def procedimientos_detalle(request, pk):
     try:
-        obj = Procedimientos.objects.get(pk=pk)
-    except Procedimientos.DoesNotExist:
+        obj = Procedimiento.objects.get(pk=pk)
+    except Procedimiento.DoesNotExist:
         return Response({"error": "No existe"}, status=404)
 
     if request.method == 'PUT':
-        serializer = ProcedimientosSerializer(obj, data=request.data)
+        serializer = ProcedimientoSerializer(obj, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -146,47 +176,47 @@ def procedimientos_detalle(request, pk):
 # FORMULAS
 # =========================
 
-@swagger_auto_schema(method='post', request_body=FormulasSerializer)
+@swagger_auto_schema(method='post', request_body=FormulaSerializer)
 @api_view(['GET', 'POST'])
 def lista_formulas(request):
     if request.method == 'GET':
         laboratorio_id = request.query_params.get('laboratorio', None)  # ← NUEVO
-        formulas = Formulas.objects.all()
+        formulas = Formula.objects.all()
         if laboratorio_id:                                               # ← NUEVO
             formulas = formulas.filter(laboratorio=laboratorio_id)        # ← NUEVO
-        serializer = FormulasSerializer(formulas, many=True)
+        serializer = FormulaSerializer(formulas, many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = FormulasSerializer(data=request.data)
+        serializer = FormulaSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
 
-@swagger_auto_schema(method='put', request_body=FormulasSerializer)
-@swagger_auto_schema(method='patch', request_body=FormulasSerializer)
+@swagger_auto_schema(method='put', request_body=FormulaSerializer)
+@swagger_auto_schema(method='patch', request_body=FormulaSerializer)
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def detalle_formula(request, pk):
     try:
-        formula = Formulas.objects.get(pk=pk)
-    except Formulas.DoesNotExist:
+        formula = Formula.objects.get(pk=pk)
+    except Formula.DoesNotExist:
         return Response({"error": "No encontrado"}, status=404)
 
     if request.method == 'GET':
-        serializer = FormulasSerializer(formula)
+        serializer = FormulaSerializer(formula)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        serializer = FormulasSerializer(formula, data=request.data)
+        serializer = FormulaSerializer(formula, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
     elif request.method == 'PATCH':
-        serializer = FormulasSerializer(formula, data=request.data, partial=True)
+        serializer = FormulaSerializer(formula, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -300,3 +330,43 @@ def recursos_detalle(request, pk):
     elif request.method == 'DELETE':
         recurso.delete()
         return Response(status=204)
+    
+
+# =========================================================
+# PLANTILLA PRACTICA
+# =========================================================
+class PlantillaPracticaViewSet(ModelViewSet):
+
+    queryset = PlantillaPractica.objects.all()
+    serializer_class = PlantillaPracticaSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# =========================================================
+# PLANTILLA PROCEDIMIENTO
+# =========================================================
+class PlantillaProcedimientoViewSet(ModelViewSet):
+
+    queryset = PlantillaProcedimiento.objects.all()
+    serializer_class = PlantillaProcedimientoSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# =========================================================
+# PLANTILLA FORMULA
+# =========================================================
+class PlantillaFormulaViewSet(ModelViewSet):
+
+    queryset = PlantillaFormula.objects.all()
+    serializer_class = PlantillaFormulaSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# =========================================================
+# PLANTILLA BIBLIOGRAFIA
+# =========================================================
+class PlantillaBibliografiaViewSet(ModelViewSet):
+
+    queryset = PlantillaBibliografia.objects.all()
+    serializer_class = PlantillaBibliografiaSerializer
+    permission_classes = [IsAuthenticated]
