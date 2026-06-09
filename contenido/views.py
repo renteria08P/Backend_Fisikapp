@@ -5,6 +5,8 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ModelViewSet
 
 from .models import (
     ConceptosBasicos,
@@ -23,6 +25,32 @@ from .serializers import (
     RecursosSerializer
 )
 
+from .serializers import (
+    ConceptosBasicosSerializer,
+    PracticaSerializer,
+    ProcedimientoSerializer,
+    FormulaSerializer,
+    BibliografiaSerializer,
+    RecursosSerializer,
+
+    PlantillaPracticaSerializer,
+    PlantillaProcedimientoSerializer,
+    PlantillaFormulaSerializer,
+    PlantillaBibliografiaSerializer
+)
+from .models import (
+    ConceptosBasicos,
+    Practica,
+    Procedimiento,
+    Formula,
+    Bibliografia,
+    Recursos,
+
+    PlantillaPractica,
+    PlantillaProcedimiento,
+    PlantillaFormula,
+    PlantillaBibliografia
+)
 # =========================
 # CONCEPTOS BASICOS
 # =========================
@@ -302,3 +330,43 @@ def recursos_detalle(request, pk):
     elif request.method == 'DELETE':
         recurso.delete()
         return Response(status=204)
+    
+
+# =========================================================
+# PLANTILLA PRACTICA
+# =========================================================
+class PlantillaPracticaViewSet(ModelViewSet):
+
+    queryset = PlantillaPractica.objects.all()
+    serializer_class = PlantillaPracticaSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# =========================================================
+# PLANTILLA PROCEDIMIENTO
+# =========================================================
+class PlantillaProcedimientoViewSet(ModelViewSet):
+
+    queryset = PlantillaProcedimiento.objects.all()
+    serializer_class = PlantillaProcedimientoSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# =========================================================
+# PLANTILLA FORMULA
+# =========================================================
+class PlantillaFormulaViewSet(ModelViewSet):
+
+    queryset = PlantillaFormula.objects.all()
+    serializer_class = PlantillaFormulaSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# =========================================================
+# PLANTILLA BIBLIOGRAFIA
+# =========================================================
+class PlantillaBibliografiaViewSet(ModelViewSet):
+
+    queryset = PlantillaBibliografia.objects.all()
+    serializer_class = PlantillaBibliografiaSerializer
+    permission_classes = [IsAuthenticated]

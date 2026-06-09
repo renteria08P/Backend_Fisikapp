@@ -12,6 +12,7 @@ from .views import (
     GrupoAcademicoViewSet,
     AsignacionViewSet,
     InscripcionViewSet,
+    LaboratorioEstudianteViewSet,
 
 )
 
@@ -67,6 +68,14 @@ router.register(
     LaboratorioAdminViewSet,
     basename='laboratorio-admin'
 )
+
+
+router.register(
+    r'laboratorios-estudiante',
+    LaboratorioEstudianteViewSet,
+    basename='laboratorios-estudiante'
+)
+
 
 # =========================================================
 # URLS

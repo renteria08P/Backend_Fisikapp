@@ -10,6 +10,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes  
+from laboratorios.models import Asignacion, Laboratorio
 
 class InscripcionesViewSet(viewsets.ModelViewSet):
     queryset = Inscripcion.objects.all()
@@ -33,11 +34,51 @@ class InscripcionesViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def inscribir_usuario(request):
-    serializer = InscripcionSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=201)
-    return Response(serializer.errors, status=400)
+
+    codigo = request.data.get('codigo')
+
+    if not codigo:
+        return Response(
+            {"error": "Debe enviar el código"},
+            status=400
+        )
+
+    try:
+
+        asignacion = Asignacion.objects.get(
+            codigo_ingreso=codigo
+        )
+
+    except Asignacion.DoesNotExist:
+
+        return Response(
+            {"error": "Código inválido"},
+            status=404
+        )
+
+    existe = Inscripcion.objects.filter(
+        estudiante=request.user,
+        asignacion=asignacion
+    ).exists()
+
+    if existe:
+
+        return Response(
+            {"error": "Ya estás inscrito"},
+            status=400
+        )
+
+    inscripcion = Inscripcion.objects.create(
+        estudiante=request.user,
+        asignacion=asignacion
+    )
+
+    serializer = InscripcionSerializer(inscripcion)
+
+    return Response(
+        serializer.data,
+        status=201
+    )
 
 @api_view(['GET'])
 def listar_inscripciones(request):

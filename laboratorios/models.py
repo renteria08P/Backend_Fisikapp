@@ -163,13 +163,6 @@ class Laboratorio(models.Model):
 
     marco_teorico = models.TextField()
 
-    codigo_lab = models.CharField(
-        max_length=10,
-        unique=True,
-        blank=True,
-        null=True
-    )
-
     grado = models.CharField(
         max_length=25,
         null=True,
@@ -200,23 +193,6 @@ class Laboratorio(models.Model):
         auto_now=True
     )
 
-
-    def save(self, *args, **kwargs):
-
-        if not self.codigo_lab:
-            import uuid
-
-            while True:
-                codigo = uuid.uuid4().hex[:8].upper()
-
-                if not Laboratorio.objects.filter(
-                    codigo_lab=codigo
-                ).exists():
-                    self.codigo_lab = codigo
-                    break
-
-        super().save(*args, **kwargs)
-
     @property
     def titulo(self):
         return self.plantilla.titulo
@@ -229,7 +205,6 @@ class Laboratorio(models.Model):
         return f"{self.plantilla.titulo} - {self.profesor.nombre}"
     
     class Meta:
-        unique_together = ('plantilla', 'profesor')
         ordering = ['-fecha_creacion']
 
 class ObjetivoGeneral(models.Model):
@@ -374,6 +349,11 @@ class Asignacion(models.Model):
         ('CANCELADA', 'Cancelada'),
     )
 
+    codigo_ingreso = models.CharField(
+            max_length=8,
+            unique=True
+        )
+
     laboratorio = models.ForeignKey(
         Laboratorio,
         on_delete=models.CASCADE,
@@ -428,6 +408,22 @@ class Asignacion(models.Model):
             )
         
     def save(self, *args, **kwargs):
+
+        import uuid
+
+        if not self.codigo_ingreso:
+
+            while True:
+
+                codigo = uuid.uuid4().hex[:8].upper()
+
+                if not Asignacion.objects.filter(
+                    codigo_ingreso=codigo
+                ).exists():
+
+                    self.codigo_ingreso = codigo
+                    break
+
         self.full_clean()
         super().save(*args, **kwargs)
 

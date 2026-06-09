@@ -8,7 +8,7 @@ from inscripciones.models import Inscripcion
 from django_filters.rest_framework import DjangoFilterBackend
 
 from laboratorios.models import GrupoAcademico
-from .serializers import GrupoAcademicoSerializer
+from .serializers import GrupoAcademicoSerializer, LaboratorioEstudianteListSerializer
 from laboratorios.models import PlantillaLaboratorio
 from .serializers import PlantillaLaboratorioSerializer
 
@@ -32,14 +32,15 @@ from .serializers import (
     LaboratorioSerializer,
     CategoriaSerializer,
     PalabraClaveSerializer,
-    LaboratorioProfesorSerializer
+    LaboratorioProfesorSerializer,
+    LaboratorioEstudianteSerializer,
 )
 
 
 class PlantillaLaboratorioViewSet(ModelViewSet):
     queryset = PlantillaLaboratorio.objects.all()
     serializer_class = PlantillaLaboratorioSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrSuperAdmin]
+    permission_classes = [IsAuthenticated]
 
 class CategoriaViewSet(ModelViewSet):
     queryset = Categoria.objects.all()
@@ -441,3 +442,49 @@ class LaboratorioAdminViewSet(ModelViewSet):
         return Laboratorio.objects.all().order_by(
         '-fecha_actualizacion'
     )
+
+# =========================================================
+# LABORATORIO ESTUDIANTE
+# =========================================================
+class LaboratorioEstudianteViewSet(ModelViewSet):
+
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+
+        if self.action == "list":
+            return LaboratorioEstudianteListSerializer
+
+        return LaboratorioEstudianteSerializer
+
+    def get_queryset(self):
+
+        return Laboratorio.objects.filter(
+            asignaciones__inscripciones__estudiante=
+            self.request.user
+        ).distinct()
+
+    def retrieve(self, request, *args, **kwargs):
+
+        laboratorio = self.get_object()
+
+        inscrito = Inscripcion.objects.filter(
+            estudiante=request.user,
+            asignacion__laboratorio=laboratorio
+        ).exists()
+
+        if not inscrito:
+
+            return Response(
+                {
+                    "error":
+                    "No estás inscrito en este laboratorio"
+                },
+                status=403
+            )
+
+        serializer = self.get_serializer(
+            laboratorio
+        )
+
+        return Response(serializer.data)

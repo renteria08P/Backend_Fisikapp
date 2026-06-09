@@ -8,6 +8,22 @@ from laboratorios.models import (
     ObjetivoEspecifico
 )
 
+from contenido.serializers import (
+    ConceptosBasicosSerializer,
+    FormulaSerializer,
+    ProcedimientoSerializer,
+    PracticaSerializer,
+    BibliografiaSerializer
+)
+
+from contenido.models import (
+    Practica,
+    Procedimiento,
+    Formula,
+    Bibliografia,
+)
+
+
 # =========================================================
 # CATEGORIA
 # =========================================================
@@ -82,7 +98,8 @@ class AsignacionSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = [
             "profesor",
-            "fecha_creacion"
+            "fecha_creacion",
+            "codigo_ingreso"   
         ]
 
 from laboratorios.models import PlantillaLaboratorio
@@ -120,7 +137,7 @@ class LaboratorioSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
-    codigo_lab = serializers.CharField(
+    codigo_ingreso = serializers.CharField(
         read_only=True
     )
 
@@ -149,18 +166,91 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    plantilla_titulo = serializers.CharField(
+        source='plantilla.titulo',
+        read_only=True
+    )
+
+    plantilla_categoria = serializers.CharField(
+        source='plantilla.categoria.nombre',
+        read_only=True
+    )
+
+    def create(self, validated_data):
+
+        laboratorio = Laboratorio.objects.create(
+            **validated_data
+        )
+
+        plantilla = laboratorio.plantilla
+
+        laboratorio.conceptos_basicos.set(
+            plantilla.conceptos_basicos.all()
+        )
+
+        laboratorio.palabras_clave.set(
+            plantilla.palabras_clave.all()
+        )
+
+        for practica in plantilla.practicas.all():
+
+            nueva = Practica.objects.create(
+                laboratorio=laboratorio,
+                nombre_practica=practica.nombre_practica,
+                objetivo=practica.objetivo,
+                descripcion=practica.descripcion,
+                materiales=practica.materiales,
+                calculos=practica.calculos
+            )
+
+            nueva.conceptos.set(
+                practica.conceptos.all()
+            )
+
+        for procedimiento in plantilla.procedimientos.all():
+
+            Procedimiento.objects.create(
+                laboratorio=laboratorio,
+                muestras=procedimiento.muestras,
+                calculos=procedimiento.calculos,
+                resultados=procedimiento.resultados
+            )
+
+        for formula in plantilla.formulas.all():
+
+            Formula.objects.create(
+                laboratorio=laboratorio,
+                nombre=formula.nombre,
+                descripcion=formula.descripcion,
+                expresion=formula.expresion
+            )
+
+        for bibliografia in plantilla.bibliografias.all():
+
+            Bibliografia.objects.create(
+                laboratorio=laboratorio,
+                autor=bibliografia.autor,
+                titulo=bibliografia.titulo,
+                tipo_fuente=bibliografia.tipo_fuente,
+                anio=bibliografia.anio,
+                editorial=bibliografia.editorial,
+                url=bibliografia.url,
+                fecha_consulta=bibliografia.fecha_consulta,
+                descripcion=bibliografia.descripcion
+            )
+
+        return laboratorio
+
     class Meta:
         model = Laboratorio
         fields = '__all__'
 
         read_only_fields = [
-            'codigo_lab',
+            'codigo_ingreso',
             'profesor',
             'fecha_creacion',
             'fecha_actualizacion'
         ]
-
-
 # =========================================================
 # ADMIN - LABORATORIOS PROFESOR
 # =========================================================
@@ -199,3 +289,103 @@ class LaboratorioProfesorAdminSerializer(
             'estado',
             'ultimo_ingreso'
         ]
+
+# =========================================================
+# LABORATORIO ESTUDIANTE LISTA
+# =========================================================
+class LaboratorioEstudianteListSerializer(
+    serializers.ModelSerializer
+):
+
+    titulo = serializers.CharField(
+        source='plantilla.titulo',
+        read_only=True
+    )
+
+    profesor = serializers.CharField(
+        source='profesor.nombre',
+        read_only=True
+    )
+
+    class Meta:
+        model = Laboratorio
+
+        fields = [
+            'id',
+            'titulo',
+            'profesor',
+            'estado'
+        ]
+
+# =========================================================
+# LABORATORIO ESTUDIANTE
+# =========================================================
+class LaboratorioEstudianteSerializer(
+    serializers.ModelSerializer
+):
+
+    titulo_lab = serializers.CharField(
+        source='plantilla.titulo',
+        read_only=True
+    )
+
+    categoria = serializers.CharField(
+        source='plantilla.categoria.nombre',
+        read_only=True
+    )
+
+    profesor_nombre = serializers.CharField(
+        source='profesor.nombre',
+        read_only=True
+    )
+
+    conceptos_basicos = ConceptosBasicosSerializer(
+        many=True,
+        read_only=True
+    )
+
+    formulas = FormulaSerializer(
+        many=True,
+        read_only=True
+    )
+
+    procedimientos = ProcedimientoSerializer(
+        many=True,
+        read_only=True
+    )
+
+    practicas = PracticaSerializer(
+        many=True,
+        read_only=True
+    )
+
+    bibliografias = BibliografiaSerializer(
+        many=True,
+        read_only=True
+    )
+
+    class Meta:
+        model = Laboratorio
+
+        fields = [
+            "id",
+
+            "titulo_lab",
+            "categoria",
+            "profesor_nombre",
+
+            "resumen",
+            "prologo",
+            "introduccion",
+            "marco_teorico",
+
+            "conceptos_basicos",
+            "formulas",
+            "procedimientos",
+            "practicas",
+            "bibliografias",
+
+            "estado",
+            "fecha_creacion"
+        ]
+    
