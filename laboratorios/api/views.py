@@ -463,6 +463,9 @@ class LaboratorioEstudianteViewSet(ModelViewSet):
 
     def get_queryset(self):
 
+        if getattr(self, 'swagger_fake_view', False):
+            return Laboratorio.objects.none()
+
         return Laboratorio.objects.filter(
             asignaciones__inscripciones__estudiante=
             self.request.user

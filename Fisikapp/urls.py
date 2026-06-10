@@ -73,6 +73,9 @@ urlpatterns = [
    # LABORATORIOS
     path('api/', include(router.urls)),
 
+    #EVALUACIONES
+    path('api/evaluaciones/', include('evaluaciones.urls')),
+
 
     # USERS
     path('api/users/', include('users.urls')),

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'entregas',
     'reportes',
+    'evaluaciones',
 
     'rest_framework_simplejwt',  
 
