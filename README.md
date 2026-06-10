@@ -1,4 +1,4 @@
-# Backend Fisikapp
+# Backend Fisikapp.
 
 Backend desarrollado en **Django + Django REST Framework** para la gestión de laboratorios de física, incluyendo autenticación, usuarios, notificaciones y envío de correos.
 
