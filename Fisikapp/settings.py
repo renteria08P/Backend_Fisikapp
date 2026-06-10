@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'django_filters',
     'django_extensions',
     'drf_yasg',
+    'entregas',
     'reportes',
 
     'rest_framework_simplejwt',  

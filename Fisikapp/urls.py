@@ -64,6 +64,8 @@ urlpatterns = [
     # TUS APPS
     path('api/', include('inscripciones.urls')),
     path('api/contenido/', include('contenido.urls')),
+    path('api/entregas/', include('entregas.urls')),
+
 
    # NOTIFICACIONES
     path('api/', include(notificaciones_router.urls)),
