@@ -429,3 +429,5 @@ class Asignacion(models.Model):
 
     def __str__(self):
         return f"{self.grupo.nombre} - {self.laboratorio.titulo}"
+
+

@@ -59,7 +59,9 @@ INSTALLED_APPS = [
     'django_filters',
     'django_extensions',
     'drf_yasg',
+    'entregas',
     'reportes',
+    'evaluaciones',
 
     'rest_framework_simplejwt',  
 

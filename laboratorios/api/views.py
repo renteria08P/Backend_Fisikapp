@@ -24,7 +24,9 @@ from rest_framework.decorators import (
 from laboratorios.models import (
     Laboratorio,
     Categoria,
-    PalabraClave
+    PalabraClave,
+    PlantillaObjetivoGeneral,
+    PlantillaObjetivoEspecifico
 )
 
 from .serializers import (
@@ -34,6 +36,8 @@ from .serializers import (
     PalabraClaveSerializer,
     LaboratorioProfesorSerializer,
     LaboratorioEstudianteSerializer,
+    PlantillaObjetivoGeneralSerializer,
+    PlantillaObjetivoEspecificoSerializer,
 )
 
 
@@ -459,6 +463,9 @@ class LaboratorioEstudianteViewSet(ModelViewSet):
 
     def get_queryset(self):
 
+        if getattr(self, 'swagger_fake_view', False):
+            return Laboratorio.objects.none()
+
         return Laboratorio.objects.filter(
             asignaciones__inscripciones__estudiante=
             self.request.user
@@ -488,3 +495,41 @@ class LaboratorioEstudianteViewSet(ModelViewSet):
         )
 
         return Response(serializer.data)
+    
+
+# =========================================================
+# OBJETIVO GENERAL PLANTILLA
+# =========================================================
+
+class PlantillaObjetivoGeneralViewSet(
+    ModelViewSet
+):
+
+    queryset = (
+        PlantillaObjetivoGeneral.objects.all()
+    )
+
+    serializer_class = (
+        PlantillaObjetivoGeneralSerializer
+    )
+
+    permission_classes = [IsAuthenticated]
+
+
+# =========================================================
+# OBJETIVO ESPECIFICO PLANTILLA
+# =========================================================
+
+class PlantillaObjetivoEspecificoViewSet(
+    ModelViewSet
+):
+
+    queryset = (
+        PlantillaObjetivoEspecifico.objects.all()
+    )
+
+    serializer_class = (
+        PlantillaObjetivoEspecificoSerializer
+    )
+
+    permission_classes = [IsAuthenticated]

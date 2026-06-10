@@ -5,7 +5,9 @@ from laboratorios.models import (
     Categoria,
     PalabraClave,
     ObjetivoGeneral,
-    ObjetivoEspecifico
+    ObjetivoEspecifico,
+    PlantillaObjetivoGeneral,
+    PlantillaObjetivoEspecifico
 )
 
 from contenido.serializers import (
@@ -22,7 +24,6 @@ from contenido.models import (
     Formula,
     Bibliografia,
 )
-
 
 # =========================================================
 # CATEGORIA
@@ -69,6 +70,38 @@ class ObjetivoGeneralSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# =========================================================
+# OBJETIVOS PLANTILLA
+# =========================================================
+
+class PlantillaObjetivoEspecificoSerializer(
+    serializers.ModelSerializer
+):
+
+    class Meta:
+        model = PlantillaObjetivoEspecifico
+        fields = "__all__"
+
+
+class PlantillaObjetivoGeneralSerializer(
+    serializers.ModelSerializer
+):
+
+    objetivos_especificos = (
+        PlantillaObjetivoEspecificoSerializer(
+            many=True,
+            read_only=True
+        )
+    )
+
+    class Meta:
+        model = PlantillaObjetivoGeneral
+        fields = "__all__"
+
+
+#=====================================================
+# GRUPO ACADEMICO
+# =========================================================
 from laboratorios.models import GrupoAcademico
 
 class GrupoAcademicoSerializer(serializers.ModelSerializer):
@@ -156,6 +189,9 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    objetivo_general = ObjetivoGeneralSerializer(
+        read_only=True
+    )
     profesor_nombre = serializers.CharField(
         source='profesor.nombre',
         read_only=True
@@ -183,6 +219,33 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         )
 
         plantilla = laboratorio.plantilla
+
+        try:
+
+            objetivo_plantilla = (
+                plantilla.objetivo_general
+            )
+
+            objetivo_general = (
+                ObjetivoGeneral.objects.create(
+                    laboratorio=laboratorio,
+                    descripcion=objetivo_plantilla.descripcion
+                )
+            )
+
+            for objetivo in (
+                objetivo_plantilla
+                .objetivos_especificos
+                .all()
+            ):
+
+                ObjetivoEspecifico.objects.create(
+                    objetivo_general=objetivo_general,
+                    descripcion=objetivo.descripcion
+                )
+
+        except PlantillaObjetivoGeneral.DoesNotExist:
+            pass
 
         laboratorio.conceptos_basicos.set(
             plantilla.conceptos_basicos.all()
@@ -323,6 +386,10 @@ class LaboratorioEstudianteListSerializer(
 class LaboratorioEstudianteSerializer(
     serializers.ModelSerializer
 ):
+    
+    objetivo_general = ObjetivoGeneralSerializer(
+        read_only=True
+    )
 
     titulo_lab = serializers.CharField(
         source='plantilla.titulo',
@@ -379,6 +446,7 @@ class LaboratorioEstudianteSerializer(
             "introduccion",
             "marco_teorico",
 
+            "objetivo_general",
             "conceptos_basicos",
             "formulas",
             "procedimientos",

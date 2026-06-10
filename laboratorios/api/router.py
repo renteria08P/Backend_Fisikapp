@@ -13,6 +13,8 @@ from .views import (
     AsignacionViewSet,
     InscripcionViewSet,
     LaboratorioEstudianteViewSet,
+    PlantillaObjetivoEspecificoViewSet,
+    PlantillaObjetivoGeneralViewSet,
 
 )
 
@@ -76,6 +78,17 @@ router.register(
     basename='laboratorios-estudiante'
 )
 
+router.register(
+    r'plantilla-objetivos-generales',
+    PlantillaObjetivoGeneralViewSet,
+    basename='plantilla-objetivos-generales'
+)
+
+router.register(
+    r'plantilla-objetivos-especificos',
+    PlantillaObjetivoEspecificoViewSet,
+    basename='plantilla-objetivos-especificos'
+)
 
 # =========================================================
 # URLS

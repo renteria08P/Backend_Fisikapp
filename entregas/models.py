@@ -14,13 +14,11 @@ class Entrega(models.Model):
         ('EVALUADA', 'Evaluada'),
     )
 
-    inscripcion = models.ForeignKey(
+    inscripcion = models.OneToOneField(
         'inscripciones.Inscripcion',
         on_delete=models.CASCADE,
-        related_name='entregas'
+        related_name='entrega'
     )
-
-    numero_intento = models.PositiveSmallIntegerField()
 
     estado = models.CharField(
         max_length=20,
@@ -52,26 +50,7 @@ class Entrega(models.Model):
 
     class Meta:
         ordering = ['-fecha_creacion']
-        unique_together = (
-            'inscripcion',
-            'numero_intento'
-        )
 
-    def clean(self):
-
-        if self.numero_intento < 1:
-            raise ValidationError(
-                "El número de intento debe ser mayor a 0."
-            )
-
-        total_intentos = Entrega.objects.filter(
-            inscripcion=self.inscripcion
-        ).exclude(pk=self.pk).count()
-
-        if total_intentos >= 4:
-            raise ValidationError(
-                "Solo se permiten 4 intentos por inscripción."
-            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -80,9 +59,8 @@ class Entrega(models.Model):
     def __str__(self):
         return (
             f"{self.inscripcion.estudiante} - "
-            f"Intento {self.numero_intento}"
+            f"{self.inscripcion.asignacion.laboratorio.titulo}"
         )
-
 
 # =========================================================
 # RESULTADOS PRACTICA

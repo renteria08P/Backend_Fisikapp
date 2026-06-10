@@ -41,7 +41,7 @@ class EvaluacionIA(models.Model):
 # EVALUACION DOCENTE
 # =========================================================
 
-class EvaluacionDocente(models.Model):
+class EvaluacionProfesor(models.Model):
 
     entrega = models.OneToOneField(
         'entregas.Entrega',
