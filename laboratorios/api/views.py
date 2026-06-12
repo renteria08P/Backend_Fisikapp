@@ -1,55 +1,107 @@
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import (
+    ModelViewSet,
+    ReadOnlyModelViewSet
+)
+
+from rest_framework.permissions import (
+    IsAuthenticated
+)
+
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework import  filters
+from rest_framework import status, filters
+from drf_yasg.utils import swagger_auto_schema
+
 from rest_framework.decorators import action
-from inscripciones.models import Inscripcion
-from django_filters.rest_framework import DjangoFilterBackend
 
-from laboratorios.models import GrupoAcademico
-from .serializers import GrupoAcademicoSerializer, LaboratorioEstudianteListSerializer
-from laboratorios.models import PlantillaLaboratorio
-from .serializers import PlantillaLaboratorioSerializer
+from django_filters.rest_framework import (
+    DjangoFilterBackend
+)
 
-from users.permissions import IsAdminOrSuperAdmin, IsProfesor
-
-from rest_framework.decorators import (
-    api_view,
-    permission_classes,
-    action
-    
+from users.permissions import (
+    IsAdminOrSuperAdmin,
+    IsProfesor
 )
 
 from laboratorios.models import (
     Laboratorio,
     Categoria,
     PalabraClave,
+    GrupoAcademico,
+    Asignacion,
+    PlantillaLaboratorio,
     PlantillaObjetivoGeneral,
     PlantillaObjetivoEspecifico
 )
 
-from .serializers import (
-    LaboratorioProfesorAdminSerializer,
-    LaboratorioSerializer,
-    CategoriaSerializer,
-    PalabraClaveSerializer,
-    LaboratorioProfesorSerializer,
-    LaboratorioEstudianteSerializer,
-    PlantillaObjetivoGeneralSerializer,
-    PlantillaObjetivoEspecificoSerializer,
+from inscripciones.models import (
+    Inscripcion
 )
 
+from inscripciones.serializers import (
+    InscripcionSerializer
+)
 
-class PlantillaLaboratorioViewSet(ModelViewSet):
-    queryset = PlantillaLaboratorio.objects.all()
-    serializer_class = PlantillaLaboratorioSerializer
-    permission_classes = [IsAuthenticated]
+from .serializers import (
+    CategoriaSerializer,
+    PalabraClaveSerializer,
+    PlantillaLaboratorioSerializer,
+    GrupoAcademicoSerializer,
+    AsignacionSerializer,
+    LaboratorioSerializer,
+    LaboratorioProfesorSerializer,
+    LaboratorioProfesorAdminSerializer,
+    LaboratorioEstudianteSerializer,
+    LaboratorioEstudianteListSerializer,
+    PlantillaObjetivoGeneralSerializer,
+    PlantillaObjetivoEspecificoSerializer
+)
 
 class CategoriaViewSet(ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
     permission_classes = [IsAuthenticated]
+
+class PlantillaLaboratorioViewSet(ModelViewSet):
+
+    queryset = PlantillaLaboratorio.objects.all()
+
+    serializer_class = (
+        PlantillaLaboratorioSerializer
+    )
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    @swagger_auto_schema(
+        operation_summary="Crear plantilla de laboratorio",
+        operation_description="""
+        Permite registrar una nueva plantilla de laboratorio
+        que servirá como base para la creación de laboratorios.
+        """
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="Listar plantillas de laboratorio",
+        operation_description="""
+        Retorna todas las plantillas de laboratorio registradas
+        en el sistema. Las plantillas sirven como base para que
+        los profesores creen nuevos laboratorios.
+        """
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_summary="Detalle de plantilla",
+        operation_description="""
+        Retorna toda la información de una plantilla de laboratorio.
+        """
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
 
 class PalabraClaveViewSet(ModelViewSet):
@@ -76,8 +128,33 @@ class GrupoAcademicoViewSet(ModelViewSet):
             profesor=self.request.user
         )
 
-from laboratorios.models import Asignacion
-from .serializers import AsignacionSerializer
+    @swagger_auto_schema(
+        operation_summary="Listar grupos académicos",
+        operation_description="""
+        Retorna los grupos académicos asociados al profesor
+        autenticado.
+        """
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_summary="Crear grupo académico",
+        operation_description="""
+        Permite al profesor registrar un nuevo grupo académico.
+        """
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_summary="Detalle de grupo académico",
+        operation_description="""
+        Obtiene la información completa de un grupo académico.
+        """
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
 class AsignacionViewSet(ModelViewSet):
 
@@ -98,8 +175,34 @@ class AsignacionViewSet(ModelViewSet):
             profesor=self.request.user
         )
 
-from inscripciones.models import Inscripcion
-from inscripciones.serializers import InscripcionSerializer
+    @swagger_auto_schema(
+        operation_summary="Listar asignaciones",
+        operation_description="""
+        Obtiene las asignaciones de laboratorios realizadas
+        por el profesor autenticado.
+        """
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_summary="Crear asignación",
+        operation_description="""
+        Asigna un laboratorio a un grupo académico
+        durante un rango de fechas determinado.
+        """
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_summary="Detalle de asignación",
+        operation_description="""
+        Consulta la información completa de una asignación.
+        """
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
 class InscripcionViewSet(ModelViewSet):
 
@@ -108,12 +211,32 @@ class InscripcionViewSet(ModelViewSet):
 
     def get_queryset(self):
 
-        if self.request.user.rol == "estudiante":
+        if getattr(self.request.user, "rol", None) == "estudiante":
             return Inscripcion.objects.filter(
                 estudiante=self.request.user
             )
 
         return Inscripcion.objects.all()
+
+    @swagger_auto_schema(
+        operation_summary="Listar inscripciones",
+        operation_description="""
+        Permite consultar las inscripciones de estudiantes
+        a laboratorios asignados.
+        """
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_summary="Crear inscripción",
+        operation_description="""
+        Permite inscribir un estudiante a un laboratorio
+        mediante una asignación existente.
+        """
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
 
 class LaboratorioViewSet(ModelViewSet):
     queryset = Laboratorio.objects.all()
@@ -177,6 +300,59 @@ class LaboratorioViewSet(ModelViewSet):
 
         return [IsAuthenticated()]
 
+
+# =========================================================
+# Gestión de Laboratorios - Admin
+# =========================================================
+class LaboratorioProfesorAdminViewSet(
+    ReadOnlyModelViewSet
+):
+
+    queryset = (
+        Laboratorio.objects.all()
+        .select_related(
+            'plantilla',
+            'plantilla__categoria',
+            'profesor'
+        )
+    )
+
+    serializer_class = (
+        LaboratorioProfesorAdminSerializer
+    )
+
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminOrSuperAdmin
+    ]
+
+    @swagger_auto_schema(
+        operation_summary="Auditoría de laboratorios",
+        operation_description="""
+        Permite a administradores y superadministradores
+        consultar todos los laboratorios registrados.
+
+        Información disponible:
+        - Título del laboratorio
+        - Categoría
+        - Profesor creador
+        - Estado
+        - Fecha de última actualización
+        """
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_summary="Detalle de laboratorio",
+        operation_description="""
+        Retorna la información detallada de un laboratorio
+        específico para fines de auditoría y seguimiento.
+        """
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+    
 # =========================================================
 # LABORATORIO PROFESOR
 # =========================================================
@@ -219,21 +395,37 @@ class LaboratorioProfesorViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(
             profesor=self.request.user
-        )
+        ) 
 
-    # =====================================================
-    # MIS LABORATORIOS
-    # =====================================================
-    @action(detail=False, methods=['get'])
-    def mis_laboratorios(self, request):
-
-        serializer = self.get_serializer(
-            self.get_queryset(),
-            many=True
-        )
-
-        return Response(serializer.data)
-
+    @swagger_auto_schema(
+        operation_summary="Crear laboratorio",
+        operation_description="""
+        Permite al profesor crear un laboratorio
+        basado en una plantilla existente.
+        """
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_summary="Listar laboratorios",
+        operation_description="""
+        Retorna todos los laboratorios creados
+        por el profesor autenticado.
+        """
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_summary="Detalle de laboratorio",
+        operation_description="""
+        Obtiene la información completa de un laboratorio
+        creado por el profesor.
+        """
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
     # =====================================================
     # ESTUDIANTES DEL LABORATORIO
     # =====================================================
@@ -252,6 +444,53 @@ class LaboratorioProfesorViewSet(ModelViewSet):
 
         for inscripcion in inscripciones:
 
+            data.append({
+                "id": inscripcion.estudiante.id,
+                "nombre": inscripcion.estudiante.nombre,
+                "correo": inscripcion.estudiante.correo,
+                "fecha_inscripcion": inscripcion.fecha_inscripcion
+            })
+
+        return Response(data)
+    
+
+    @swagger_auto_schema(
+        operation_summary="Mis laboratorios",
+        operation_description="""
+        Retorna los laboratorios creados por el profesor
+        autenticado.
+        """
+    )
+    @action(detail=False, methods=['get'])
+    def mis_laboratorios(self, request):
+
+        serializer = self.get_serializer(
+            self.get_queryset(),
+            many=True
+        )
+        return Response(serializer.data)
+    
+    @swagger_auto_schema(
+    operation_summary="Estudiantes inscritos",
+    operation_description="""
+    Obtiene el listado de estudiantes inscritos
+    en un laboratorio específico.
+    """
+)
+    @action(detail=True, methods=['get'])
+    def estudiantes(self, request, pk=None):
+
+        laboratorio = self.get_object()
+
+        inscripciones = Inscripcion.objects.filter(
+            asignacion__laboratorio=laboratorio
+        ).select_related(
+            'estudiante'
+        )
+
+        data = []
+
+        for inscripcion in inscripciones:
             data.append({
                 "id": inscripcion.estudiante.id,
                 "nombre": inscripcion.estudiante.nombre,
@@ -436,18 +675,6 @@ class LaboratorioProfesorViewSet(ModelViewSet):
     #     })
 
 # =========================================================
-# LABORATORIOS - ADMIN
-# =========================================================
-class LaboratorioAdminViewSet(ModelViewSet):
-    serializer_class = LaboratorioProfesorAdminSerializer
-    permission_classes = [IsAuthenticated, IsAdminOrSuperAdmin]
-
-    def get_queryset(self):
-        return Laboratorio.objects.all().order_by(
-        '-fecha_actualizacion'
-    )
-
-# =========================================================
 # LABORATORIO ESTUDIANTE
 # =========================================================
 class LaboratorioEstudianteViewSet(ModelViewSet):
@@ -470,7 +697,26 @@ class LaboratorioEstudianteViewSet(ModelViewSet):
             asignaciones__inscripciones__estudiante=
             self.request.user
         ).distinct()
+    
 
+    @swagger_auto_schema(
+        operation_summary="Laboratorios del estudiante",
+        operation_description="""
+        Retorna los laboratorios en los que el estudiante
+        autenticado se encuentra inscrito.
+        """
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+
+    @swagger_auto_schema(
+        operation_summary="Detalle de laboratorio",
+        operation_description="""
+        Permite al estudiante consultar el contenido completo
+        de un laboratorio en el que se encuentra inscrito.
+        """
+    )
     def retrieve(self, request, *args, **kwargs):
 
         laboratorio = self.get_object()
@@ -481,21 +727,16 @@ class LaboratorioEstudianteViewSet(ModelViewSet):
         ).exists()
 
         if not inscrito:
-
             return Response(
                 {
-                    "error":
-                    "No estás inscrito en este laboratorio"
+                    "error": "No estás inscrito en este laboratorio"
                 },
                 status=403
             )
 
-        serializer = self.get_serializer(
-            laboratorio
-        )
+        serializer = self.get_serializer(laboratorio)
 
         return Response(serializer.data)
-    
 
 # =========================================================
 # OBJETIVO GENERAL PLANTILLA
@@ -515,6 +756,16 @@ class PlantillaObjetivoGeneralViewSet(
 
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_summary="Listar objetivos generales",
+        operation_description="""
+        Retorna todos los objetivos generales
+        asociados a plantillas de laboratorio.
+        """
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 # =========================================================
 # OBJETIVO ESPECIFICO PLANTILLA
@@ -533,3 +784,13 @@ class PlantillaObjetivoEspecificoViewSet(
     )
 
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="Listar objetivos específicos",
+        operation_description="""
+        Retorna todos los objetivos específicos
+        asociados a objetivos generales de plantillas.
+        """
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)

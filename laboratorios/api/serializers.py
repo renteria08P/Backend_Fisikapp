@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from laboratorios.models import Asignacion
+
 from laboratorios.models import (
     Laboratorio,
     Categoria,
@@ -111,8 +113,6 @@ class GrupoAcademicoSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["profesor"]
 
-
-from laboratorios.models import Asignacion
 
 class AsignacionSerializer(serializers.ModelSerializer):
 
@@ -315,7 +315,7 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
             'fecha_actualizacion'
         ]
 # =========================================================
-# ADMIN - LABORATORIOS PROFESOR
+# Gestión de Laboratorios - Admin
 # =========================================================
 class LaboratorioProfesorAdminSerializer(
     serializers.ModelSerializer

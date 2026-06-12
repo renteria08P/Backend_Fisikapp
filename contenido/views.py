@@ -4,9 +4,13 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import api_view, parser_classes
-from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.response import Response
+from .models import Recursos
+from .serializers import RecursosSerializer
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+
 
 from .models import (
     ConceptosBasicos,
@@ -14,8 +18,13 @@ from .models import (
     Procedimiento,
     Formula,
     Bibliografia,
-    Recursos
+    Recursos,
+    PlantillaPractica,
+    PlantillaProcedimiento,
+    PlantillaFormula,
+    PlantillaBibliografia
 )
+
 from .serializers import (
     ConceptosBasicosSerializer,
     PracticaSerializer,
@@ -38,299 +47,893 @@ from .serializers import (
     PlantillaFormulaSerializer,
     PlantillaBibliografiaSerializer
 )
-from .models import (
-    ConceptosBasicos,
-    Practica,
-    Procedimiento,
-    Formula,
-    Bibliografia,
-    Recursos,
 
-    PlantillaPractica,
-    PlantillaProcedimiento,
-    PlantillaFormula,
-    PlantillaBibliografia
-)
-# =========================
+# ==============================================
 # CONCEPTOS BASICOS
-# =========================
+# ==============================================
+# ==============================================
+# CONCEPTOS BASICOS
+# ==============================================
 
-@swagger_auto_schema(method='post', request_body=ConceptosBasicosSerializer)
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Listar conceptos básicos",
+    operation_description="""
+    Retorna todos los conceptos básicos registrados
+    para apoyar el desarrollo de laboratorios.
+    """
+)
+@swagger_auto_schema(
+    method='post',
+    operation_summary="Crear concepto básico",
+    operation_description="""
+    Permite registrar un nuevo concepto básico.
+    """,
+    request_body=ConceptosBasicosSerializer
+)
 @api_view(['GET', 'POST'])
 def conceptos_list(request):
+
     if request.method == 'GET':
-        data = ConceptosBasicos.objects.all()
-        serializer = ConceptosBasicosSerializer(data, many=True)
+
+        conceptos = ConceptosBasicos.objects.all()
+
+        serializer = ConceptosBasicosSerializer(
+            conceptos,
+            many=True
+        )
+
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = ConceptosBasicosSerializer(data=request.data)
+
+        serializer = ConceptosBasicosSerializer(
+            data=request.data
+        )
+
         if serializer.is_valid():
+
             serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+
+            return Response(
+                serializer.data,
+                status=201
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
 
 
-@swagger_auto_schema(method='put', request_body=ConceptosBasicosSerializer)
+@swagger_auto_schema(
+    method='put',
+    operation_summary="Actualizar concepto básico",
+    operation_description="""
+    Actualiza la información de un concepto básico existente.
+    """,
+    request_body=ConceptosBasicosSerializer
+)
+@swagger_auto_schema(
+    method='delete',
+    operation_summary="Eliminar concepto básico",
+    operation_description="""
+    Elimina un concepto básico del sistema.
+    """
+)
 @api_view(['PUT', 'DELETE'])
 def conceptos_detalle(request, pk):
+
     try:
-        obj = ConceptosBasicos.objects.get(pk=pk)
+
+        concepto = ConceptosBasicos.objects.get(
+            pk=pk
+        )
+
     except ConceptosBasicos.DoesNotExist:
-        return Response({"error": "No existe"}, status=404)
+
+        return Response(
+            {
+                "error": "Concepto básico no encontrado"
+            },
+            status=404
+        )
 
     if request.method == 'PUT':
-        serializer = ConceptosBasicosSerializer(obj, data=request.data)
+
+        serializer = ConceptosBasicosSerializer(
+            concepto,
+            data=request.data
+        )
+
         if serializer.is_valid():
+
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+
+            return Response(
+                serializer.data
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
 
     elif request.method == 'DELETE':
-        obj.delete()
-        return Response({"mensaje": "Eliminado"}, status=204)
 
-# =========================
+        concepto.delete()
+
+        return Response(
+            {
+                "mensaje": "Concepto básico eliminado correctamente"
+            },
+            status=204
+        )
+
+# ==========================================
 # PRACTICAS
-# =========================
+# ==========================================
+# ==============================================
+# PRACTICAS
+# ==============================================
 
-@swagger_auto_schema(method='post', request_body=PracticaSerializer)
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Listar prácticas",
+    operation_description="""
+    Retorna todas las prácticas registradas.
+    Puede filtrarse por laboratorio mediante
+    el parámetro ?laboratorio=id.
+    """
+)
+@swagger_auto_schema(
+    method='post',
+    operation_summary="Crear práctica",
+    operation_description="""
+    Permite registrar una nueva práctica.
+    """,
+    request_body=PracticaSerializer
+)
 @api_view(['GET', 'POST'])
 def practicas_list(request):
+
     if request.method == 'GET':
-        laboratorio_id = request.query_params.get('laboratorio', None)     # ← NUEVO
-        data = Practica.objects.all()
-        if laboratorio_id:                                               # ← NUEVO
-            data = data.filter(laboratorio=laboratorio_id)                # ← NUEVO
-        serializer = PracticaSerializer(data, many=True)
+
+        laboratorio_id = request.query_params.get(
+            'laboratorio',
+            None
+        )
+
+        practicas = Practica.objects.all()
+
+        if laboratorio_id:
+            practicas = practicas.filter(
+                laboratorio=laboratorio_id
+            )
+
+        serializer = PracticaSerializer(
+            practicas,
+            many=True
+        )
+
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = PracticaSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
 
-@swagger_auto_schema(method='put', request_body=PracticaSerializer)
+        serializer = PracticaSerializer(
+            data=request.data
+        )
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(
+                serializer.data,
+                status=201
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
+
+
+@swagger_auto_schema(
+    method='put',
+    operation_summary="Actualizar práctica",
+    operation_description="""
+    Actualiza la información de una práctica.
+    """,
+    request_body=PracticaSerializer
+)
+@swagger_auto_schema(
+    method='delete',
+    operation_summary="Eliminar práctica",
+    operation_description="""
+    Elimina una práctica registrada.
+    """
+)
 @api_view(['PUT', 'DELETE'])
 def practicas_detalle(request, pk):
+
     try:
-        obj = Practica.objects.get(pk=pk)
+
+        practica = Practica.objects.get(
+            pk=pk
+        )
+
     except Practica.DoesNotExist:
-        return Response({"error": "No existe"}, status=404)
+
+        return Response(
+            {
+                "error": "Práctica no encontrada"
+            },
+            status=404
+        )
 
     if request.method == 'PUT':
-        serializer = PracticaSerializer(obj, data=request.data)
+
+        serializer = PracticaSerializer(
+            practica,
+            data=request.data
+        )
+
         if serializer.is_valid():
+
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+
+            return Response(
+                serializer.data
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
 
     elif request.method == 'DELETE':
-        obj.delete()
-        return Response({"mensaje": "Eliminado"}, status=204)
 
-# =========================
+        practica.delete()
+
+        return Response(
+            {
+                "mensaje": "Práctica eliminada correctamente"
+            },
+            status=204
+        )
+        
+# ==============================================
 # PROCEDIMIENTOS
-# =========================
+# ==============================================
 
-@swagger_auto_schema(method='post', request_body=ProcedimientoSerializer)
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Listar procedimientos",
+    operation_description="""
+    Retorna todos los procedimientos registrados.
+    Puede filtrarse por laboratorio mediante
+    el parámetro ?laboratorio=id.
+    """
+)
+@swagger_auto_schema(
+    method='post',
+    operation_summary="Crear procedimiento",
+    operation_description="""
+    Permite registrar un nuevo procedimiento.
+    """,
+    request_body=ProcedimientoSerializer
+)
 @api_view(['GET', 'POST'])
 def procedimientos_list(request):
+
     if request.method == 'GET':
-        laboratorio_id = request.query_params.get('laboratorio', None)
-        data = Procedimiento.objects.all()
-        if laboratorio_id:                                               # ← NUEVO
-            data = data.filter(laboratorio=laboratorio_id) 
-        serializer = ProcedimientoSerializer(data, many=True)
+
+        laboratorio_id = request.query_params.get(
+            'laboratorio',
+            None
+        )
+
+        procedimientos = Procedimiento.objects.all()
+
+        if laboratorio_id:
+            procedimientos = procedimientos.filter(
+                laboratorio=laboratorio_id
+            )
+
+        serializer = ProcedimientoSerializer(
+            procedimientos,
+            many=True
+        )
+
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = ProcedimientoSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
 
-@swagger_auto_schema(method='put', request_body=ProcedimientoSerializer)
+        serializer = ProcedimientoSerializer(
+            data=request.data
+        )
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(
+                serializer.data,
+                status=201
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
+
+
+@swagger_auto_schema(
+    method='put',
+    operation_summary="Actualizar procedimiento",
+    operation_description="""
+    Actualiza la información de un procedimiento.
+    """,
+    request_body=ProcedimientoSerializer
+)
+@swagger_auto_schema(
+    method='delete',
+    operation_summary="Eliminar procedimiento",
+    operation_description="""
+    Elimina un procedimiento registrado.
+    """
+)
 @api_view(['PUT', 'DELETE'])
 def procedimientos_detalle(request, pk):
+
     try:
-        obj = Procedimiento.objects.get(pk=pk)
+
+        procedimiento = Procedimiento.objects.get(
+            pk=pk
+        )
+
     except Procedimiento.DoesNotExist:
-        return Response({"error": "No existe"}, status=404)
+
+        return Response(
+            {
+                "error": "Procedimiento no encontrado"
+            },
+            status=404
+        )
 
     if request.method == 'PUT':
-        serializer = ProcedimientoSerializer(obj, data=request.data)
+
+        serializer = ProcedimientoSerializer(
+            procedimiento,
+            data=request.data
+        )
+
         if serializer.is_valid():
+
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+
+            return Response(
+                serializer.data
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
 
     elif request.method == 'DELETE':
-        obj.delete()
-        return Response({"mensaje": "Eliminado"}, status=204)
-    
-# =========================
-# FORMULAS
-# =========================
 
-@swagger_auto_schema(method='post', request_body=FormulaSerializer)
+        procedimiento.delete()
+
+        return Response(
+            {
+                "mensaje": "Procedimiento eliminado correctamente"
+            },
+            status=204
+        )
+
+# ==============================================
+# FORMULAS
+# ==============================================
+
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Listar fórmulas",
+    operation_description="""
+    Retorna todas las fórmulas registradas.
+    Puede filtrarse por laboratorio mediante
+    el parámetro ?laboratorio=id.
+    """
+)
+@swagger_auto_schema(
+    method='post',
+    operation_summary="Crear fórmula",
+    operation_description="""
+    Permite registrar una nueva fórmula.
+    """,
+    request_body=FormulaSerializer
+)
 @api_view(['GET', 'POST'])
 def lista_formulas(request):
+
     if request.method == 'GET':
-        laboratorio_id = request.query_params.get('laboratorio', None)  # ← NUEVO
+
+        laboratorio_id = request.query_params.get(
+            'laboratorio',
+            None
+        )
+
         formulas = Formula.objects.all()
-        if laboratorio_id:                                               # ← NUEVO
-            formulas = formulas.filter(laboratorio=laboratorio_id)        # ← NUEVO
-        serializer = FormulaSerializer(formulas, many=True)
+
+        if laboratorio_id:
+            formulas = formulas.filter(
+                laboratorio=laboratorio_id
+            )
+
+        serializer = FormulaSerializer(
+            formulas,
+            many=True
+        )
+
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = FormulaSerializer(data=request.data)
+
+        serializer = FormulaSerializer(
+            data=request.data
+        )
+
         if serializer.is_valid():
+
             serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+
+            return Response(
+                serializer.data,
+                status=201
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
 
 
-@swagger_auto_schema(method='put', request_body=FormulaSerializer)
-@swagger_auto_schema(method='patch', request_body=FormulaSerializer)
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Detalle de fórmula",
+    operation_description="""
+    Obtiene la información de una fórmula específica.
+    """
+)
+@swagger_auto_schema(
+    method='put',
+    operation_summary="Actualizar fórmula",
+    operation_description="""
+    Actualiza completamente una fórmula.
+    """,
+    request_body=FormulaSerializer
+)
+@swagger_auto_schema(
+    method='patch',
+    operation_summary="Actualizar parcialmente fórmula",
+    operation_description="""
+    Actualiza uno o varios campos de una fórmula.
+    """,
+    request_body=FormulaSerializer
+)
+@swagger_auto_schema(
+    method='delete',
+    operation_summary="Eliminar fórmula",
+    operation_description="""
+    Elimina una fórmula registrada.
+    """
+)
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def detalle_formula(request, pk):
+
     try:
-        formula = Formula.objects.get(pk=pk)
+
+        formula = Formula.objects.get(
+            pk=pk
+        )
+
     except Formula.DoesNotExist:
-        return Response({"error": "No encontrado"}, status=404)
+
+        return Response(
+            {
+                "error": "Fórmula no encontrada"
+            },
+            status=404
+        )
 
     if request.method == 'GET':
-        serializer = FormulaSerializer(formula)
-        return Response(serializer.data)
+
+        serializer = FormulaSerializer(
+            formula
+        )
+
+        return Response(
+            serializer.data
+        )
 
     elif request.method == 'PUT':
-        serializer = FormulaSerializer(formula, data=request.data)
+
+        serializer = FormulaSerializer(
+            formula,
+            data=request.data
+        )
+
         if serializer.is_valid():
+
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+
+            return Response(
+                serializer.data
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
 
     elif request.method == 'PATCH':
-        serializer = FormulaSerializer(formula, data=request.data, partial=True)
+
+        serializer = FormulaSerializer(
+            formula,
+            data=request.data,
+            partial=True
+        )
+
         if serializer.is_valid():
+
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+
+            return Response(
+                serializer.data
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
 
     elif request.method == 'DELETE':
+
         formula.delete()
-        return Response({"mensaje": "Eliminado correctamente"}, status=204)
 
+        return Response(
+            {
+                "mensaje": "Fórmula eliminada correctamente"
+            },
+            status=204
+        )
 
-# =========================
+# ==============================================
 # BIBLIOGRAFIA
-# =========================
+# ==============================================
 
-@swagger_auto_schema(method='post', request_body=BibliografiaSerializer)
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Listar bibliografías",
+    operation_description="""
+    Retorna todas las referencias bibliográficas
+    registradas. Puede filtrarse por laboratorio
+    mediante el parámetro ?laboratorio=id.
+    """
+)
+@swagger_auto_schema(
+    method='post',
+    operation_summary="Crear referencia bibliográfica",
+    operation_description="""
+    Permite registrar una nueva referencia bibliográfica.
+    """,
+    request_body=BibliografiaSerializer
+)
 @api_view(['GET', 'POST'])
 def lista_bibliografia(request):
+
     if request.method == 'GET':
-        laboratorio_id = request.query_params.get('laboratorio', None)  # ← NUEVO
-        biblios = Bibliografia.objects.all()
-        if laboratorio_id:                                               # ← NUEVO
-            biblios = biblios.filter(laboratorio=laboratorio_id)          # ← NUEVO
-        serializer = BibliografiaSerializer(biblios, many=True)
+
+        laboratorio_id = request.query_params.get(
+            'laboratorio',
+            None
+        )
+
+        bibliografias = Bibliografia.objects.all()
+
+        if laboratorio_id:
+            bibliografias = bibliografias.filter(
+                laboratorio=laboratorio_id
+            )
+
+        serializer = BibliografiaSerializer(
+            bibliografias,
+            many=True
+        )
+
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = BibliografiaSerializer(data=request.data)
+
+        serializer = BibliografiaSerializer(
+            data=request.data
+        )
+
         if serializer.is_valid():
+
             serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+
+            return Response(
+                serializer.data,
+                status=201
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
 
 
-@swagger_auto_schema(method='put', request_body=BibliografiaSerializer)
-@swagger_auto_schema(method='patch', request_body=BibliografiaSerializer)
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Detalle de referencia bibliográfica",
+    operation_description="""
+    Obtiene la información de una referencia
+    bibliográfica específica.
+    """
+)
+@swagger_auto_schema(
+    method='put',
+    operation_summary="Actualizar referencia bibliográfica",
+    operation_description="""
+    Actualiza completamente una referencia bibliográfica.
+    """,
+    request_body=BibliografiaSerializer
+)
+@swagger_auto_schema(
+    method='patch',
+    operation_summary="Actualizar parcialmente referencia bibliográfica",
+    operation_description="""
+    Actualiza uno o varios campos de una referencia bibliográfica.
+    """,
+    request_body=BibliografiaSerializer
+)
+@swagger_auto_schema(
+    method='delete',
+    operation_summary="Eliminar referencia bibliográfica",
+    operation_description="""
+    Elimina una referencia bibliográfica registrada.
+    """
+)
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def detalle_bibliografia(request, pk):
+
     try:
-        biblio = Bibliografia.objects.get(pk=pk)
+
+        bibliografia = Bibliografia.objects.get(
+            pk=pk
+        )
+
     except Bibliografia.DoesNotExist:
-        return Response({"error": "No encontrado"}, status=404)
+
+        return Response(
+            {
+                "error": "Referencia bibliográfica no encontrada"
+            },
+            status=404
+        )
 
     if request.method == 'GET':
-        serializer = BibliografiaSerializer(biblio)
-        return Response(serializer.data)
+
+        serializer = BibliografiaSerializer(
+            bibliografia
+        )
+
+        return Response(
+            serializer.data
+        )
 
     elif request.method == 'PUT':
-        serializer = BibliografiaSerializer(biblio, data=request.data)
+
+        serializer = BibliografiaSerializer(
+            bibliografia,
+            data=request.data
+        )
+
         if serializer.is_valid():
+
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+
+            return Response(
+                serializer.data
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
 
     elif request.method == 'PATCH':
-        serializer = BibliografiaSerializer(biblio, data=request.data, partial=True)
+
+        serializer = BibliografiaSerializer(
+            bibliografia,
+            data=request.data,
+            partial=True
+        )
+
         if serializer.is_valid():
+
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+
+            return Response(
+                serializer.data
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
 
     elif request.method == 'DELETE':
-        biblio.delete()
-        return Response({"mensaje": "Eliminado correctamente"}, status=204)
 
+        bibliografia.delete()
 
-# =========================
+        return Response(
+            {
+                "mensaje": "Referencia bibliográfica eliminada correctamente"
+            },
+            status=204
+        )
+
+# ==============================================
 # RECURSOS
-# =========================
+# ==============================================
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Recursos
-from .serializers import RecursosSerializer
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Listar recursos",
+    operation_description="""
+    Retorna todos los recursos registrados
+    en el sistema.
+    """
+)
+@swagger_auto_schema(
+    method='post',
+    operation_summary="Crear recurso",
+    operation_description="""
+    Permite registrar un nuevo recurso,
+    incluyendo archivos adjuntos.
+    """,
+    request_body=RecursosSerializer
+)
 @api_view(['GET', 'POST'])
-@parser_classes([MultiPartParser, FormParser, JSONParser])
+@parser_classes([
+    MultiPartParser,
+    FormParser,
+    JSONParser
+])
 def recursos_list(request):
+
     if request.method == 'GET':
+
         recursos = Recursos.objects.all()
-        serializer = RecursosSerializer(recursos, many=True)
-        return Response(serializer.data)
+
+        serializer = RecursosSerializer(
+            recursos,
+            many=True
+        )
+
+        return Response(
+            serializer.data
+        )
 
     elif request.method == 'POST':
-        serializer = RecursosSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
 
+        serializer = RecursosSerializer(
+            data=request.data
+        )
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(
+                serializer.data,
+                status=201
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
+
+
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Detalle de recurso",
+    operation_description="""
+    Obtiene la información de un recurso específico.
+    """
+)
+@swagger_auto_schema(
+    method='put',
+    operation_summary="Actualizar recurso",
+    operation_description="""
+    Actualiza completamente un recurso.
+    """,
+    request_body=RecursosSerializer
+)
+@swagger_auto_schema(
+    method='delete',
+    operation_summary="Eliminar recurso",
+    operation_description="""
+    Elimina un recurso registrado.
+    """
+)
 @api_view(['GET', 'PUT', 'DELETE'])
-@parser_classes([MultiPartParser, FormParser, JSONParser])
+@parser_classes([
+    MultiPartParser,
+    FormParser,
+    JSONParser
+])
 def recursos_detalle(request, pk):
+
     try:
-        recurso = Recursos.objects.get(pk=pk)
+
+        recurso = Recursos.objects.get(
+            pk=pk
+        )
+
     except Recursos.DoesNotExist:
-        return Response(status=404)
+
+        return Response(
+            {
+                "error": "Recurso no encontrado"
+            },
+            status=404
+        )
 
     if request.method == 'GET':
-        serializer = RecursosSerializer(recurso)
-        return Response(serializer.data)
+
+        serializer = RecursosSerializer(
+            recurso
+        )
+
+        return Response(
+            serializer.data
+        )
 
     elif request.method == 'PUT':
-        serializer = RecursosSerializer(recurso, data=request.data)
+
+        serializer = RecursosSerializer(
+            recurso,
+            data=request.data
+        )
+
         if serializer.is_valid():
+
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+
+            return Response(
+                serializer.data
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
 
     elif request.method == 'DELETE':
+
         recurso.delete()
-        return Response(status=204)
-    
+
+        return Response(
+            {
+                "mensaje": "Recurso eliminado correctamente"
+            },
+            status=204
+        )
 
 # =========================================================
 # PLANTILLA PRACTICA
