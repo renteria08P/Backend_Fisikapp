@@ -22,7 +22,6 @@ from rest_framework.decorators import parser_classes
 from rest_framework.decorators import permission_classes
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 from users.models import Users
 import pandas as pd
@@ -286,7 +285,6 @@ def crear_admin(request):
         return Response({"message": "Admin creado y credenciales enviadas"})
 
     return Response(serializer.errors, status=400)
-
 
 
 # =========================================================

@@ -1,6 +1,19 @@
 from rest_framework import serializers
-from .models import ConceptosBasicos, Practicas, Procedimientos, Formulas, Bibliografia, Recursos
+from .models import (
+    ConceptosBasicos,
+    Practica,
+    Procedimiento,
+    Formula,
+    Bibliografia,
+    Recursos
+)
 
+from .models import (
+    PlantillaPractica,
+    PlantillaProcedimiento,
+    PlantillaFormula,
+    PlantillaBibliografia
+)
 
 class RecursosSerializer(serializers.ModelSerializer):
 
@@ -67,22 +80,67 @@ class ConceptosBasicosSerializer(serializers.ModelSerializer):
 
         return concepto
 
-class PracticasSerializer(serializers.ModelSerializer):
+class PracticaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Practicas
+        model = Practica
         fields = '__all__'
 
-class ProcedimientosSerializer(serializers.ModelSerializer):
+class ProcedimientoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Procedimientos
+        model = Procedimiento
         fields = '__all__'
 
-class FormulasSerializer(serializers.ModelSerializer):
+class FormulaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Formulas
+        model = Formula
         fields = '__all__'
 
 class BibliografiaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bibliografia
         fields = '__all__'
+
+# =========================================================
+# PLANTILLA PRACTICA
+# =========================================================
+class PlantillaPracticaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PlantillaPractica
+        fields = "__all__"
+
+
+# =========================================================
+# PLANTILLA PROCEDIMIENTO
+# =========================================================
+class PlantillaProcedimientoSerializer(
+    serializers.ModelSerializer
+):
+
+    class Meta:
+        model = PlantillaProcedimiento
+        fields = "__all__"
+
+
+# =========================================================
+# PLANTILLA FORMULA
+# =========================================================
+class PlantillaFormulaSerializer(
+    serializers.ModelSerializer
+):
+
+    class Meta:
+        model = PlantillaFormula
+        fields = "__all__"
+
+
+# =========================================================
+# PLANTILLA BIBLIOGRAFIA
+# =========================================================
+class PlantillaBibliografiaSerializer(
+    serializers.ModelSerializer
+):
+
+    class Meta:
+        model = PlantillaBibliografia
+        fields = "__all__"

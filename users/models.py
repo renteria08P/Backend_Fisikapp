@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-import json
 from cloudinary.models import CloudinaryField
-from django.core.exceptions import ValidationError
 import cloudinary.uploader
 
 # =========================================================
@@ -55,6 +53,12 @@ class Users(AbstractBaseUser, PermissionsMixin):
 )
 
     nombre = models.CharField(max_length=100)
+
+    apellido = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
     fecha_nacimiento = models.DateField(null=True, blank=True)
     identificacion = models.CharField(
         max_length=20,
@@ -64,7 +68,10 @@ class Users(AbstractBaseUser, PermissionsMixin):
     )
     correo = models.EmailField(unique=True)
     institucion = models.CharField(max_length=100, null=True, blank=True)
-    embedded = models.JSONField(null=True, blank=True)
+    embedding_facial = models.JSONField(
+        null=True,
+        blank=True
+    )
 
     # Campo clave de roles
     rol = models.CharField(max_length=20, choices=ROLES, default='estudiante')
@@ -74,7 +81,13 @@ class Users(AbstractBaseUser, PermissionsMixin):
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     # Foto de perfil con Cloudinary
-    foto = CloudinaryField('image', folder='usuarios', null=True, blank=True)
+    foto = CloudinaryField(
+        'image',
+        folder='usuarios',
+        null=True,
+        blank=True
+    )
+
     def save(self, *args, **kwargs):
 
     #limpiar identificación correctamente
@@ -83,10 +96,6 @@ class Users(AbstractBaseUser, PermissionsMixin):
                 if str(self.identificacion).strip() == "":
                     self.identificacion = None
 
-    # embedded seguro
-        if hasattr(self, "embedded") and self.embedded:
-            if isinstance(self.embedded, (dict, list)):
-                self.embedded = json.dumps(self.embedded)
 
     #foto anterior
         if self.pk:
@@ -101,11 +110,6 @@ class Users(AbstractBaseUser, PermissionsMixin):
         super().save(*args, **kwargs)
 
 
-    def clean_identificacion(value):
-        if value in ["", "null", "None"]:
-            return None
-        return value
-
     # Autorización de tratamiento de datos
     autorizacion_datos = models.BooleanField(default=False)
 
@@ -114,25 +118,25 @@ class Users(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'correo'
-    REQUIRED_FIELDS = ['nombre']
+    REQUIRED_FIELDS = [
+        'nombre',
+        'apellido'
+    ]
 
     objects = UsersManager()
 
     def __str__(self):
-        return self.nombre
-
+        return f"{self.nombre} {self.apellido or ''}".strip()
+    
+    class Meta:
+        ordering = ['nombre']
+    
     # =========================================================
     # PERMISOS DJANGO
     # =========================================================
 
     def has_perm(self, perm, obj=None):
-        """
-        Permisos individuales.
-        """
-        return True
+        return self.is_superuser
 
     def has_module_perms(self, app_label):
-        """
-        Permisos por módulo.
-        """
-        return True
+        return self.is_superuser

@@ -3,29 +3,50 @@ from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from django.conf import settings
 
-# IMPORTANTE: usamos string para evitar errores de import entre apps
 
+# =========================================================
+# CONCEPTOS BASICOS
+# =========================================================
 class ConceptosBasicos(models.Model):
     descripcion = models.TextField()
     concepto = models.CharField(max_length=100)
     ejemplo = models.TextField()
     tipo = models.CharField(max_length=50)
-    fecha = models.DateField()
 
-    recursos = models.ManyToManyField('Recursos', blank=True)
-
+    recursos = models.ManyToManyField(
+        'Recursos',
+        blank=True
+    )
 
     def __str__(self):
         return self.concepto
+
+
+    class Meta:
+        ordering = ['concepto']
     
+# =========================================================
+# RECURSOS
+# =========================================================
 class Recursos(models.Model):
-    nombre = models.CharField(max_length=100, blank=True)
+
+    nombre = models.CharField(
+        max_length=100
+    )
 
     archivo = models.FileField(
         upload_to='recursos/',
         null=True,
         blank=True,
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx'])]
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=[
+                    'pdf',
+                    'doc',
+                    'docx'
+                ]
+            )
+        ]
     )
 
     url = models.URLField(
@@ -33,33 +54,180 @@ class Recursos(models.Model):
         blank=True
     )
 
-    def clean(self):
-        if not self.archivo and not self.url:
-            raise ValidationError("Debes subir un archivo o proporcionar una URL.")
-
-    def save(self, *args, **kwargs):
-        self.full_clean() 
-        super().save(*args, **kwargs)
-
     def __str__(self):
-        return f"Recurso {self.id}"
+        return self.nombre
     
+# =========================================================
+# PLANTILLA PRACTICA
+# =========================================================
 
-class Practicas(models.Model):
-    nombre_practica = models.CharField(max_length=100)
-    conceptos = models.ManyToManyField(
-        ConceptosBasicos
+class PlantillaPractica(models.Model):
+
+    plantilla = models.ForeignKey(
+        'laboratorios.PlantillaLaboratorio',
+        on_delete=models.CASCADE,
+        related_name='practicas'
     )
+
+    nombre_practica = models.CharField(
+        max_length=100
+    )
+
     objetivo = models.TextField()
+
     descripcion = models.TextField()
+
     materiales = models.TextField()
+
     calculos = models.TextField()
-    laboratorio = models.ForeignKey('laboratorios.Laboratorio', on_delete=models.CASCADE)
+
+    conceptos = models.ManyToManyField(
+        ConceptosBasicos,
+        blank=True,
+        related_name='practicas_plantilla'
+    )
 
     def __str__(self):
         return self.nombre_practica
     
+    class Meta:
+        ordering = ['nombre_practica']
+
+
+class Practica(models.Model):
+
+    laboratorio = models.ForeignKey(
+        'laboratorios.Laboratorio',
+        on_delete=models.CASCADE,
+        related_name='practicas'
+    )
+
+    nombre_practica = models.CharField(
+        max_length=100
+    )
+
+    objetivo = models.TextField()
+
+    descripcion = models.TextField()
+
+    materiales = models.TextField()
+
+    calculos = models.TextField()
+
+    conceptos = models.ManyToManyField(
+        ConceptosBasicos,
+        blank=True,
+        related_name='practicas'
+    )
+
+    def __str__(self):
+        return self.nombre_practica
+    
+    class Meta:
+        ordering = ['nombre_practica']
+
+# =========================================================
+# PLANTILLA PROCEDIMIENTO
+# =========================================================
+class PlantillaProcedimiento(models.Model):
+
+    plantilla = models.ForeignKey(
+        'laboratorios.PlantillaLaboratorio',
+        on_delete=models.CASCADE,
+        related_name='procedimientos'
+    )
+
+    muestras = models.TextField()
+
+    calculos = models.TextField()
+
+    resultados = models.TextField()
+
+    def __str__(self):
+        return f"Procedimiento {self.id}"
+
+
+class Procedimiento(models.Model):
+
+    laboratorio = models.ForeignKey(
+        'laboratorios.Laboratorio',
+        on_delete=models.CASCADE,
+        related_name='procedimientos'
+    )
+
+    muestras = models.TextField()
+
+    calculos = models.TextField()
+
+    resultados = models.TextField()
+
+    def __str__(self):
+        return f"Procedimiento {self.id}"
+
+# =========================================================
+# PLANTILLA FORMULAS
+# =========================================================
+class PlantillaFormula(models.Model):
+
+    plantilla = models.ForeignKey(
+        'laboratorios.PlantillaLaboratorio',
+        on_delete=models.CASCADE,
+        related_name='formulas'
+    )
+
+    nombre = models.CharField(
+        max_length=100
+    )
+
+    descripcion = models.TextField()
+
+    expresion = models.TextField()
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        ordering = ['nombre']
+
+
+class Formula(models.Model):
+
+    laboratorio = models.ForeignKey(
+        'laboratorios.Laboratorio',
+        on_delete=models.CASCADE,
+        related_name='formulas'
+    )
+
+    nombre = models.CharField(
+        max_length=100
+    )
+
+    descripcion = models.TextField()
+
+    expresion = models.TextField()
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        ordering = ['nombre']
+    
+# =========================================================
+# PRACTICA ESTUDIANTE
+# =========================================================
 class PracticaEstudiante(models.Model):
+
+    ESTADOS = (
+        ('PENDIENTE', 'Pendiente'),
+        ('EN_PROGRESO', 'En progreso'),
+        ('COMPLETADA', 'Completada'),
+    )
+
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default='PENDIENTE'
+    )
 
     estudiante = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -67,13 +235,9 @@ class PracticaEstudiante(models.Model):
     )
 
     practica = models.ForeignKey(
-        'contenido.Practicas',
-        on_delete=models.CASCADE
-    )
-
-    estado = models.CharField(
-        max_length=50,
-        default='pendiente'
+        Practica,
+        on_delete=models.CASCADE,
+        related_name='practicas_estudiantes'
     )
 
     fecha_inicio = models.DateTimeField(
@@ -86,39 +250,74 @@ class PracticaEstudiante(models.Model):
     )
 
     class Meta:
-        unique_together = ['estudiante', 'practica']
-
-
-class Procedimientos(models.Model):
-    laboratorio = models.ForeignKey('laboratorios.Laboratorio', on_delete=models.CASCADE)
-    muestras = models.TextField()
-    calculos = models.TextField()
-    resultados = models.TextField()
+        unique_together = (
+            'estudiante',
+            'practica'
+        )
 
     def __str__(self):
-        return f"Procedimiento {self.id}"
+        return f"{self.estudiante} - {self.practica.nombre_practica}"
 
+# =========================================================
+# PLANTILLA BIBLIOGRAFIA
+# =========================================================
+class PlantillaBibliografia(models.Model):
 
-class Formulas(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
-    expresion = models.TextField()
-    laboratorio = models.ForeignKey('laboratorios.Laboratorio', on_delete=models.CASCADE)
+    plantilla = models.ForeignKey(
+        'laboratorios.PlantillaLaboratorio',
+        on_delete=models.CASCADE,
+        related_name='bibliografias'
+    )
 
-    def __str__(self):
-        return self.nombre
-
-
-class Bibliografia(models.Model):
     autor = models.CharField(max_length=100)
+
     titulo = models.CharField(max_length=200)
+
     tipo_fuente = models.CharField(max_length=100)
-    anio = models.IntegerField()
+
+    anio = models.PositiveIntegerField()
+
     editorial = models.CharField(max_length=150)
+
     url = models.URLField()
+
     fecha_consulta = models.DateField()
+
     descripcion = models.TextField()
-    laboratorio = models.ForeignKey('laboratorios.Laboratorio', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.titulo
+    
+    class Meta:
+        ordering = ['titulo']
+
+
+class Bibliografia(models.Model):
+
+    laboratorio = models.ForeignKey(
+        'laboratorios.Laboratorio',
+        on_delete=models.CASCADE,
+        related_name='bibliografias'
+    )
+
+    autor = models.CharField(max_length=100)
+
+    titulo = models.CharField(max_length=200)
+
+    tipo_fuente = models.CharField(max_length=100)
+
+    anio = models.PositiveIntegerField()
+
+    editorial = models.CharField(max_length=150)
+
+    url = models.URLField()
+
+    fecha_consulta = models.DateField()
+
+    descripcion = models.TextField()
+
+    def __str__(self):
+        return self.titulo
+    
+    class Meta:
+        ordering = ['titulo']

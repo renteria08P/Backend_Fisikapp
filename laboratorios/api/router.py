@@ -1,27 +1,43 @@
-
 from rest_framework.routers import DefaultRouter
-from django.urls import path
 
 from .views import (
-    LaboratorioAdminViewSet,
-    LaboratorioViewSet,
     CategoriaViewSet,
     PalabraClaveViewSet,
     LaboratorioProfesorViewSet,
-    ObjetivoGeneralViewSet,
-    ObjetivoEspecificoViewSet
-
+    PlantillaLaboratorioViewSet,
+    GrupoAcademicoViewSet,
+    AsignacionViewSet,
+    InscripcionViewSet,
+    LaboratorioEstudianteViewSet,
+    PlantillaObjetivoEspecificoViewSet,
+    PlantillaObjetivoGeneralViewSet,
+    LaboratorioProfesorAdminViewSet,
 )
 
-# =========================================================
-# ROUTER PRINCIPAL
-# =========================================================
 router = DefaultRouter()
 
 router.register(
-    r'laboratorios',
-    LaboratorioViewSet,
-    basename='laboratorios'
+    r'plantillas',
+    PlantillaLaboratorioViewSet,
+    basename='plantillas'
+)
+
+router.register(
+    r'grupos',
+    GrupoAcademicoViewSet,
+    basename='grupos'
+)
+
+router.register(
+    r'asignaciones',
+    AsignacionViewSet,
+    basename='asignaciones'
+)
+
+router.register(
+    r'inscripciones',
+    InscripcionViewSet,
+    basename='inscripciones'
 )
 
 router.register(
@@ -37,38 +53,33 @@ router.register(
 )
 
 router.register(
-    r'objetivos-generales',
-    ObjetivoGeneralViewSet,
-    basename='objetivos-generales'
-)
-
-router.register(
-    r'objetivos-especificos',
-    ObjetivoEspecificoViewSet,
-    basename='objetivos-especificos'
-)
-
-router.register(
     r'laboratorio-profesor',
     LaboratorioProfesorViewSet,
     basename='laboratorio-profesor'
 )
 
-
 router.register(
     r'laboratorio-admin',
-    LaboratorioAdminViewSet,
+    LaboratorioProfesorAdminViewSet,
     basename='laboratorio-admin'
 )
 
-# =========================================================
-# URLS
-# =========================================================
-urlpatterns = [
+router.register(
+    r'laboratorios-estudiante',
+    LaboratorioEstudianteViewSet,
+    basename='laboratorios-estudiante'
+)
 
-   
+router.register(
+    r'plantilla-objetivos-generales',
+    PlantillaObjetivoGeneralViewSet,
+    basename='plantilla-objetivos-generales'
+)
 
-]
+router.register(
+    r'plantilla-objetivos-especificos',
+    PlantillaObjetivoEspecificoViewSet,
+    basename='plantilla-objetivos-especificos'
+)
 
-# RUTAS AUTOMÁTICAS DEL ROUTER
-urlpatterns += router.urls
+urlpatterns = router.urls
