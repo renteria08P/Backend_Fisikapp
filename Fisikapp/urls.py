@@ -17,23 +17,17 @@ Including another URLconf
 from django.contrib import admin
 
 from django.urls import include, path
-
+from laboratorios.api.router import router
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from informes.routers import router as informes_router
 from notificaciones.routers import router as notificaciones_router
 from django.http import HttpResponse
 
 
 from laboratorios.api.router import router 
 
-from laboratorios.api.views import (
-    MisLaboratoriosView,
-    inscribir_usuario,
-    
-)
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -70,33 +64,21 @@ urlpatterns = [
     # TUS APPS
     path('api/', include('inscripciones.urls')),
     path('api/contenido/', include('contenido.urls')),
+    path('api/entregas/', include('entregas.urls')),
 
-    #  INFORMES
-    path('api/informes/', include(informes_router.urls)),
 
    # NOTIFICACIONES
     path('api/', include(notificaciones_router.urls)),
 
    # LABORATORIOS
-    path(
-        'api/laboratorio-profesor/mis_laboratorios/',
-        MisLaboratoriosView.as_view(),
-        name='mis-laboratorios'
-    ),
-
     path('api/', include(router.urls)),
 
-    path(
-        'api/inscribir/',
-        inscribir_usuario,
-        name='inscribir_usuario'
-    ),
+    #EVALUACIONES
+    path('api/evaluaciones/', include('evaluaciones.urls')),
 
-   
 
     # USERS
     path('api/users/', include('users.urls')),
-
 
     # REPORTES
     path('api/reportes/', include('reportes.urls')

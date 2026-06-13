@@ -9,7 +9,10 @@ class UsersSerializer(serializers.ModelSerializer):
     foto = serializers.ImageField(required=False, allow_null=True)
 
     # NUEVOS CAMPOS
-    embedded = serializers.JSONField(required=False, allow_null=True)
+    embedding_facial = serializers.JSONField(
+        required=False,
+        allow_null=True
+    )
     autorizacion_datos = serializers.BooleanField(required=False)
 
 
@@ -27,7 +30,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'institucion',
             'foto',
             'foto_url',
-            'embedded',
+            'embedding_facial',
             'autorizacion_datos',
             'last_login',
         ]
@@ -88,10 +91,10 @@ class UsersSerializer(serializers.ModelSerializer):
         if query.exists():
             raise serializers.ValidationError(
                 "La identificación ya existe"
-        )
+            )
 
         return value
-    # =================
+    
     # =====================================================
     # VALIDAR PASSWORD
     # =====================================================
@@ -118,10 +121,17 @@ class UsersSerializer(serializers.ModelSerializer):
     # CREATE
     # =====================================================
     def create(self, validated_data):
-        password = validated_data.pop('password')
+
+        password = validated_data.pop(
+            'password',
+            None
+        )
 
         user = Users(**validated_data)
-        user.set_password(password)
+
+        if password:
+            user.set_password(password)
+
         user.save()
 
         return user

@@ -1,4 +1,4 @@
-# Backend Fisikapp
+# Backend Fisikapp.
 
 Backend desarrollado en **Django + Django REST Framework** para la gestión de laboratorios de física, incluyendo autenticación, usuarios, notificaciones y envío de correos.
 
@@ -23,8 +23,7 @@ Backend_Fisikapp/
 │── Fisikapp/          # Configuración principal
 │── users/             # Gestión de usuarios
 │── laboratorios/      # Lógica de laboratorios
-│── inscripciones/     # Inscripción a prácticas
-│── informes/          # Reportes
+│── inscripciones/     # Inscripción a prácticas        
 │── notificaciones/    # Sistema de notificaciones
 │── contenido/         # Contenido educativo
 │── parametros/        # Configuración dinámica
@@ -100,6 +99,8 @@ pip install django-filter
 pip install gunicorn whitenoise psycopg2-binary dj-database-url python-dotenv
 pip install pandas openpyxl
 pip install requests
+pip install django-extensions
+
 
 ```
 
