@@ -54,11 +54,6 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     nombre = models.CharField(max_length=100)
 
-    apellido = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True
-    )
     fecha_nacimiento = models.DateField(null=True, blank=True)
     identificacion = models.CharField(
         max_length=20,
@@ -119,14 +114,13 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'correo'
     REQUIRED_FIELDS = [
-        'nombre',
-        'apellido'
+        'nombre'
     ]
 
     objects = UsersManager()
 
     def __str__(self):
-        return f"{self.nombre} {self.apellido or ''}".strip()
+        return f"{self.nombre} ".strip()
     
     class Meta:
         ordering = ['nombre']
