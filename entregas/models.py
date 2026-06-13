@@ -11,13 +11,26 @@ class Entrega(models.Model):
     ESTADOS = (
         ('BORRADOR', 'Borrador'),
         ('ENVIADA', 'Enviada'),
-        ('EVALUADA', 'Evaluada'),
+        ('GENERADO', 'Generado'),
+        ('APROBADO', 'Aprobado'),
+        ('RECHAZADO', 'Rechazado'),
+    )
+    
+    TIPOS = (
+        ('PRACTICA', 'Práctica'),
+        ('SIMULACION', 'Simulación'),
     )
 
     inscripcion = models.OneToOneField(
         'inscripciones.Inscripcion',
         on_delete=models.CASCADE,
         related_name='entrega'
+    )
+    
+    tipo_reporte = models.CharField(
+        max_length=20,
+        choices=TIPOS,
+        default='PRACTICA'
     )
 
     estado = models.CharField(
