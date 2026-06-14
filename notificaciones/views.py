@@ -13,10 +13,10 @@ class LogViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['usuario', 'accion', 'fecha']
-    search_fields = ['accion', 'detalle']
-    ordering_fields = ['fecha']
-    ordering = ['-fecha']
+    filterset_fields = ['usuario', 'accion', 'fecha_creacion']
+    search_fields = ['accion', 'descripcion']
+    ordering_fields = ['fecha_creacion']
+    ordering = ['-fecha_creacion']
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
