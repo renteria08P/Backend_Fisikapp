@@ -137,14 +137,20 @@ class PlantillaProcedimiento(models.Model):
         related_name='procedimientos'
     )
 
-    muestras = models.TextField()
+    paso_numero = models.PositiveSmallIntegerField()
+    descripcion = models.TextField()
+    imagen = models.ImageField(
+        upload_to='procedimientos/',
+        null=True,
+        blank=True
+    )
+    orden = models.PositiveSmallIntegerField()
 
-    calculos = models.TextField()
-
-    resultados = models.TextField()
+    class Meta:
+        ordering = ['orden']
 
     def __str__(self):
-        return f"Procedimiento {self.id}"
+        return f"Paso {self.paso_numero}"
 
 
 class Procedimiento(models.Model):
@@ -155,14 +161,20 @@ class Procedimiento(models.Model):
         related_name='procedimientos'
     )
 
-    muestras = models.TextField()
+    paso_numero = models.PositiveSmallIntegerField()
+    descripcion = models.TextField()
+    imagen = models.ImageField(
+        upload_to='procedimientos/',
+        null=True,
+        blank=True
+    )
+    orden = models.PositiveSmallIntegerField()
 
-    calculos = models.TextField()
-
-    resultados = models.TextField()
+    class Meta:
+        ordering = ['orden']
 
     def __str__(self):
-        return f"Procedimiento {self.id}"
+        return f"Paso {self.paso_numero}"
 
 # =========================================================
 # PLANTILLA FORMULAS
