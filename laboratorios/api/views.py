@@ -1,3 +1,8 @@
+import qrcode
+from io import BytesIO
+from django.http import HttpResponse
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.viewsets import (
     ModelViewSet,
     ReadOnlyModelViewSet
@@ -201,6 +206,50 @@ class AsignacionViewSet(ModelViewSet):
         Consulta la información completa de una asignación.
         """
     )
+
+    @action(
+        detail=True,
+        methods=['get']
+    )
+    def qr(self, request, pk=None):
+
+        asignacion = self.get_object()
+
+        codigo = asignacion.codigo_ingreso
+
+        qr = qrcode.make(codigo)
+
+        buffer = BytesIO()
+
+        qr.save(
+            buffer,
+            format='PNG'
+        )
+
+        buffer.seek(0)
+
+        return HttpResponse(
+            buffer.getvalue(),
+            content_type='image/png'
+        )
+    
+    @action(
+        detail=True,
+        methods=['get'],
+        url_path='qr-info'
+    )
+    def qr_info(self, request, pk=None):
+
+        asignacion = self.get_object()
+
+        return Response({
+            "id": asignacion.id,
+            "laboratorio": asignacion.laboratorio.plantilla.titulo,
+            "grupo": asignacion.grupo.nombre,
+            "codigo": asignacion.codigo_ingreso,
+            "qr_url": f"/api/asignaciones/{asignacion.id}/qr/"
+        })
+
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
