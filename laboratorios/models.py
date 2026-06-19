@@ -123,9 +123,10 @@ class PlantillaLaboratorio(models.Model):
 class Laboratorio(models.Model):
 
     ESTADOS = (
-        ('BORRADOR', 'Borrador'),
+       
         ('ACTIVO', 'Activo'),
-        ('ARCHIVADO', 'Archivado'),
+        ('INACTIVO', 'Inactivo'),
+        
     )
 
     plantilla = models.ForeignKey(
