@@ -127,6 +127,10 @@ from laboratorios.models import PlantillaLaboratorio
 class PlantillaLaboratorioSerializer(
     serializers.ModelSerializer
 ):
+    creador_nombre = serializers.CharField(
+        source='creado_por.nombre',
+        read_only=True
+    )
 
     class Meta:
         model = PlantillaLaboratorio

@@ -9,14 +9,28 @@ from django.core.exceptions import ValidationError
 class Entrega(models.Model):
 
     ESTADOS = (
-        ("ACTIVO", "Activo"),
-        ("INACTIVO", "Inactivo"),
+        ('BORRADOR', 'Borrador'),
+        ('ENVIADA', 'Enviada'),
+        ('GENERADO', 'Generado'),
+        ('APROBADO', 'Aprobado'),
+        ('RECHAZADO', 'Rechazado'),
+    )
+    
+    TIPOS = (
+        ('PRACTICA', 'Práctica'),
+        ('SIMULACION', 'Simulación'),
     )
 
     inscripcion = models.OneToOneField(
         'inscripciones.Inscripcion',
         on_delete=models.CASCADE,
         related_name='entrega'
+    )
+    
+    tipo_reporte = models.CharField(
+        max_length=20,
+        choices=TIPOS,
+        default='PRACTICA'
     )
 
     estado = models.CharField(

@@ -1,12 +1,14 @@
 from rest_framework import serializers
 
 from .models import ReporteLaboratorio
+from inscripciones.models import Inscripcion
+from laboratorios.models import Asignacion
 
 
 class HistorialReporteSerializer(serializers.ModelSerializer):
 
     laboratorio_nombre = serializers.CharField(
-        source='laboratorio_profesor.laboratorio.titulo_lab'
+        source='laboratorio.titulo'
     )
 
     estudiantes_info = serializers.SerializerMethodField()
@@ -38,15 +40,15 @@ class HistorialReporteSerializer(serializers.ModelSerializer):
 
     def get_estudiantes_info(self, obj):
 
-        estudiantes = obj.estudiantes.all()
+        inscripciones = Inscripcion.objects.filter(
+            asignacion__laboratorio=obj.laboratorio
+        ).select_related('estudiante')
 
         lista = []
 
-        nombres = []
+        for inscripcion in inscripciones:
 
-        for estudiante in estudiantes:
-
-            nombres.append(estudiante.nombre)
+            estudiante = inscripcion.estudiante
 
             lista.append({
                 "id": estudiante.id,
@@ -55,7 +57,8 @@ class HistorialReporteSerializer(serializers.ModelSerializer):
                 "correo": estudiante.correo
             })
 
-            return {
+        return {
+            "total_estudiantes": len(lista),
             "lista_detallada": lista
         }
     # ======================================

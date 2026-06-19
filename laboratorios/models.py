@@ -90,7 +90,8 @@ class Laboratorio(models.Model):
 
     ESTADOS = (
         ("ACTIVO", "Activo"),
-        ("INACTIVO", "Inactivo"),
+        ("INACTIVO", "Inactivo"),   
+        
     )
 
     plantilla = models.ForeignKey(
