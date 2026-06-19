@@ -76,6 +76,13 @@ class PlantillaLaboratorioViewSet(ModelViewSet):
         IsAuthenticated
     ]
 
+    
+    def perform_create(self, serializer):
+
+        serializer.save(
+            creado_por=self.request.user
+        )
+
     @swagger_auto_schema(
         operation_summary="Crear plantilla de laboratorio",
         operation_description="""
@@ -105,6 +112,7 @@ class PlantillaLaboratorioViewSet(ModelViewSet):
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+
 
 class GrupoAcademicoViewSet(ModelViewSet):
 
