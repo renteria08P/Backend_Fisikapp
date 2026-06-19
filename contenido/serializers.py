@@ -7,11 +7,6 @@ from .models import (
     Recursos
 )
 
-from .models import (
-    PlantillaPractica,
-    PlantillaProcedimiento,
-    PlantillaFormula,
-)
 
 class RecursosSerializer(serializers.ModelSerializer):
 
@@ -92,37 +87,4 @@ class FormulaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Formula
         fields = '__all__'
-
-# =========================================================
-# PLANTILLA PRACTICA
-# =========================================================
-class PlantillaPracticaSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = PlantillaPractica
-        fields = "__all__"
-
-
-# =========================================================
-# PLANTILLA PROCEDIMIENTO
-# =========================================================
-class PlantillaProcedimientoSerializer(
-    serializers.ModelSerializer
-):
-
-    class Meta:
-        model = PlantillaProcedimiento
-        fields = "__all__"
-
-
-# =========================================================
-# PLANTILLA FORMULA
-# =========================================================
-class PlantillaFormulaSerializer(
-    serializers.ModelSerializer
-):
-
-    class Meta:
-        model = PlantillaFormula
-        fields = "__all__"
 

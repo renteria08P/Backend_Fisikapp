@@ -18,9 +18,6 @@ from .models import (
     Procedimiento,
     Formula,
     Recursos,
-    PlantillaPractica,
-    PlantillaProcedimiento,
-    PlantillaFormula,
 )
 
 from .serializers import (
@@ -29,10 +26,6 @@ from .serializers import (
     ProcedimientoSerializer,
     FormulaSerializer,
     RecursosSerializer,
-
-    PlantillaPracticaSerializer,
-    PlantillaProcedimientoSerializer,
-    PlantillaFormulaSerializer,
 
 )
 
@@ -156,9 +149,6 @@ def conceptos_detalle(request, pk):
             status=204
         )
 
-# ==========================================
-# PRACTICAS
-# ==========================================
 # ==============================================
 # PRACTICAS
 # ==============================================
@@ -744,33 +734,3 @@ def recursos_detalle(request, pk):
             },
             status=204
         )
-
-# =========================================================
-# PLANTILLA PRACTICA
-# =========================================================
-class PlantillaPracticaViewSet(ModelViewSet):
-
-    queryset = PlantillaPractica.objects.all()
-    serializer_class = PlantillaPracticaSerializer
-    permission_classes = [IsAuthenticated]
-
-
-# =========================================================
-# PLANTILLA PROCEDIMIENTO
-# =========================================================
-class PlantillaProcedimientoViewSet(ModelViewSet):
-
-    queryset = PlantillaProcedimiento.objects.all()
-    serializer_class = PlantillaProcedimientoSerializer
-    permission_classes = [IsAuthenticated]
-
-
-# =========================================================
-# PLANTILLA FORMULA
-# =========================================================
-class PlantillaFormulaViewSet(ModelViewSet):
-
-    queryset = PlantillaFormula.objects.all()
-    serializer_class = PlantillaFormulaSerializer
-    permission_classes = [IsAuthenticated]
-

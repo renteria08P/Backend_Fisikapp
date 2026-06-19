@@ -117,7 +117,6 @@ class AsignacionSerializer(serializers.ModelSerializer):
         model = Asignacion
         fields = "__all__"
         read_only_fields = [
-            "profesor",
             "fecha_creacion",
             "codigo_ingreso"   
         ]
@@ -203,13 +202,17 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+
     def create(self, validated_data):
 
-        laboratorio = Laboratorio.objects.create(
-            **validated_data
-        )
+        plantilla = validated_data["plantilla"]
 
-        plantilla = laboratorio.plantilla
+        laboratorio = Laboratorio.objects.create(
+            resumen=plantilla.resumen,
+            introduccion=plantilla.introduccion,
+            marco_teorico=plantilla.marco_teorico,
+            **validated_data
+    )
 
         try:
 
@@ -242,52 +245,22 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
             plantilla.conceptos_basicos.all()
         )
 
-
-        for practica in plantilla.practicas.all():
-
-            nueva = Practica.objects.create(
-                laboratorio=laboratorio,
-                nombre_practica=practica.nombre_practica,
-                objetivo=practica.objetivo,
-                descripcion=practica.descripcion,
-                materiales=practica.materiales,
-                calculos=practica.calculos
-            )
-
-            nueva.conceptos.set(
-                practica.conceptos.all()
-            )
-
-        for procedimiento in plantilla.procedimientos.all():
-
-            Procedimiento.objects.create(
-                laboratorio=laboratorio,
-                muestras=procedimiento.muestras,
-                calculos=procedimiento.calculos,
-                resultados=procedimiento.resultados
-            )
-
-        for formula in plantilla.formulas.all():
-
-            Formula.objects.create(
-                laboratorio=laboratorio,
-                nombre=formula.nombre,
-                descripcion=formula.descripcion,
-                expresion=formula.expresion
-            )
-
         return laboratorio
 
     class Meta:
         model = Laboratorio
-        fields = '__all__'
+        fields = "__all__"
 
         read_only_fields = [
-            'codigo_ingreso',
-            'profesor',
-            'fecha_creacion',
-            'fecha_actualizacion'
+            "codigo_ingreso",
+            "fecha_creacion",
         ]
+
+        extra_kwargs = {
+            "resumen": {"required": False},
+            "introduccion": {"required": False},
+            "marco_teorico": {"required": False},
+        }
 # =========================================================
 # Gestión de Laboratorios - Admin
 # =========================================================
@@ -351,7 +324,6 @@ class LaboratorioEstudianteListSerializer(
             'id',
             'titulo',
             'profesor',
-            'estado'
         ]
 
 # =========================================================
@@ -411,7 +383,6 @@ class LaboratorioEstudianteSerializer(
             "profesor_nombre",
 
             "resumen",
-            "prologo",
             "introduccion",
             "marco_teorico",
 
@@ -420,8 +391,6 @@ class LaboratorioEstudianteSerializer(
             "formulas",
             "procedimientos",
             "practicas",
-
-            "estado",
             "fecha_creacion"
         ]
     

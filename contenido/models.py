@@ -57,42 +57,6 @@ class Recursos(models.Model):
     def __str__(self):
         return self.nombre
     
-# =========================================================
-# PLANTILLA PRACTICA
-# =========================================================
-
-class PlantillaPractica(models.Model):
-
-    plantilla = models.ForeignKey(
-        'laboratorios.PlantillaLaboratorio',
-        on_delete=models.CASCADE,
-        related_name='practicas'
-    )
-
-    nombre_practica = models.CharField(
-        max_length=100
-    )
-
-    objetivo = models.TextField()
-
-    descripcion = models.TextField()
-
-    materiales = models.TextField()
-
-    calculos = models.TextField()
-
-    conceptos = models.ManyToManyField(
-        ConceptosBasicos,
-        blank=True,
-        related_name='practicas_plantilla'
-    )
-
-    def __str__(self):
-        return self.nombre_practica
-    
-    class Meta:
-        ordering = ['nombre_practica']
-
 
 class Practica(models.Model):
 
@@ -126,32 +90,6 @@ class Practica(models.Model):
     class Meta:
         ordering = ['nombre_practica']
 
-# =========================================================
-# PLANTILLA PROCEDIMIENTO
-# =========================================================
-class PlantillaProcedimiento(models.Model):
-
-    plantilla = models.ForeignKey(
-        'laboratorios.PlantillaLaboratorio',
-        on_delete=models.CASCADE,
-        related_name='procedimientos'
-    )
-
-    paso_numero = models.PositiveSmallIntegerField()
-    descripcion = models.TextField()
-    imagen = models.ImageField(
-        upload_to='procedimientos/',
-        null=True,
-        blank=True
-    )
-    orden = models.PositiveSmallIntegerField()
-
-    class Meta:
-        ordering = ['orden']
-
-    def __str__(self):
-        return f"Paso {self.paso_numero}"
-
 
 class Procedimiento(models.Model):
 
@@ -175,31 +113,6 @@ class Procedimiento(models.Model):
 
     def __str__(self):
         return f"Paso {self.paso_numero}"
-
-# =========================================================
-# PLANTILLA FORMULAS
-# =========================================================
-class PlantillaFormula(models.Model):
-
-    plantilla = models.ForeignKey(
-        'laboratorios.PlantillaLaboratorio',
-        on_delete=models.CASCADE,
-        related_name='formulas'
-    )
-
-    nombre = models.CharField(
-        max_length=100
-    )
-
-    descripcion = models.TextField()
-
-    expresion = models.TextField()
-
-    def __str__(self):
-        return self.nombre
-
-    class Meta:
-        ordering = ['nombre']
 
 
 class Formula(models.Model):
@@ -228,17 +141,6 @@ class Formula(models.Model):
 # PRACTICA ESTUDIANTE
 # =========================================================
 class PracticaEstudiante(models.Model):
-
-    ESTADOS = (
-        ("ACTIVO", "Activo"),
-        ("INACTIVO", "Inactivo"),
-    )
-
-    estado = models.CharField(
-        max_length=20,
-        choices=ESTADOS,
-        default='activo'
-    )
 
     estudiante = models.ForeignKey(
         settings.AUTH_USER_MODEL,

@@ -2,8 +2,6 @@ from rest_framework import serializers
 
 from .models import ReporteLaboratorio
 from inscripciones.models import Inscripcion
-from laboratorios.models import Asignacion
-
 
 class HistorialReporteSerializer(serializers.ModelSerializer):
 

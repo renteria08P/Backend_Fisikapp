@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-
 # =========================================================
 # CATEGORIA
 # =========================================================
@@ -20,6 +19,31 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+    def clean(self):
+
+        existe = Categoria.objects.filter(
+            nombre__iexact=self.nombre.strip()
+        ).exclude(
+            pk=self.pk
+        )
+
+        if existe.exists():
+            raise ValidationError({
+                "nombre":
+                "Ya existe una categoría con este nombre."
+            })
+        
+
+    def save(self, *args, **kwargs):
+
+        self.nombre = " ".join(
+            self.nombre.strip().split()
+        )
+
+        self.full_clean()
+
+        super().save(*args, **kwargs)
 
 
 # =========================================================
@@ -83,6 +107,31 @@ class PlantillaLaboratorio(models.Model):
         return self.titulo
     
 
+    def clean(self):
+
+        existe = PlantillaLaboratorio.objects.filter(
+            titulo__iexact=self.titulo.strip()
+        ).exclude(
+            pk=self.pk
+        )
+
+        if existe.exists():
+            raise ValidationError({
+                "titulo":
+                "Ya existe una plantilla con este título."
+            })
+
+
+    def save(self, *args, **kwargs):
+
+        self.titulo = " ".join(
+            self.titulo.strip().split()
+        )
+
+        self.full_clean()
+
+        super().save(*args, **kwargs)
+    
 # =========================================================
 # LABORATORIO DEL PROFESOR
 # =========================================================
@@ -308,12 +357,6 @@ class Asignacion(models.Model):
         related_name='asignaciones'
     )
 
-    profesor = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='asignaciones_creadas'
-    )
-
     grupo = models.ForeignKey(
         GrupoAcademico,
         on_delete=models.CASCADE,
@@ -344,15 +387,10 @@ class Asignacion(models.Model):
             raise ValidationError(
                 "La fecha fin debe ser mayor que la fecha inicio."
             )
-
-        if self.profesor != self.grupo.profesor:
+        
+        if self.grupo.profesor != self.laboratorio.profesor:
             raise ValidationError(
-                "El grupo no pertenece al profesor."
-            )
-
-        if self.profesor != self.laboratorio.profesor:
-            raise ValidationError(
-                "El laboratorio no pertenece al profesor."
+                "El grupo y el laboratorio deben pertenecer al mismo profesor."
             )
         
     def save(self, *args, **kwargs):

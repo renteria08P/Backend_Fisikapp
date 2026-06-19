@@ -162,15 +162,13 @@ class AsignacionViewSet(ModelViewSet):
 
         if getattr(self, 'swagger_fake_view', False):
             return Asignacion.objects.none()
-
+        
         return Asignacion.objects.filter(
-            profesor=self.request.user
+            laboratorio__profesor=self.request.user
         )
 
     def perform_create(self, serializer):
-        serializer.save(
-            profesor=self.request.user
-        )
+        serializer.save()
 
     @swagger_auto_schema(
         operation_summary="Listar asignaciones",

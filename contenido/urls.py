@@ -15,37 +15,19 @@ from .views import (
     recursos_list,
     recursos_detalle,
 
-    PlantillaPracticaViewSet,
-    PlantillaProcedimientoViewSet,
-    PlantillaFormulaViewSet,
 )
 
 # ==========================================
 # ROUTER
 # ==========================================
-router = DefaultRouter()
-
-router.register(
-    r'plantilla-practicas',
-    PlantillaPracticaViewSet,
-    basename='plantilla-practicas'
-)
-
-router.register(
-    r'plantilla-procedimientos',
-    PlantillaProcedimientoViewSet,
-    basename='plantilla-procedimientos'
-)
-
-router.register(
-    r'plantilla-formulas',
-    PlantillaFormulaViewSet,
-    basename='plantilla-formulas'
-)
 
 # ==========================================
 # URLS
 # ==========================================
+
+router = DefaultRouter()
+
+
 urlpatterns = [
 
     # Conceptos
