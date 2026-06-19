@@ -13,9 +13,6 @@ from .models import (
     PlantillaFormula,
     Formula,
 
-    PlantillaBibliografia,
-    Bibliografia,
-
     PracticaEstudiante
 )
 
@@ -30,8 +27,5 @@ admin.site.register(Procedimiento)
 
 admin.site.register(PlantillaFormula)
 admin.site.register(Formula)
-
-admin.site.register(PlantillaBibliografia)
-admin.site.register(Bibliografia)
 
 admin.site.register(PracticaEstudiante)

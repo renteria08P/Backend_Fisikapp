@@ -25,7 +25,6 @@ from users.permissions import (
 from laboratorios.models import (
     Laboratorio,
     Categoria,
-    PalabraClave,
     GrupoAcademico,
     Asignacion,
     PlantillaLaboratorio,
@@ -43,7 +42,6 @@ from inscripciones.serializers import (
 
 from .serializers import (
     CategoriaSerializer,
-    PalabraClaveSerializer,
     PlantillaLaboratorioSerializer,
     GrupoAcademicoSerializer,
     AsignacionSerializer,
@@ -102,12 +100,6 @@ class PlantillaLaboratorioViewSet(ModelViewSet):
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
-
-
-class PalabraClaveViewSet(ModelViewSet):
-    queryset = PalabraClave.objects.all()
-    serializer_class = PalabraClaveSerializer
-    permission_classes = [IsAuthenticated]
 
 class GrupoAcademicoViewSet(ModelViewSet):
 

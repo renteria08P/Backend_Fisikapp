@@ -23,48 +23,15 @@ class Categoria(models.Model):
 
 
 # =========================================================
-# PALABRAS CLAVES
-# =========================================================
-class PalabraClave(models.Model):
-
-    palabra_clave = models.CharField(
-        max_length=100
-    )
-
-    categoria = models.ForeignKey(
-        Categoria,
-        on_delete=models.CASCADE,
-        related_name='palabras_clave'
-    )
-
-    descripcion = models.TextField()
-
-    def __str__(self):
-        return self.palabra_clave
-
-
-
-# =========================================================
 # PLANTILLA DE LABORATORIO (ADMIN)
 # =========================================================
 class PlantillaLaboratorio(models.Model):
 
     resumen = models.TextField()
 
-    prologo = models.TextField(
-        null=True,
-        blank=True
-    )
-
     introduccion = models.TextField()
 
     marco_teorico = models.TextField()
-
-    palabras_clave = models.ManyToManyField(
-        PalabraClave,
-        blank=True,
-        related_name='plantillas'
-    )
 
     conceptos_basicos = models.ManyToManyField(
         'contenido.ConceptosBasicos',
@@ -73,9 +40,8 @@ class PlantillaLaboratorio(models.Model):
     )
 
     ESTADOS = (
-        ('BORRADOR', 'Borrador'),
-        ('PUBLICADO', 'Publicado'),
-        ('ARCHIVADO', 'Archivado'),
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),
     )
 
     titulo = models.CharField(
@@ -102,7 +68,7 @@ class PlantillaLaboratorio(models.Model):
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='BORRADOR'
+        default='ACTIVO'
     )
 
     fecha_creacion = models.DateTimeField(
@@ -123,9 +89,8 @@ class PlantillaLaboratorio(models.Model):
 class Laboratorio(models.Model):
 
     ESTADOS = (
-        ('BORRADOR', 'Borrador'),
-        ('ACTIVO', 'Activo'),
-        ('ARCHIVADO', 'Archivado'),
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),
     )
 
     plantilla = models.ForeignKey(
@@ -140,12 +105,6 @@ class Laboratorio(models.Model):
         related_name='laboratorios'
     )
 
-    palabras_clave = models.ManyToManyField(
-        PalabraClave,
-        blank=True,
-        related_name='laboratorios'
-    )
-
     conceptos_basicos = models.ManyToManyField(
         'contenido.ConceptosBasicos',
         blank=True,
@@ -154,26 +113,9 @@ class Laboratorio(models.Model):
 
     resumen = models.TextField()
 
-    prologo = models.TextField(
-        null=True,
-        blank=True
-    )
-
     introduccion = models.TextField()
 
     marco_teorico = models.TextField()
-
-    grado = models.CharField(
-        max_length=25,
-        null=True,
-        blank=True
-    )
-
-    jornada = models.CharField(
-        max_length=25,
-        null=True,
-        blank=True
-    )
 
     generado_ia = models.BooleanField(
         default=False
@@ -182,7 +124,7 @@ class Laboratorio(models.Model):
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='BORRADOR'
+        default='ACTIVO'
     )
 
     fecha_creacion = models.DateTimeField(
@@ -206,6 +148,13 @@ class Laboratorio(models.Model):
     
     class Meta:
         ordering = ['-fecha_creacion']
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=['plantilla', 'profesor'],
+                name='unique_plantilla_profesor'
+            )
+        ]
 
 class ObjetivoGeneral(models.Model):
 
@@ -343,10 +292,8 @@ class GrupoAcademico(models.Model):
 class Asignacion(models.Model):
 
     ESTADOS = (
-        ('PROGRAMADA', 'Programada'),
-        ('ACTIVA', 'Activa'),
-        ('FINALIZADA', 'Finalizada'),
-        ('CANCELADA', 'Cancelada'),
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),
     )
 
     codigo_ingreso = models.CharField(
@@ -379,7 +326,7 @@ class Asignacion(models.Model):
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='PROGRAMADA'
+        default='ACTIVO'
     )
 
     fecha_creacion = models.DateTimeField(

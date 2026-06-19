@@ -5,7 +5,6 @@ from laboratorios.models import Asignacion
 from laboratorios.models import (
     Laboratorio,
     Categoria,
-    PalabraClave,
     ObjetivoGeneral,
     ObjetivoEspecifico,
     PlantillaObjetivoGeneral,
@@ -17,14 +16,12 @@ from contenido.serializers import (
     FormulaSerializer,
     ProcedimientoSerializer,
     PracticaSerializer,
-    BibliografiaSerializer
 )
 
 from contenido.models import (
     Practica,
     Procedimiento,
     Formula,
-    Bibliografia,
 )
 
 # =========================================================
@@ -34,16 +31,6 @@ class CategoriaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Categoria
-        fields = '__all__'
-
-
-# =========================================================
-# PALABRAS CLAVE
-# =========================================================
-class PalabraClaveSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = PalabraClave
         fields = '__all__'
 
 
@@ -251,9 +238,6 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
             plantilla.conceptos_basicos.all()
         )
 
-        laboratorio.palabras_clave.set(
-            plantilla.palabras_clave.all()
-        )
 
         for practica in plantilla.practicas.all():
 
@@ -286,20 +270,6 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
                 nombre=formula.nombre,
                 descripcion=formula.descripcion,
                 expresion=formula.expresion
-            )
-
-        for bibliografia in plantilla.bibliografias.all():
-
-            Bibliografia.objects.create(
-                laboratorio=laboratorio,
-                autor=bibliografia.autor,
-                titulo=bibliografia.titulo,
-                tipo_fuente=bibliografia.tipo_fuente,
-                anio=bibliografia.anio,
-                editorial=bibliografia.editorial,
-                url=bibliografia.url,
-                fecha_consulta=bibliografia.fecha_consulta,
-                descripcion=bibliografia.descripcion
             )
 
         return laboratorio
@@ -426,11 +396,6 @@ class LaboratorioEstudianteSerializer(
         read_only=True
     )
 
-    bibliografias = BibliografiaSerializer(
-        many=True,
-        read_only=True
-    )
-
     class Meta:
         model = Laboratorio
 
@@ -451,7 +416,6 @@ class LaboratorioEstudianteSerializer(
             "formulas",
             "procedimientos",
             "practicas",
-            "bibliografias",
 
             "estado",
             "fecha_creacion"

@@ -218,15 +218,14 @@ class Formula(models.Model):
 class PracticaEstudiante(models.Model):
 
     ESTADOS = (
-        ('PENDIENTE', 'Pendiente'),
-        ('EN_PROGRESO', 'En progreso'),
-        ('COMPLETADA', 'Completada'),
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),
     )
 
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='PENDIENTE'
+        default='activo'
     )
 
     estudiante = models.ForeignKey(
@@ -257,67 +256,3 @@ class PracticaEstudiante(models.Model):
 
     def __str__(self):
         return f"{self.estudiante} - {self.practica.nombre_practica}"
-
-# =========================================================
-# PLANTILLA BIBLIOGRAFIA
-# =========================================================
-class PlantillaBibliografia(models.Model):
-
-    plantilla = models.ForeignKey(
-        'laboratorios.PlantillaLaboratorio',
-        on_delete=models.CASCADE,
-        related_name='bibliografias'
-    )
-
-    autor = models.CharField(max_length=100)
-
-    titulo = models.CharField(max_length=200)
-
-    tipo_fuente = models.CharField(max_length=100)
-
-    anio = models.PositiveIntegerField()
-
-    editorial = models.CharField(max_length=150)
-
-    url = models.URLField()
-
-    fecha_consulta = models.DateField()
-
-    descripcion = models.TextField()
-
-    def __str__(self):
-        return self.titulo
-    
-    class Meta:
-        ordering = ['titulo']
-
-
-class Bibliografia(models.Model):
-
-    laboratorio = models.ForeignKey(
-        'laboratorios.Laboratorio',
-        on_delete=models.CASCADE,
-        related_name='bibliografias'
-    )
-
-    autor = models.CharField(max_length=100)
-
-    titulo = models.CharField(max_length=200)
-
-    tipo_fuente = models.CharField(max_length=100)
-
-    anio = models.PositiveIntegerField()
-
-    editorial = models.CharField(max_length=150)
-
-    url = models.URLField()
-
-    fecha_consulta = models.DateField()
-
-    descripcion = models.TextField()
-
-    def __str__(self):
-        return self.titulo
-    
-    class Meta:
-        ordering = ['titulo']

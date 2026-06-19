@@ -11,16 +11,13 @@ from .views import (
     procedimientos_list,
     procedimientos_detalle,
     lista_formulas,
-    lista_bibliografia,
     detalle_formula,
-    detalle_bibliografia,
     recursos_list,
     recursos_detalle,
 
     PlantillaPracticaViewSet,
     PlantillaProcedimientoViewSet,
     PlantillaFormulaViewSet,
-    PlantillaBibliografiaViewSet,
 )
 
 # ==========================================
@@ -44,12 +41,6 @@ router.register(
     r'plantilla-formulas',
     PlantillaFormulaViewSet,
     basename='plantilla-formulas'
-)
-
-router.register(
-    r'plantilla-bibliografias',
-    PlantillaBibliografiaViewSet,
-    basename='plantilla-bibliografias'
 )
 
 # ==========================================
@@ -77,9 +68,6 @@ urlpatterns = [
     path('formulas/', lista_formulas),
     path('formulas/<int:pk>/', detalle_formula),
 
-    # Bibliografia
-    path('bibliografia/', lista_bibliografia),
-    path('bibliografia/<int:pk>/', detalle_bibliografia),
 ]
 
 # ==========================================

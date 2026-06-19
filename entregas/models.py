@@ -9,9 +9,8 @@ from django.core.exceptions import ValidationError
 class Entrega(models.Model):
 
     ESTADOS = (
-        ('BORRADOR', 'Borrador'),
-        ('ENVIADA', 'Enviada'),
-        ('EVALUADA', 'Evaluada'),
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),
     )
 
     inscripcion = models.OneToOneField(
@@ -23,7 +22,7 @@ class Entrega(models.Model):
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='BORRADOR'
+        default='ACTIVO'
     )
 
     fecha_inicio = models.DateTimeField(
