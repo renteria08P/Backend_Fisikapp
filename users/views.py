@@ -281,6 +281,7 @@ def crear_admin(request):
 
     if serializer.is_valid():
         user = serializer.save(rol='admin')
+        print
         enviar_credenciales(user, password)
         return Response({"message": "Admin creado y credenciales enviadas"})
 

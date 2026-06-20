@@ -209,6 +209,21 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    practicas = PracticaSerializer(
+        many=True,
+        read_only=True
+    )
+
+    procedimientos = ProcedimientoSerializer(
+        many=True,
+        read_only=True
+    )
+
+    formulas = FormulaSerializer(
+        many=True,
+        read_only=True
+    )
+
 
     def create(self, validated_data):
 
@@ -259,6 +274,7 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
         read_only_fields = [
+            'profesor',
             "codigo_ingreso",
             "fecha_creacion",
         ]
