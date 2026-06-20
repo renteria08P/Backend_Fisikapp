@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from laboratorios.models import Asignacion
 
 from laboratorios.models import (
@@ -16,12 +15,6 @@ from contenido.serializers import (
     FormulaSerializer,
     ProcedimientoSerializer,
     PracticaSerializer,
-)
-
-from contenido.models import (
-    Practica,
-    Procedimiento,
-    Formula,
 )
 
 # =========================================================
@@ -284,6 +277,8 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
             "introduccion": {"required": False},
             "marco_teorico": {"required": False},
         }
+
+
 # =========================================================
 # Gestión de Laboratorios - Admin
 # =========================================================

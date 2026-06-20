@@ -2,7 +2,6 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Inscripcion
-from .serializers import InscripcionSerializer
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -10,6 +9,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes  
 from laboratorios.models import Asignacion
+from inscripciones.models import Inscripcion
+from evaluaciones.models import (
+    EvaluacionProfesor
+)
+
+from .serializers import (
+    InscripcionSerializer,
+    GrupoLaboratorioSerializer
+)
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+
+from inscripciones.models import Inscripcion
 
 class InscripcionesViewSet(viewsets.ModelViewSet):
 
@@ -137,4 +149,38 @@ def mis_laboratorios(request):
     )
     serializer = InscripcionSerializer(inscripciones, many=True)
     return Response(serializer.data)
+
+
+
+# =========================================================
+# GRUPO ACADEMICO
+# =========================================================
+class GruposLaboratoriosView(
+    ListAPIView
+):
+
+    serializer_class = (
+        GrupoLaboratorioSerializer
+    )
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get_queryset(self):
+
+        return (
+            Inscripcion.objects
+            .filter(
+                estudiante=self.request.user
+            )
+            .select_related(
+                'asignacion',
+                'asignacion__laboratorio',
+                'asignacion__laboratorio__plantilla',
+                'asignacion__laboratorio__profesor',
+                'entrega',
+                'entrega__evaluacion_docente'
+            )
+        )
 

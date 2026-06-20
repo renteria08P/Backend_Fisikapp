@@ -5,6 +5,9 @@ from .views import (
     mis_laboratorios,
     inscribir_usuario,
 )
+from .views import (
+    GruposLaboratoriosView
+)
 
 urlpatterns = [
     path('inscripciones/', listar_inscripciones),
@@ -15,4 +18,9 @@ urlpatterns = [
         'inscripciones/inscribirse/',
         inscribir_usuario
     ),
+
+    path(
+        'grupos-laboratorios/',
+        GruposLaboratoriosView.as_view()
+),
 ]
