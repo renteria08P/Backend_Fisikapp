@@ -6,9 +6,10 @@ from inscripciones.models import Inscripcion
 class HistorialReporteSerializer(serializers.ModelSerializer):
 
     laboratorio_nombre = serializers.CharField(
-        source='laboratorio.titulo'
+        source='laboratorio.plantilla.titulo',
+        read_only=True
     )
-
+    
     estudiantes_info = serializers.SerializerMethodField()
 
     url_reporte_estudiante = serializers.SerializerMethodField()
