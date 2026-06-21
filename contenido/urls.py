@@ -11,50 +11,23 @@ from .views import (
     procedimientos_list,
     procedimientos_detalle,
     lista_formulas,
-    lista_bibliografia,
     detalle_formula,
-    detalle_bibliografia,
     recursos_list,
     recursos_detalle,
 
-    PlantillaPracticaViewSet,
-    PlantillaProcedimientoViewSet,
-    PlantillaFormulaViewSet,
-    PlantillaBibliografiaViewSet,
 )
 
 # ==========================================
 # ROUTER
 # ==========================================
-router = DefaultRouter()
-
-router.register(
-    r'plantilla-practicas',
-    PlantillaPracticaViewSet,
-    basename='plantilla-practicas'
-)
-
-router.register(
-    r'plantilla-procedimientos',
-    PlantillaProcedimientoViewSet,
-    basename='plantilla-procedimientos'
-)
-
-router.register(
-    r'plantilla-formulas',
-    PlantillaFormulaViewSet,
-    basename='plantilla-formulas'
-)
-
-router.register(
-    r'plantilla-bibliografias',
-    PlantillaBibliografiaViewSet,
-    basename='plantilla-bibliografias'
-)
 
 # ==========================================
 # URLS
 # ==========================================
+
+router = DefaultRouter()
+
+
 urlpatterns = [
 
     # Conceptos
@@ -77,9 +50,6 @@ urlpatterns = [
     path('formulas/', lista_formulas),
     path('formulas/<int:pk>/', detalle_formula),
 
-    # Bibliografia
-    path('bibliografia/', lista_bibliografia),
-    path('bibliografia/<int:pk>/', detalle_bibliografia),
 ]
 
 # ==========================================

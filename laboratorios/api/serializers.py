@@ -1,11 +1,9 @@
 from rest_framework import serializers
-
 from laboratorios.models import Asignacion
 
 from laboratorios.models import (
     Laboratorio,
     Categoria,
-    PalabraClave,
     ObjetivoGeneral,
     ObjetivoEspecifico,
     PlantillaObjetivoGeneral,
@@ -17,14 +15,6 @@ from contenido.serializers import (
     FormulaSerializer,
     ProcedimientoSerializer,
     PracticaSerializer,
-    BibliografiaSerializer
-)
-
-from contenido.models import (
-    Practica,
-    Procedimiento,
-    Formula,
-    Bibliografia,
 )
 
 # =========================================================
@@ -34,16 +24,6 @@ class CategoriaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Categoria
-        fields = '__all__'
-
-
-# =========================================================
-# PALABRAS CLAVE
-# =========================================================
-class PalabraClaveSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = PalabraClave
         fields = '__all__'
 
 
@@ -130,7 +110,6 @@ class AsignacionSerializer(serializers.ModelSerializer):
         model = Asignacion
         fields = "__all__"
         read_only_fields = [
-            "profesor",
             "fecha_creacion",
             "codigo_ingreso"   
         ]
@@ -140,6 +119,7 @@ from laboratorios.models import PlantillaLaboratorio
 class PlantillaLaboratorioSerializer(
     serializers.ModelSerializer
 ):
+
     creador_nombre = serializers.CharField(
         source='creado_por.nombre',
         read_only=True
@@ -148,6 +128,12 @@ class PlantillaLaboratorioSerializer(
     class Meta:
         model = PlantillaLaboratorio
         fields = "__all__"
+
+        read_only_fields = [
+            "creado_por",
+            "fecha_creacion",
+            "fecha_actualizacion"
+        ]
 
 # =========================================================
 # LABORATORIO
@@ -216,13 +202,32 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    practicas = PracticaSerializer(
+        many=True,
+        read_only=True
+    )
+
+    procedimientos = ProcedimientoSerializer(
+        many=True,
+        read_only=True
+    )
+
+    formulas = FormulaSerializer(
+        many=True,
+        read_only=True
+    )
+
+
     def create(self, validated_data):
 
-        laboratorio = Laboratorio.objects.create(
-            **validated_data
-        )
+        plantilla = validated_data["plantilla"]
 
-        plantilla = laboratorio.plantilla
+        laboratorio = Laboratorio.objects.create(
+            resumen=plantilla.resumen,
+            introduccion=plantilla.introduccion,
+            marco_teorico=plantilla.marco_teorico,
+            **validated_data
+    )
 
         try:
 
@@ -255,69 +260,25 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
             plantilla.conceptos_basicos.all()
         )
 
-        laboratorio.palabras_clave.set(
-            plantilla.palabras_clave.all()
-        )
-
-        for practica in plantilla.practicas.all():
-
-            nueva = Practica.objects.create(
-                laboratorio=laboratorio,
-                nombre_practica=practica.nombre_practica,
-                objetivo=practica.objetivo,
-                descripcion=practica.descripcion,
-                materiales=practica.materiales,
-                calculos=practica.calculos
-            )
-
-            nueva.conceptos.set(
-                practica.conceptos.all()
-            )
-
-        for procedimiento in plantilla.procedimientos.all():
-
-            Procedimiento.objects.create(
-                laboratorio=laboratorio,
-                muestras=procedimiento.muestras,
-                calculos=procedimiento.calculos,
-                resultados=procedimiento.resultados
-            )
-
-        for formula in plantilla.formulas.all():
-
-            Formula.objects.create(
-                laboratorio=laboratorio,
-                nombre=formula.nombre,
-                descripcion=formula.descripcion,
-                expresion=formula.expresion
-            )
-
-        for bibliografia in plantilla.bibliografias.all():
-
-            Bibliografia.objects.create(
-                laboratorio=laboratorio,
-                autor=bibliografia.autor,
-                titulo=bibliografia.titulo,
-                tipo_fuente=bibliografia.tipo_fuente,
-                anio=bibliografia.anio,
-                editorial=bibliografia.editorial,
-                url=bibliografia.url,
-                fecha_consulta=bibliografia.fecha_consulta,
-                descripcion=bibliografia.descripcion
-            )
-
         return laboratorio
 
     class Meta:
         model = Laboratorio
-        fields = '__all__'
+        fields = "__all__"
 
         read_only_fields = [
-            'codigo_ingreso',
             'profesor',
-            'fecha_creacion',
-            'fecha_actualizacion'
+            "codigo_ingreso",
+            "fecha_creacion",
         ]
+
+        extra_kwargs = {
+            "resumen": {"required": False},
+            "introduccion": {"required": False},
+            "marco_teorico": {"required": False},
+        }
+
+
 # =========================================================
 # Gestión de Laboratorios - Admin
 # =========================================================
@@ -381,7 +342,6 @@ class LaboratorioEstudianteListSerializer(
             'id',
             'titulo',
             'profesor',
-            'estado'
         ]
 
 # =========================================================
@@ -430,11 +390,6 @@ class LaboratorioEstudianteSerializer(
         read_only=True
     )
 
-    bibliografias = BibliografiaSerializer(
-        many=True,
-        read_only=True
-    )
-
     class Meta:
         model = Laboratorio
 
@@ -446,7 +401,6 @@ class LaboratorioEstudianteSerializer(
             "profesor_nombre",
 
             "resumen",
-            "prologo",
             "introduccion",
             "marco_teorico",
 
@@ -455,9 +409,6 @@ class LaboratorioEstudianteSerializer(
             "formulas",
             "procedimientos",
             "practicas",
-            "bibliografias",
-
-            "estado",
             "fecha_creacion"
         ]
     

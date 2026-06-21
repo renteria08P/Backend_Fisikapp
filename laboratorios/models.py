@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-
 # =========================================================
 # CATEGORIA
 # =========================================================
@@ -20,28 +19,31 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+    def clean(self):
 
+        existe = Categoria.objects.filter(
+            nombre__iexact=self.nombre.strip()
+        ).exclude(
+            pk=self.pk
+        )
 
-# =========================================================
-# PALABRAS CLAVES
-# =========================================================
-class PalabraClave(models.Model):
+        if existe.exists():
+            raise ValidationError({
+                "nombre":
+                "Ya existe una categoría con este nombre."
+            })
+        
 
-    palabra_clave = models.CharField(
-        max_length=100
-    )
+    def save(self, *args, **kwargs):
 
-    categoria = models.ForeignKey(
-        Categoria,
-        on_delete=models.CASCADE,
-        related_name='palabras_clave'
-    )
+        self.nombre = " ".join(
+            self.nombre.strip().split()
+        )
 
-    descripcion = models.TextField()
+        self.full_clean()
 
-    def __str__(self):
-        return self.palabra_clave
-
+        super().save(*args, **kwargs)
 
 
 # =========================================================
@@ -51,20 +53,9 @@ class PlantillaLaboratorio(models.Model):
 
     resumen = models.TextField()
 
-    prologo = models.TextField(
-        null=True,
-        blank=True
-    )
-
     introduccion = models.TextField()
 
     marco_teorico = models.TextField()
-
-    palabras_clave = models.ManyToManyField(
-        PalabraClave,
-        blank=True,
-        related_name='plantillas'
-    )
 
     conceptos_basicos = models.ManyToManyField(
         'contenido.ConceptosBasicos',
@@ -73,9 +64,8 @@ class PlantillaLaboratorio(models.Model):
     )
 
     ESTADOS = (
-        ('BORRADOR', 'Borrador'),
-        ('PUBLICADO', 'Publicado'),
-        ('ARCHIVADO', 'Archivado'),
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),
     )
 
     titulo = models.CharField(
@@ -102,7 +92,7 @@ class PlantillaLaboratorio(models.Model):
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='BORRADOR'
+        default='ACTIVO'
     )
 
     fecha_creacion = models.DateTimeField(
@@ -117,15 +107,39 @@ class PlantillaLaboratorio(models.Model):
         return self.titulo
     
 
+    def clean(self):
+
+        existe = PlantillaLaboratorio.objects.filter(
+            titulo__iexact=self.titulo.strip()
+        ).exclude(
+            pk=self.pk
+        )
+
+        if existe.exists():
+            raise ValidationError({
+                "titulo":
+                "Ya existe una plantilla con este título."
+            })
+
+
+    def save(self, *args, **kwargs):
+
+        self.titulo = " ".join(
+            self.titulo.strip().split()
+        )
+
+        self.full_clean()
+
+        super().save(*args, **kwargs)
+    
 # =========================================================
 # LABORATORIO DEL PROFESOR
 # =========================================================
 class Laboratorio(models.Model):
 
     ESTADOS = (
-       
-        ('ACTIVO', 'Activo'),
-        ('INACTIVO', 'Inactivo'),
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),   
         
     )
 
@@ -141,12 +155,6 @@ class Laboratorio(models.Model):
         related_name='laboratorios'
     )
 
-    palabras_clave = models.ManyToManyField(
-        PalabraClave,
-        blank=True,
-        related_name='laboratorios'
-    )
-
     conceptos_basicos = models.ManyToManyField(
         'contenido.ConceptosBasicos',
         blank=True,
@@ -155,26 +163,9 @@ class Laboratorio(models.Model):
 
     resumen = models.TextField()
 
-    prologo = models.TextField(
-        null=True,
-        blank=True
-    )
-
     introduccion = models.TextField()
 
     marco_teorico = models.TextField()
-
-    grado = models.CharField(
-        max_length=25,
-        null=True,
-        blank=True
-    )
-
-    jornada = models.CharField(
-        max_length=25,
-        null=True,
-        blank=True
-    )
 
     generado_ia = models.BooleanField(
         default=False
@@ -183,7 +174,7 @@ class Laboratorio(models.Model):
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='BORRADOR'
+        default='ACTIVO'
     )
 
     fecha_creacion = models.DateTimeField(
@@ -207,6 +198,13 @@ class Laboratorio(models.Model):
     
     class Meta:
         ordering = ['-fecha_creacion']
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=['plantilla', 'profesor'],
+                name='unique_plantilla_profesor'
+            )
+        ]
 
 class ObjetivoGeneral(models.Model):
 
@@ -344,10 +342,8 @@ class GrupoAcademico(models.Model):
 class Asignacion(models.Model):
 
     ESTADOS = (
-        ('PROGRAMADA', 'Programada'),
-        ('ACTIVA', 'Activa'),
-        ('FINALIZADA', 'Finalizada'),
-        ('CANCELADA', 'Cancelada'),
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),
     )
 
     codigo_ingreso = models.CharField(
@@ -359,12 +355,6 @@ class Asignacion(models.Model):
         Laboratorio,
         on_delete=models.CASCADE,
         related_name='asignaciones'
-    )
-
-    profesor = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='asignaciones_creadas'
     )
 
     grupo = models.ForeignKey(
@@ -380,7 +370,7 @@ class Asignacion(models.Model):
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='PROGRAMADA'
+        default='ACTIVO'
     )
 
     fecha_creacion = models.DateTimeField(
@@ -397,15 +387,10 @@ class Asignacion(models.Model):
             raise ValidationError(
                 "La fecha fin debe ser mayor que la fecha inicio."
             )
-
-        if self.profesor != self.grupo.profesor:
+        
+        if self.grupo.profesor != self.laboratorio.profesor:
             raise ValidationError(
-                "El grupo no pertenece al profesor."
-            )
-
-        if self.profesor != self.laboratorio.profesor:
-            raise ValidationError(
-                "El laboratorio no pertenece al profesor."
+                "El grupo y el laboratorio deben pertenecer al mismo profesor."
             )
         
     def save(self, *args, **kwargs):

@@ -23,8 +23,15 @@ class EntregaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Entrega
-        fields = '__all__'
+        fields = "__all__"
 
+        read_only_fields = [
+            "estado",
+            "fecha_inicio",
+            "fecha_entrega",
+            "fecha_creacion",
+            "fecha_actualizacion"
+        ]
 
 class ResultadoPracticaSerializer(
     serializers.ModelSerializer

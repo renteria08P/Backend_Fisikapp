@@ -17,12 +17,7 @@ from .models import (
     Practica,
     Procedimiento,
     Formula,
-    Bibliografia,
     Recursos,
-    PlantillaPractica,
-    PlantillaProcedimiento,
-    PlantillaFormula,
-    PlantillaBibliografia
 )
 
 from .serializers import (
@@ -30,27 +25,11 @@ from .serializers import (
     PracticaSerializer,
     ProcedimientoSerializer,
     FormulaSerializer,
-    BibliografiaSerializer, 
-    RecursosSerializer
-)
-
-from .serializers import (
-    ConceptosBasicosSerializer,
-    PracticaSerializer,
-    ProcedimientoSerializer,
-    FormulaSerializer,
-    BibliografiaSerializer,
     RecursosSerializer,
 
-    PlantillaPracticaSerializer,
-    PlantillaProcedimientoSerializer,
-    PlantillaFormulaSerializer,
-    PlantillaBibliografiaSerializer
 )
 
-# ==============================================
-# CONCEPTOS BASICOS
-# ==============================================
+
 # ==============================================
 # CONCEPTOS BASICOS
 # ==============================================
@@ -170,9 +149,6 @@ def conceptos_detalle(request, pk):
             status=204
         )
 
-# ==========================================
-# PRACTICAS
-# ==========================================
 # ==============================================
 # PRACTICAS
 # ==============================================
@@ -609,182 +585,6 @@ def detalle_formula(request, pk):
             status=204
         )
 
-# ==============================================
-# BIBLIOGRAFIA
-# ==============================================
-
-@swagger_auto_schema(
-    method='get',
-    operation_summary="Listar bibliografías",
-    operation_description="""
-    Retorna todas las referencias bibliográficas
-    registradas. Puede filtrarse por laboratorio
-    mediante el parámetro ?laboratorio=id.
-    """
-)
-@swagger_auto_schema(
-    method='post',
-    operation_summary="Crear referencia bibliográfica",
-    operation_description="""
-    Permite registrar una nueva referencia bibliográfica.
-    """,
-    request_body=BibliografiaSerializer
-)
-@api_view(['GET', 'POST'])
-def lista_bibliografia(request):
-
-    if request.method == 'GET':
-
-        laboratorio_id = request.query_params.get(
-            'laboratorio',
-            None
-        )
-
-        bibliografias = Bibliografia.objects.all()
-
-        if laboratorio_id:
-            bibliografias = bibliografias.filter(
-                laboratorio=laboratorio_id
-            )
-
-        serializer = BibliografiaSerializer(
-            bibliografias,
-            many=True
-        )
-
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-
-        serializer = BibliografiaSerializer(
-            data=request.data
-        )
-
-        if serializer.is_valid():
-
-            serializer.save()
-
-            return Response(
-                serializer.data,
-                status=201
-            )
-
-        return Response(
-            serializer.errors,
-            status=400
-        )
-
-
-@swagger_auto_schema(
-    method='get',
-    operation_summary="Detalle de referencia bibliográfica",
-    operation_description="""
-    Obtiene la información de una referencia
-    bibliográfica específica.
-    """
-)
-@swagger_auto_schema(
-    method='put',
-    operation_summary="Actualizar referencia bibliográfica",
-    operation_description="""
-    Actualiza completamente una referencia bibliográfica.
-    """,
-    request_body=BibliografiaSerializer
-)
-@swagger_auto_schema(
-    method='patch',
-    operation_summary="Actualizar parcialmente referencia bibliográfica",
-    operation_description="""
-    Actualiza uno o varios campos de una referencia bibliográfica.
-    """,
-    request_body=BibliografiaSerializer
-)
-@swagger_auto_schema(
-    method='delete',
-    operation_summary="Eliminar referencia bibliográfica",
-    operation_description="""
-    Elimina una referencia bibliográfica registrada.
-    """
-)
-@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
-def detalle_bibliografia(request, pk):
-
-    try:
-
-        bibliografia = Bibliografia.objects.get(
-            pk=pk
-        )
-
-    except Bibliografia.DoesNotExist:
-
-        return Response(
-            {
-                "error": "Referencia bibliográfica no encontrada"
-            },
-            status=404
-        )
-
-    if request.method == 'GET':
-
-        serializer = BibliografiaSerializer(
-            bibliografia
-        )
-
-        return Response(
-            serializer.data
-        )
-
-    elif request.method == 'PUT':
-
-        serializer = BibliografiaSerializer(
-            bibliografia,
-            data=request.data
-        )
-
-        if serializer.is_valid():
-
-            serializer.save()
-
-            return Response(
-                serializer.data
-            )
-
-        return Response(
-            serializer.errors,
-            status=400
-        )
-
-    elif request.method == 'PATCH':
-
-        serializer = BibliografiaSerializer(
-            bibliografia,
-            data=request.data,
-            partial=True
-        )
-
-        if serializer.is_valid():
-
-            serializer.save()
-
-            return Response(
-                serializer.data
-            )
-
-        return Response(
-            serializer.errors,
-            status=400
-        )
-
-    elif request.method == 'DELETE':
-
-        bibliografia.delete()
-
-        return Response(
-            {
-                "mensaje": "Referencia bibliográfica eliminada correctamente"
-            },
-            status=204
-        )
 
 # ==============================================
 # RECURSOS
@@ -934,42 +734,3 @@ def recursos_detalle(request, pk):
             },
             status=204
         )
-
-# =========================================================
-# PLANTILLA PRACTICA
-# =========================================================
-class PlantillaPracticaViewSet(ModelViewSet):
-
-    queryset = PlantillaPractica.objects.all()
-    serializer_class = PlantillaPracticaSerializer
-    permission_classes = [IsAuthenticated]
-
-
-# =========================================================
-# PLANTILLA PROCEDIMIENTO
-# =========================================================
-class PlantillaProcedimientoViewSet(ModelViewSet):
-
-    queryset = PlantillaProcedimiento.objects.all()
-    serializer_class = PlantillaProcedimientoSerializer
-    permission_classes = [IsAuthenticated]
-
-
-# =========================================================
-# PLANTILLA FORMULA
-# =========================================================
-class PlantillaFormulaViewSet(ModelViewSet):
-
-    queryset = PlantillaFormula.objects.all()
-    serializer_class = PlantillaFormulaSerializer
-    permission_classes = [IsAuthenticated]
-
-
-# =========================================================
-# PLANTILLA BIBLIOGRAFIA
-# =========================================================
-class PlantillaBibliografiaViewSet(ModelViewSet):
-
-    queryset = PlantillaBibliografia.objects.all()
-    serializer_class = PlantillaBibliografiaSerializer
-    permission_classes = [IsAuthenticated]

@@ -2,15 +2,14 @@ from rest_framework import serializers
 
 from .models import ReporteLaboratorio
 from inscripciones.models import Inscripcion
-from laboratorios.models import Asignacion
-
 
 class HistorialReporteSerializer(serializers.ModelSerializer):
 
     laboratorio_nombre = serializers.CharField(
-        source='laboratorio.titulo'
+        source='laboratorio.plantilla.titulo',
+        read_only=True
     )
-
+    
     estudiantes_info = serializers.SerializerMethodField()
 
     url_reporte_estudiante = serializers.SerializerMethodField()

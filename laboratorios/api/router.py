@@ -2,7 +2,6 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     CategoriaViewSet,
-    PalabraClaveViewSet,
     LaboratorioProfesorViewSet,
     PlantillaLaboratorioViewSet,
     GrupoAcademicoViewSet,
@@ -46,11 +45,6 @@ router.register(
     basename='categorias'
 )
 
-router.register(
-    r'palabras-clave',
-    PalabraClaveViewSet,
-    basename='palabras-clave'
-)
 
 router.register(
     r'laboratorio-profesor',

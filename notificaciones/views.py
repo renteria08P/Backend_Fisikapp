@@ -13,6 +13,7 @@ class LogViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
     filterset_fields = ['usuario', 'accion', 'fecha_creacion']
     search_fields = ['accion', 'descripcion']
     ordering_fields = ['fecha_creacion']

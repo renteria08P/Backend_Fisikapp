@@ -30,7 +30,6 @@ from users.permissions import (
 from laboratorios.models import (
     Laboratorio,
     Categoria,
-    PalabraClave,
     GrupoAcademico,
     Asignacion,
     PlantillaLaboratorio,
@@ -48,7 +47,6 @@ from inscripciones.serializers import (
 
 from .serializers import (
     CategoriaSerializer,
-    PalabraClaveSerializer,
     PlantillaLaboratorioSerializer,
     GrupoAcademicoSerializer,
     AsignacionSerializer,
@@ -77,6 +75,13 @@ class PlantillaLaboratorioViewSet(ModelViewSet):
     permission_classes = [
         IsAuthenticated
     ]
+
+    
+    def perform_create(self, serializer):
+
+        serializer.save(
+            creado_por=self.request.user
+        )
 
     @swagger_auto_schema(
         operation_summary="Crear plantilla de laboratorio",
@@ -108,11 +113,6 @@ class PlantillaLaboratorioViewSet(ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
-
-class PalabraClaveViewSet(ModelViewSet):
-    queryset = PalabraClave.objects.all()
-    serializer_class = PalabraClaveSerializer
-    permission_classes = [IsAuthenticated]
 
 class GrupoAcademicoViewSet(ModelViewSet):
 
@@ -170,15 +170,13 @@ class AsignacionViewSet(ModelViewSet):
 
         if getattr(self, 'swagger_fake_view', False):
             return Asignacion.objects.none()
-
+        
         return Asignacion.objects.filter(
-            profesor=self.request.user
+            laboratorio__profesor=self.request.user
         )
 
     def perform_create(self, serializer):
-        serializer.save(
-            profesor=self.request.user
-        )
+        serializer.save()
 
     @swagger_auto_schema(
         operation_summary="Listar asignaciones",
@@ -475,6 +473,7 @@ class LaboratorioProfesorViewSet(ModelViewSet):
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+    
     # =====================================================
     # ESTUDIANTES DEL LABORATORIO
     # =====================================================
