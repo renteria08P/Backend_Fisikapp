@@ -6,11 +6,6 @@ from .models import Inscripcion
 
 class InscripcionSerializer(serializers.ModelSerializer):
 
-    estudiante_nombre = serializers.CharField(
-        source='estudiante.nombre',
-        read_only=True
-    )
-
     laboratorio_titulo = serializers.CharField(
         source='asignacion.laboratorio.titulo',
         read_only=True
@@ -19,13 +14,17 @@ class InscripcionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Inscripcion
 
-        fields = '__all__'
+        fields = [
+            "id",
+            "laboratorio_titulo",
+            "asignacion",
+            "fecha_inscripcion"
+        ]
 
         read_only_fields = (
-            'id',
-            'fecha_inscripcion'
+            "id",
+            "fecha_inscripcion"
         )
-
 # =========================================================
 # GRUPO ACADEMICO
 # =========================================================
