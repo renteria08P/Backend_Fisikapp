@@ -70,7 +70,6 @@ class PlantillaLaboratorio(models.Model):
 
     titulo = models.CharField(
         max_length=200,
-        unique=True
     )
 
     categoria = models.ForeignKey(
@@ -106,22 +105,6 @@ class PlantillaLaboratorio(models.Model):
     def __str__(self):
         return self.titulo
     
-
-    def clean(self):
-
-        existe = PlantillaLaboratorio.objects.filter(
-            titulo__iexact=self.titulo.strip()
-        ).exclude(
-            pk=self.pk
-        )
-
-        if existe.exists():
-            raise ValidationError({
-                "titulo":
-                "Ya existe una plantilla con este título."
-            })
-
-
     def save(self, *args, **kwargs):
 
         self.titulo = " ".join(
