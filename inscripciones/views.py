@@ -204,21 +204,16 @@ def mis_grupos(request):
                 "actividades": []
             }
 
+        estado_entrega = None
+
         grupos[grupo.id]["total_laboratorios"] += 1
 
         if asignacion.estado == "ACTIVO":
             grupos[grupo.id]["laboratorios_activos"] += 1
 
-        # Calcular pendientes
-        if (
-            not hasattr(inscripcion, 'entrega')
-            or inscripcion.entrega.estado != "APROBADO"
-        ):
-            grupos[grupo.id]["actividades_pendientes"] += 1
-
-        estado_entrega = None
-
         if hasattr(inscripcion, 'entrega'):
+
+            estado_entrega = inscripcion.entrega.estado
 
             if inscripcion.entrega.estado == "ENVIADA":
                 grupos[grupo.id]["entregas_enviadas"] += 1
@@ -242,7 +237,6 @@ def mis_grupos(request):
     return Response(
         list(grupos.values())
     )
-
 
 
 @api_view(['GET'])
