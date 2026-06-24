@@ -104,7 +104,23 @@ class PlantillaLaboratorio(models.Model):
 
     def __str__(self):
         return self.titulo
-    
+
+
+    def clean(self):
+
+        existe = PlantillaLaboratorio.objects.filter(
+            titulo__iexact=self.titulo.strip()
+        ).exclude(
+            pk=self.pk
+        )
+
+        if existe.exists():
+            raise ValidationError({
+                "titulo":
+                "Ya existe un laboratorio con este título."
+            })
+
+
     def save(self, *args, **kwargs):
 
         self.titulo = " ".join(
@@ -181,13 +197,6 @@ class Laboratorio(models.Model):
     
     class Meta:
         ordering = ['-fecha_creacion']
-
-        constraints = [
-            models.UniqueConstraint(
-                fields=['plantilla', 'profesor'],
-                name='unique_plantilla_profesor'
-            )
-        ]
 
 class ObjetivoGeneral(models.Model):
 
