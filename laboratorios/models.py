@@ -170,6 +170,12 @@ class Laboratorio(models.Model):
         default=False
     )
 
+    simulacion_ar = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Configuración de Unity AR"
+    )
+
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
