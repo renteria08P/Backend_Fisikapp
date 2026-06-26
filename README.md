@@ -182,4 +182,4 @@ pip install qrcode[pil]
 
 ## Autor
 
-Proyecto desarrollado como parte de una aplicación educativa orientada a la creación y gestión de laboratorios de física, enfocado en la simulación interactiva de fenómenos físicos y en el fortalecimiento del aprendizaje práctico mediante experiencias dinámicas, visuales e inmersivas, con el propósito de facilitar la comprensión de conceptos científicos y promover una enseñanza más didáctica e interactiva.
+Proyecto desarrollado como parte de una aplicación educativa orientada a la creación y gestión de laboratorios de física, enfocado en la simulación interactiva de fenómenos físicos y en el fortalecimiento del aprendizaje práctico mediante experiencias dinámicas, visuales e inmersivas, con el propósito de facilitar la comprensión de conceptos científicos y promover una enseñanza más didáctica e interactiva....
