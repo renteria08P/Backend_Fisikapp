@@ -39,6 +39,8 @@ class EntregaViewSet(ModelViewSet):
     serializer_class = EntregaSerializer
     permission_classes = [IsAuthenticated]
 
+    
+
 
 class ResultadoPracticaViewSet(
     ModelViewSet

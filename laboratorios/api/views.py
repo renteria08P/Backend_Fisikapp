@@ -346,7 +346,28 @@ class LaboratorioViewSet(ModelViewSet):
             return [IsAuthenticated(), IsProfesor()]
 
         return [IsAuthenticated()]
+    
+    @action(detail=True, methods=["get"])
+    def simulacion(self, request, pk=None):
 
+        laboratorio = self.get_object()
+
+        return Response(
+            laboratorio.simulacion_ar
+        )
+    
+    @action(detail=True, methods=["put"])
+    def simulacion(self, request, pk=None):
+
+        laboratorio = self.get_object()
+
+        laboratorio.simulacion_ar = request.data
+
+        laboratorio.save()
+
+        return Response({
+            "mensaje":"Configuración guardada"
+        })
 
 # =========================================================
 # Gestión de Laboratorios - Admin

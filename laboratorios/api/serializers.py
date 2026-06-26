@@ -404,6 +404,8 @@ class LaboratorioEstudianteSerializer(
             "introduccion",
             "marco_teorico",
 
+            "simulacion_ar",  
+
             "objetivo_general",
             "conceptos_basicos",
             "formulas",
