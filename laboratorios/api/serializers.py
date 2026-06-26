@@ -17,6 +17,8 @@ from contenido.serializers import (
     PracticaSerializer,
 )
 
+from .simulaciones import SIMULACIONES
+
 # =========================================================
 # CATEGORIA
 # =========================================================
@@ -390,6 +392,14 @@ class LaboratorioEstudianteSerializer(
         read_only=True
     )
 
+    simulacion_ar = serializers.SerializerMethodField()
+
+    def get_simulacion_ar(self, obj):
+        if not obj.plantilla.lab_key:
+            return None
+
+        return SIMULACIONES.get(obj.plantilla.lab_key)
+
     class Meta:
         model = Laboratorio
 
@@ -403,8 +413,7 @@ class LaboratorioEstudianteSerializer(
             "resumen",
             "introduccion",
             "marco_teorico",
-
-            "simulacion_ar",  
+            "simulacion_ar",
 
             "objetivo_general",
             "conceptos_basicos",

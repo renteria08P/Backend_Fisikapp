@@ -84,8 +84,11 @@ class PlantillaLaboratorio(models.Model):
         related_name='plantillas_creadas'
     )
 
-    simulacion = models.BooleanField(
-        default=False
+    lab_key = models.CharField(
+        max_length=50,
+        unique=True,
+        blank=True,
+        null=True
     )
 
     estado = models.CharField(
@@ -169,13 +172,7 @@ class Laboratorio(models.Model):
     generado_ia = models.BooleanField(
         default=False
     )
-
-    simulacion_ar = models.JSONField(
-        blank=True,
-        null=True,
-        help_text="Configuración de Unity AR"
-    )
-
+    
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
