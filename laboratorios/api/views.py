@@ -1,27 +1,15 @@
 import qrcode
 from io import BytesIO
 from django.http import HttpResponse
-from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import (
-    ModelViewSet,
-    ReadOnlyModelViewSet
-)
-
-from rest_framework.permissions import (
-    IsAuthenticated
-)
-
-from rest_framework.response import Response
+from rest_framework.viewsets import (ModelViewSet,ReadOnlyModelViewSet)
+from rest_framework.permissions import (IsAuthenticated)
 from rest_framework import status, filters
 from drf_yasg.utils import swagger_auto_schema
-
+from users.permissions import (IsAdminSuperAdminOrProfesor)
 from rest_framework.decorators import action
-
-from django_filters.rest_framework import (
-    DjangoFilterBackend
-)
-
+from django_filters.rest_framework import (DjangoFilterBackend)
+from rest_framework.exceptions import ValidationError
 from users.permissions import (
     IsAdminOrSuperAdmin,
     IsProfesor
@@ -62,20 +50,14 @@ from .serializers import (
 class CategoriaViewSet(ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminSuperAdminOrProfesor]
 
 class PlantillaLaboratorioViewSet(ModelViewSet):
-
+    permission_classes = [IsAuthenticated, IsAdminSuperAdminOrProfesor]
     queryset = PlantillaLaboratorio.objects.all()
-
     serializer_class = (
         PlantillaLaboratorioSerializer
     )
-
-    permission_classes = [
-        IsAuthenticated
-    ]
-
     
     def perform_create(self, serializer):
 
@@ -115,7 +97,6 @@ class PlantillaLaboratorioViewSet(ModelViewSet):
 
 
 class GrupoAcademicoViewSet(ModelViewSet):
-
     serializer_class = GrupoAcademicoSerializer
     permission_classes = [IsAuthenticated, IsProfesor]
 
@@ -165,6 +146,7 @@ class AsignacionViewSet(ModelViewSet):
 
     serializer_class = AsignacionSerializer
     permission_classes = [IsAuthenticated, IsProfesor]
+
 
     def get_queryset(self):
 
@@ -254,7 +236,34 @@ class AsignacionViewSet(ModelViewSet):
 class InscripcionViewSet(ModelViewSet):
 
     serializer_class = InscripcionSerializer
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+
+        if self.request.method == "POST":
+            return [IsAuthenticated()]
+
+        if self.request.method == "GET":
+            return [IsAuthenticated()]
+
+        return [
+            IsAuthenticated(),
+            IsProfesor()
+        ]
+    
+    def perform_create(self, serializer):
+
+            asignacion = serializer.validated_data["asignacion"]
+
+            if Inscripcion.objects.filter(
+                estudiante=self.request.user,
+                asignacion=asignacion
+            ).exists():
+                raise ValidationError(
+                    "Ya estás inscrito en esta asignación."
+                )
+
+            serializer.save(
+                estudiante=self.request.user
+            )
 
     def get_queryset(self):
 
@@ -288,7 +297,7 @@ class InscripcionViewSet(ModelViewSet):
 class LaboratorioViewSet(ModelViewSet):
     queryset = Laboratorio.objects.all()
     serializer_class = LaboratorioSerializer
-    permission_classes = [IsAuthenticated]
+   
 
     # Filtros, búsqueda y ordenamiento
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -342,31 +351,31 @@ class LaboratorioViewSet(ModelViewSet):
         )
 
     def get_permissions(self):
-        if self.action == "cargar_estudiantes_excel":
-            return [IsAuthenticated(), IsProfesor()]
 
-        return [IsAuthenticated()]
+            if self.action == "cargar_estudiantes_excel":
+                return [
+                    IsAuthenticated(),
+                    IsProfesor()
+                ]
+
+            return [
+                IsAuthenticated(),
+                IsAdminSuperAdminOrProfesor()
+            ]
     
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=["get", "put"])
     def simulacion(self, request, pk=None):
 
         laboratorio = self.get_object()
 
-        return Response(
-            laboratorio.simulacion_ar
-        )
-    
-    @action(detail=True, methods=["put"])
-    def simulacion(self, request, pk=None):
-
-        laboratorio = self.get_object()
+        if request.method == "GET":
+            return Response(laboratorio.simulacion_ar)
 
         laboratorio.simulacion_ar = request.data
-
         laboratorio.save()
 
         return Response({
-            "mensaje":"Configuración guardada"
+            "mensaje": "Configuración guardada"
         })
 
 # =========================================================
@@ -427,7 +436,10 @@ class LaboratorioProfesorAdminViewSet(
 class LaboratorioProfesorViewSet(ModelViewSet):
 
     serializer_class = LaboratorioProfesorSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        IsProfesor
+    ]
 
     filter_backends = [
         DjangoFilterBackend,
@@ -499,6 +511,13 @@ class LaboratorioProfesorViewSet(ModelViewSet):
     # ESTUDIANTES DEL LABORATORIO
     # =====================================================
     @action(detail=True, methods=['get'])
+    @swagger_auto_schema(
+    operation_summary="Estudiantes inscritos",
+    operation_description="""
+    Obtiene el listado de estudiantes inscritos
+    en un laboratorio específico.
+    """
+)
     def estudiantes(self, request, pk=None):
 
         laboratorio = self.get_object()
@@ -539,36 +558,6 @@ class LaboratorioProfesorViewSet(ModelViewSet):
         )
         return Response(serializer.data)
     
-    @swagger_auto_schema(
-    operation_summary="Estudiantes inscritos",
-    operation_description="""
-    Obtiene el listado de estudiantes inscritos
-    en un laboratorio específico.
-    """
-)
-    @action(detail=True, methods=['get'])
-    def estudiantes(self, request, pk=None):
-
-        laboratorio = self.get_object()
-
-        inscripciones = Inscripcion.objects.filter(
-            asignacion__laboratorio=laboratorio
-        ).select_related(
-            'estudiante'
-        )
-
-        data = []
-
-        for inscripcion in inscripciones:
-            data.append({
-                "id": inscripcion.estudiante.id,
-                "nombre": inscripcion.estudiante.nombre,
-                "correo": inscripcion.estudiante.correo,
-                "fecha_inscripcion": inscripcion.fecha_inscripcion
-            })
-
-        return Response(data)
-
     # =====================================================
     # PROGRESO ESTUDIANTE (PENDIENTE)
     # =====================================================
@@ -746,7 +735,7 @@ class LaboratorioProfesorViewSet(ModelViewSet):
 # =========================================================
 # LABORATORIO ESTUDIANTE
 # =========================================================
-class LaboratorioEstudianteViewSet(ModelViewSet):
+class LaboratorioEstudianteViewSet(ReadOnlyModelViewSet):
 
     permission_classes = [IsAuthenticated]
 
@@ -823,7 +812,10 @@ class PlantillaObjetivoGeneralViewSet(
         PlantillaObjetivoGeneralSerializer
     )
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminSuperAdminOrProfesor
+    ]
 
     @swagger_auto_schema(
         operation_summary="Listar objetivos generales",
@@ -852,7 +844,10 @@ class PlantillaObjetivoEspecificoViewSet(
         PlantillaObjetivoEspecificoSerializer
     )
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminSuperAdminOrProfesor
+    ]
 
     @swagger_auto_schema(
         operation_summary="Listar objetivos específicos",

@@ -1,13 +1,7 @@
-from django.shortcuts import render
-
-from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import api_view, parser_classes, permission_classes
+from users.permissions import (IsAdminSuperAdminOrProfesor)
 from rest_framework.response import Response
-from .models import Recursos
 from .serializers import RecursosSerializer
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
@@ -51,6 +45,7 @@ from .serializers import (
     request_body=ConceptosBasicosSerializer
 )
 @api_view(['GET', 'POST'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def conceptos_list(request):
 
     if request.method == 'GET':
@@ -101,7 +96,9 @@ def conceptos_list(request):
     """
 )
 @api_view(['PUT', 'DELETE'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def conceptos_detalle(request, pk):
+
 
     try:
 
@@ -171,6 +168,7 @@ def conceptos_detalle(request, pk):
     request_body=PracticaSerializer
 )
 @api_view(['GET', 'POST'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def practicas_list(request):
 
     if request.method == 'GET':
@@ -231,6 +229,7 @@ def practicas_list(request):
     """
 )
 @api_view(['PUT', 'DELETE'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def practicas_detalle(request, pk):
 
     try:
@@ -301,6 +300,7 @@ def practicas_detalle(request, pk):
     request_body=ProcedimientoSerializer
 )
 @api_view(['GET', 'POST'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def procedimientos_list(request):
 
     if request.method == 'GET':
@@ -361,6 +361,7 @@ def procedimientos_list(request):
     """
 )
 @api_view(['PUT', 'DELETE'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def procedimientos_detalle(request, pk):
 
     try:
@@ -431,6 +432,7 @@ def procedimientos_detalle(request, pk):
     request_body=FormulaSerializer
 )
 @api_view(['GET', 'POST'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def lista_formulas(request):
 
     if request.method == 'GET':
@@ -506,6 +508,7 @@ def lista_formulas(request):
     """
 )
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def detalle_formula(request, pk):
 
     try:
@@ -613,6 +616,7 @@ def detalle_formula(request, pk):
     FormParser,
     JSONParser
 ])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def recursos_list(request):
 
     if request.method == 'GET':
@@ -672,6 +676,7 @@ def recursos_list(request):
     """
 )
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 @parser_classes([
     MultiPartParser,
     FormParser,
