@@ -3,12 +3,21 @@ from .models import Log, Notificacion
 
 
 class LogSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Log
-        fields = '__all__'
+        fields = "__all__"
 
+        read_only_fields = [
+            "usuario"
+        ]
 
 class NotificacionSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Notificacion
-        fields = '__all__'
+        fields = "__all__"
+
+        read_only_fields = [
+            "usuario"
+        ]
