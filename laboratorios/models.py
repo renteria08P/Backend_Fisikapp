@@ -266,10 +266,28 @@ class PlantillaObjetivoEspecifico(models.Model):
 class Etapa(models.Model):
 
     TIPOS_ETAPA = (
-        ('CONCEPTOS', 'Conceptos Básicos'),
-        ('PRACTICA', 'Práctica'),
-        ('INFORME', 'Informe'),
-    )
+
+    ("INTRODUCTION", "Introducción"),
+
+    ("THEORY", "Marco Teórico"),
+
+    ("OBJECTIVES", "Objetivos"),
+
+    ("CONCEPTS", "Conceptos Básicos"),
+
+    ("FORMULAS", "Fórmulas"),
+
+    ("PRACTICE", "Práctica"),
+
+    ("SIMULATION_AR", "Simulación AR"),
+
+    ("COMPARISON", "Comparación"),
+
+    ("REPORT", "Informe"),
+
+    ("SUBMIT", "Envío"),
+
+)
 
     laboratorio = models.ForeignKey(
         Laboratorio,
