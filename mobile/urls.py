@@ -1,12 +1,15 @@
-from django.urls import path
-from .views import MobileResourceView
+from django.urls import include, path
 
 urlpatterns = [
 
     path(
-        "resources/<int:assignment_id>/",
-        MobileResourceView.as_view(),
-        name="mobile-resource",
+        "resources/",
+        include("mobile.resources.urls"),
+    ),
+
+    path(
+        "simulation/",
+        include("mobile.simulation.urls"),
     ),
 
 ]

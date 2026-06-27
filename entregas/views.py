@@ -7,8 +7,6 @@ from users.permissions import Roles
 
 
 from .models import  ( 
-    Pregunta,
-    Respuesta,
     Entrega, 
     ResultadoPractica,
     ResultadoSimulacion
@@ -17,62 +15,9 @@ from .models import  (
 from .serializers import (
     ResultadoPracticaSerializer,
     EntregaSerializer,
-    PreguntaSerializer,
-    RespuestaSerializer,
+
     ResultadoSimulacionSerializer
 )
-
-
-class PreguntaViewSet(ModelViewSet):
-
-    queryset = Pregunta.objects.all()
-    serializer_class = PreguntaSerializer
-
-    def get_permissions(self):
-
-        if self.request.method == "GET":
-            return [IsAuthenticated()]
-
-        return [
-            IsAuthenticated(),
-            IsProfesor()
-        ]
-
-class RespuestaViewSet(ModelViewSet):
-
-    queryset = Respuesta.objects.all()
-    serializer_class = RespuestaSerializer
-    
-    def get_permissions(self):
-
-        if self.request.method in ["GET", "POST"]:
-            return [IsAuthenticated()]
-
-        return [
-            IsAuthenticated(),
-            IsProfesor()
-        ]
-    
-    def perform_create(self, serializer):
-
-        entrega = serializer.validated_data["entrega"]
-
-        if entrega.inscripcion.estudiante != self.request.user:
-            raise ValidationError(
-                "No puedes responder otra entrega."
-            )
-
-        serializer.save()
-
-
-    def get_queryset(self):
-
-        if self.request.user.rol == Roles.ESTUDIANTE:
-            return Respuesta.objects.filter(
-                entrega__inscripcion__estudiante=self.request.user
-            )
-
-        return Respuesta.objects.all()
 
 
 class EntregaViewSet(ModelViewSet):

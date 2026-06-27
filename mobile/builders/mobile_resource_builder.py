@@ -9,6 +9,7 @@ from .steps.objectives_step import ObjectivesStep
 from .steps.concepts_step import ConceptsStep
 from .steps.formulas_step import FormulasStep
 from .steps.procedures_step import ProceduresStep
+from .steps.practice_step import PracticeStep
 
 
 class MobileResourceBuilder:
@@ -50,5 +51,6 @@ class MobileResourceBuilder:
                 *ConceptsStep(laboratorio).build(),
                 *FormulasStep(laboratorio).build(),
                 *ProceduresStep(laboratorio).build(),
+                *PracticeStep(laboratorio).build(),
             ]            
         }

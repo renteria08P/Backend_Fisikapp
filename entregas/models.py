@@ -1,5 +1,4 @@
 from django.db import models
-from django.core.exceptions import ValidationError
 
 
 # =========================================================
@@ -15,7 +14,7 @@ class Entrega(models.Model):
         ('APROBADO', 'Aprobado'),
         ('RECHAZADO', 'Rechazado'),
     )
-    
+
     TIPOS = (
         ('PRACTICA', 'Práctica'),
         ('SIMULACION', 'Simulación'),
@@ -26,7 +25,7 @@ class Entrega(models.Model):
         on_delete=models.CASCADE,
         related_name='entrega'
     )
-    
+
     tipo_reporte = models.CharField(
         max_length=20,
         choices=TIPOS,
@@ -64,7 +63,6 @@ class Entrega(models.Model):
     class Meta:
         ordering = ['-fecha_creacion']
 
-
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
@@ -75,8 +73,9 @@ class Entrega(models.Model):
             f"{self.inscripcion.asignacion.laboratorio.titulo}"
         )
 
+
 # =========================================================
-# RESULTADOS PRACTICA
+# RESULTADO PRÁCTICA
 # =========================================================
 
 class ResultadoPractica(models.Model):
@@ -102,17 +101,26 @@ class ResultadoPractica(models.Model):
     )
 
     def __str__(self):
-        return (
-            f"Resultado práctica "
-            f"{self.entrega.id}"
-        )
+        return f"Resultado práctica {self.entrega.id}"
 
 
 # =========================================================
-# RESULTADO SIMULACION
+# RESULTADO SIMULACIÓN
 # =========================================================
 
 class ResultadoSimulacion(models.Model):
+
+    STATUS = (
+        ("completed", "Completado"),
+        ("abandoned", "Abandonado"),
+        ("in_progress", "En progreso"),
+    )
+
+    EXIT_REASONS = (
+        ("completed", "Completado"),
+        ("max_attempts", "Máximo de intentos"),
+        ("user_exit", "Salida del usuario"),
+    )
 
     entrega = models.OneToOneField(
         Entrega,
@@ -120,19 +128,80 @@ class ResultadoSimulacion(models.Model):
         related_name='resultado_simulacion'
     )
 
-    parametros = models.JSONField(
-        null=True,
-        blank=True
-    )
-
-    resultados = models.JSONField(
-        null=True,
-        blank=True
-    )
-
-    conclusiones = models.TextField(
+    run_id = models.CharField(
+        max_length=100,
+        unique=True,
         blank=True,
-        null=True
+        default=""
+    )
+
+    completed = models.BooleanField(
+        default=False
+    )
+
+    result_status = models.CharField(
+        max_length=30,
+        choices=STATUS,
+        default="in_progress"
+    )
+
+    exit_reason = models.CharField(
+        max_length=30,
+        choices=EXIT_REASONS,
+        default="completed"
+    )
+
+    best_attempt = models.PositiveSmallIntegerField(
+        default=0
+    )
+
+    best_distance = models.FloatField(
+        default=0
+    )
+
+    average_distance = models.FloatField(
+        default=0
+    )
+
+    successful_attempts = models.PositiveSmallIntegerField(
+        default=0
+    )
+
+    failed_attempts = models.PositiveSmallIntegerField(
+        default=0
+    )
+
+    started_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    finished_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    raw_result = models.JSONField(
+        null=True,
+        blank=True
+    )
+
+    platform = models.CharField(
+        max_length=30,
+        blank=True,
+        default=""
+    )
+
+    ar_provider = models.CharField(
+        max_length=30,
+        blank=True,
+        default=""
+    )
+
+    unity_version = models.CharField(
+        max_length=30,
+        blank=True,
+        default=""
     )
 
     fecha_creacion = models.DateTimeField(
@@ -143,80 +212,73 @@ class ResultadoSimulacion(models.Model):
         auto_now=True
     )
 
+    class Meta:
+        ordering = ['-fecha_creacion']
+
     def __str__(self):
-        return (
-            f"Simulación "
-            f"{self.entrega.id}"
-        )
+        return f"Resultado simulación {self.entrega.id}"
 
 
 # =========================================================
-# PREGUNTAS
+# INTENTO SIMULACIÓN
 # =========================================================
 
-class Pregunta(models.Model):
+class IntentoSimulacion(models.Model):
 
-    laboratorio = models.ForeignKey(
-        'laboratorios.Laboratorio',
+    IMPACT_TYPES = (
+        ("HitTarget", "Hit Target"),
+        ("MissedTarget", "Missed Target"),
+    )
+
+    resultado = models.ForeignKey(
+        ResultadoSimulacion,
         on_delete=models.CASCADE,
-        related_name='preguntas'
+        related_name="intentos"
     )
 
-    enunciado = models.TextField()
+    numero = models.PositiveSmallIntegerField()
 
-    orden = models.PositiveSmallIntegerField()
-
-    obligatoria = models.BooleanField(
-        default=True
+    hit = models.BooleanField(
+        default=False
     )
 
-    def __str__(self):
-        return f"Pregunta {self.orden}"
+    power = models.FloatField()
+
+    angle = models.FloatField()
+
+    impact_distance = models.FloatField()
+
+    impact_horizontal_distance = models.FloatField()
+
+    impact_distance_to_target = models.FloatField()
+
+    impact_height = models.FloatField()
+
+    impact_type = models.CharField(
+        max_length=30,
+        choices=IMPACT_TYPES
+    )
+
+    impact_x = models.FloatField()
+
+    impact_y = models.FloatField()
+
+    impact_z = models.FloatField()
+
+    target_x = models.FloatField()
+
+    target_y = models.FloatField()
+
+    target_z = models.FloatField()
+
+    created_at = models.DateTimeField()
 
     class Meta:
-        ordering = ['orden']
+        ordering = ["numero"]
+
         unique_together = (
-            'laboratorio',
-            'orden'
-        )
-
-
-# =========================================================
-# RESPUESTAS
-# =========================================================
-
-class Respuesta(models.Model):
-
-    entrega = models.ForeignKey(
-        Entrega,
-        on_delete=models.CASCADE,
-        related_name='respuestas'
-    )
-
-    pregunta = models.ForeignKey(
-        Pregunta,
-        on_delete=models.CASCADE,
-        related_name='respuestas'
-    )
-
-    respuesta = models.TextField()
-
-    fecha_creacion = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    fecha_actualizacion = models.DateTimeField(
-        auto_now=True
-    )
-
-    class Meta:
-        unique_together = (
-            'entrega',
-            'pregunta'
+            ("resultado", "numero"),
         )
 
     def __str__(self):
-        return (
-            f"Entrega {self.entrega.id} - "
-            f"Pregunta {self.pregunta.id}"
-        )
+        return f"Intento {self.numero}"
