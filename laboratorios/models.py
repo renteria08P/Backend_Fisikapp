@@ -259,6 +259,7 @@ class PlantillaObjetivoEspecifico(models.Model):
 
     def __str__(self):
         return self.descripcion
+    
 
 # =========================================================
 # ETAPAS
@@ -300,7 +301,7 @@ class Etapa(models.Model):
     )
 
     tipo = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=TIPOS_ETAPA
     )
 

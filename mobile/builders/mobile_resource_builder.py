@@ -10,7 +10,10 @@ from .steps.concepts_step import ConceptsStep
 from .steps.formulas_step import FormulasStep
 from .steps.procedures_step import ProceduresStep
 from .steps.practice_step import PracticeStep
-
+from .steps.simulation_ar_step import (SimulationARStep)
+from .steps.comparison_step import ComparisonStep
+from .steps.report_step import ReportStep
+from .steps.submission_step import SubmissionStep
 
 class MobileResourceBuilder:
 
@@ -52,5 +55,9 @@ class MobileResourceBuilder:
                 *FormulasStep(laboratorio).build(),
                 *ProceduresStep(laboratorio).build(),
                 *PracticeStep(laboratorio).build(),
+                *SimulationARStep(self.assignment).build(),
+                *ComparisonStep(laboratorio).build(),
+                *ReportStep(laboratorio).build(),
+                *SubmissionStep(self.assignment).build(),
             ]            
         }

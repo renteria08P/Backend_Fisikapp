@@ -7,7 +7,8 @@ from laboratorios.models import (
     ObjetivoGeneral,
     ObjetivoEspecifico,
     PlantillaObjetivoGeneral,
-    PlantillaObjetivoEspecifico
+    PlantillaObjetivoEspecifico,
+    Etapa, 
 )
 
 from contenido.serializers import (

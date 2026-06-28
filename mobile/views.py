@@ -10,6 +10,7 @@ class MobileResourceView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+
     def get(self, request, assignment_id):
 
         builder = MobileResourceBuilder(

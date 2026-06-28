@@ -5,20 +5,23 @@ class PracticeStep:
 
     def build(self):
 
-        practicas = self.laboratorio.practicas.all()
+        print("========== NUEVO PRACTICE STEP ==========")
 
-        print("TOTAL PRACTICAS:", practicas.count())
+        practicas = self.laboratorio.practicas.all()
 
         if not practicas.exists():
             return []
 
+        procedimientos = self.laboratorio.procedimientos.all()
+
         return [
             {
-                "id": "practice",
+                "id": "experimental_practice",
                 "order": 7,
-                "type": "PRACTICE",
-                "title": "Práctica",
+                "type": "EXPERIMENTAL_PRACTICE",
+                "title": "Práctica experimental",
                 "required": True,
+
                 "practices": [
                     {
                         "id": practica.id,
@@ -27,16 +30,52 @@ class PracticeStep:
                         "description": practica.descripcion,
                         "materials": practica.materiales,
                         "calculations": practica.calculos,
+
                         "concepts": [
                             {
                                 "id": concepto.id,
                                 "name": concepto.concepto,
-                                "description": concepto.descripcion
+                                "description": concepto.descripcion,
                             }
                             for concepto in practica.conceptos.all()
-                        ]
+                        ],
                     }
                     for practica in practicas
-                ]
+                ],
+
+                "procedure": [
+                    {
+                        "number": paso.paso_numero,
+                        "description": paso.descripcion,
+                        "image": (
+                            paso.imagen.url
+                            if paso.imagen
+                            else None
+                        ),
+                        "order": paso.orden,
+                    }
+                    for paso in procedimientos
+                ],
+
+                "expected_inputs": [
+                    {
+                        "id": "observations",
+                        "type": "TEXT",
+                        "label": "Observaciones",
+                        "required": True,
+                    },
+                    {
+                        "id": "calculations",
+                        "type": "TEXT",
+                        "label": "Cálculos realizados",
+                        "required": True,
+                    },
+                    {
+                        "id": "conclusions",
+                        "type": "TEXT",
+                        "label": "Conclusiones",
+                        "required": True,
+                    },
+                ],
             }
         ]

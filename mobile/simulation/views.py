@@ -49,9 +49,12 @@ class SimulationResultAPIView(APIView):
     def post(self, request, assignment_id):
 
         inscripcion = get_object_or_404(
-            Inscripcion,
+            Inscripcion.objects.select_related(
+                "estudiante",
+                "asignacion",
+            ),
             asignacion_id=assignment_id,
-            usuario=request.user
+            estudiante=request.user
         )
 
         serializer = SimulationResultSerializer(
