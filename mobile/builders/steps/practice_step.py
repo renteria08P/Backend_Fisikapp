@@ -64,18 +64,33 @@ class PracticeStep:
                         "label": "Observaciones",
                         "required": True,
                     },
+
                     {
                         "id": "calculations",
                         "type": "TEXT",
                         "label": "Cálculos realizados",
                         "required": True,
                     },
+
                     {
                         "id": "conclusions",
                         "type": "TEXT",
                         "label": "Conclusiones",
                         "required": True,
                     },
+
+                    {
+                        "id": "evidences",
+                        "type": "FILES",
+                        "label": "Evidencias",
+                        "required": False,
+                        "allowed_types": [
+                            "image/*",
+                            "application/pdf",
+                        ],
+                        "multiple": True,
+                    },
+
                 ],
             }
         ]

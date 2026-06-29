@@ -20,36 +20,46 @@ class ReportStep:
 
                 "required": True,
 
-                "instructions": (
-                    "Complete el informe final del laboratorio con base "
-                    "en los resultados obtenidos durante la práctica "
-                    "experimental y la simulación."
-                ),
+                "report": {
 
-                "sections": [
+                    "instructions": (
+                        "Complete el informe final del laboratorio con base "
+                        "en los resultados obtenidos durante la práctica "
+                        "experimental y la simulación."
+                    ),
 
-                    {
-                        "id": "results",
-                        "label": "Resultados obtenidos",
-                        "type": "TEXT",
-                        "required": True,
-                    },
+                    "include_practice": True,
 
-                    {
-                        "id": "analysis",
-                        "label": "Análisis",
-                        "type": "TEXT",
-                        "required": True,
-                    },
+                    "include_simulation": True,
 
-                    {
-                        "id": "conclusions",
-                        "label": "Conclusiones",
-                        "type": "TEXT",
-                        "required": True,
-                    }
+                    "include_comparison": True,
 
-                ]
+                    "sections": [
+
+                        {
+                            "id": "results",
+                            "label": "Resultados obtenidos",
+                            "type": "TEXT",
+                            "required": True,
+                        },
+
+                        {
+                            "id": "analysis",
+                            "label": "Análisis",
+                            "type": "TEXT",
+                            "required": True,
+                        },
+
+                        {
+                            "id": "conclusions",
+                            "label": "Conclusiones",
+                            "type": "TEXT",
+                            "required": True,
+                        }
+
+                    ]
+
+                }
 
             }
 

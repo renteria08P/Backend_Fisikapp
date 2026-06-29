@@ -5,6 +5,9 @@ from entregas.models import (
     IntentoSimulacion,
 )
 
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+
 
 
 class ResultBuilder:
@@ -17,17 +20,25 @@ class ResultBuilder:
     @transaction.atomic
     def build(self):
 
-        entrega = Entrega.objects.create(
-
+        entrega, _ = Entrega.objects.update_or_create(
             inscripcion=self.inscripcion,
-
-            tipo_reporte="SIMULACION",
-
-            estado="ENVIADA"
-
+            defaults={
+                "tipo_reporte": "SIMULACION",
+                "estado": "ENVIADA",
+            }
         )
 
+        print("STARTED:", self.data["startedAt"])
+        print("TYPE:", type(self.data["startedAt"]))
+
+        print("FINISHED:", self.data["finishedAt"])
+        print("TYPE:", type(self.data["finishedAt"]))
+
+        print("CREATED:", self.data["attempts"][0]["createdAt"])
+        print("TYPE:", type(self.data["attempts"][0]["createdAt"]))
+
         resultado, _ = ResultadoSimulacion.objects.update_or_create(
+            
 
         entrega=entrega,
 
@@ -60,8 +71,12 @@ class ResultBuilder:
             "ar_provider": self.data["device"]["arProvider"],
 
             "unity_version": self.data["device"]["unityVersion"],
-
-            "raw_result": self.data,
+            "raw_result": json.loads(
+                json.dumps(
+                    self.data,
+                    cls=DjangoJSONEncoder
+                )
+            ),
 
         }
 
@@ -81,8 +96,7 @@ class ResultBuilder:
 
                 angle=intento["angle"],
 
-                impact_distance=intento["straightDistance"]
-                if "straightDistance" in intento else 0,
+                impact_distance=intento["impactDistanceToTarget"],
 
                 impact_horizontal_distance=intento["impactHorizontalDistance"],
 
