@@ -1,4 +1,7 @@
 from rest_framework import serializers
+from laboratorios.models import PlantillaLaboratorio
+from cloudinary.utils import cloudinary_url
+
 from laboratorios.models import Asignacion
 
 from laboratorios.models import (
@@ -114,25 +117,65 @@ class AsignacionSerializer(serializers.ModelSerializer):
             "codigo_ingreso"   
         ]
 
-from laboratorios.models import PlantillaLaboratorio
-
 class PlantillaLaboratorioSerializer(
     serializers.ModelSerializer
 ):
+
 
     creador_nombre = serializers.CharField(
         source='creado_por.nombre',
         read_only=True
     )
 
+    imagen_portada = serializers.SerializerMethodField()
+
+    def get_imagen_portada(self, obj):
+
+        if not obj.imagen_portada:
+            return None
+
+        url, options = cloudinary_url(
+            str(obj.imagen_portada),
+            secure=True
+        )
+
+        return url
+
+    categoria_nombre = serializers.CharField(
+        source="categoria.nombre",
+        read_only=True
+    )
+
+    objetivo_general = PlantillaObjetivoGeneralSerializer(
+        read_only=True
+    )
+
     class Meta:
         model = PlantillaLaboratorio
-        fields = "__all__"
+
+        fields = [
+            "id",
+            "titulo",
+            "resumen",
+            "introduccion",
+            "marco_teorico",
+            "imagen_portada",
+            "lab_key",
+            "estado",
+            "fecha_creacion",
+            "fecha_actualizacion",
+            "categoria",
+            "categoria_nombre",
+            "creado_por",
+            "creador_nombre",
+            "conceptos_basicos",
+            "objetivo_general",
+        ]
 
         read_only_fields = [
             "creado_por",
             "fecha_creacion",
-            "fecha_actualizacion"
+            "fecha_actualizacion",
         ]
 
 # =========================================================
@@ -205,10 +248,9 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
     imagen_portada = serializers.SerializerMethodField()
 
     def get_imagen_portada(self, obj):
-        plantilla = getattr(obj, "plantilla", None)
 
-        if plantilla and plantilla.imagen_portada:
-            return plantilla.imagen_portada.url
+        if obj.imagen_portada:
+            return obj.imagen_portada.url
 
         return None
 

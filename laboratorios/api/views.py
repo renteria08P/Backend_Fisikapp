@@ -22,6 +22,11 @@ from users.permissions import (
     IsAdminOrSuperAdmin,
     IsProfesor
 )
+from rest_framework.parsers import (
+    MultiPartParser,
+    FormParser,
+    JSONParser,
+)
 
 from laboratorios.models import (
     Laboratorio,
@@ -64,14 +69,27 @@ class CategoriaViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, IsAdminSuperAdminOrProfesor]
 
 class PlantillaLaboratorioViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated, IsAdminSuperAdminOrProfesor]
-    queryset = PlantillaLaboratorio.objects.all()
+
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminSuperAdminOrProfesor
+    ]
+
+    queryset = (
+        PlantillaLaboratorio.objects
+        .select_related(
+            "categoria",
+            "creado_por"
+        )
+        .order_by("-fecha_creacion")
+    )
+
+    serializer_class = PlantillaLaboratorioSerializer
+
     parser_classes = (
         MultiPartParser,
         FormParser,
-    )
-    serializer_class = (
-        PlantillaLaboratorioSerializer
+        JSONParser,
     )
     
     def perform_create(self, serializer):
