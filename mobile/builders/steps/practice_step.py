@@ -5,8 +5,6 @@ class PracticeStep:
 
     def build(self):
 
-        print("========== NUEVO PRACTICE STEP ==========")
-
         practicas = self.laboratorio.practicas.all()
 
         if not practicas.exists():

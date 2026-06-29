@@ -5,12 +5,7 @@ class ProceduresStep:
 
     def build(self):
 
-        print("LABORATORIO:", self.laboratorio.id)
-
         procedimientos = self.laboratorio.procedimientos.all()
-
-        print("TOTAL PROCEDIMIENTOS:", procedimientos.count())
-        print(list(procedimientos.values()))
 
         if not procedimientos.exists():
             return []

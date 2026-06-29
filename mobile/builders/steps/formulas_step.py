@@ -5,13 +5,7 @@ class FormulasStep:
 
     def build(self):
 
-        print("LABORATORIO:", self.laboratorio.id)
-
         formulas = self.laboratorio.formulas.all()
-
-        print("TOTAL FORMULAS:", formulas.count())
-
-        print(list(formulas.values()))
 
         if not formulas.exists():
             return []

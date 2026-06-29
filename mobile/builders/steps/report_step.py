@@ -5,6 +5,10 @@ class ReportStep:
         self.laboratorio = laboratorio
 
     def build(self):
+        practicas = self.laboratorio.practicas.exists()
+
+        lab_key = self.laboratorio.plantilla.lab_key is not None
+
 
         return [
 
@@ -22,17 +26,16 @@ class ReportStep:
 
                 "report": {
 
-                    "instructions": (
-                        "Complete el informe final del laboratorio con base "
-                        "en los resultados obtenidos durante la práctica "
-                        "experimental y la simulación."
-                    ),
+                "instructions": (
+                    "Complete el informe final del laboratorio con base "
+                    "en los resultados obtenidos."
+                ),
 
-                    "include_practice": True,
+                "include_practice": practicas,
 
-                    "include_simulation": True,
+                "include_simulation": lab_key,
 
-                    "include_comparison": True,
+                "include_comparison": practicas and lab_key,
 
                     "sections": [
 

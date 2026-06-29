@@ -13,6 +13,9 @@ class ObjectivesStep:
         except ObjetivoGeneral.DoesNotExist:
             return []
 
+        if not objetivo.descripcion:
+            return []
+
         return [
             {
                 "id": "objectives",

@@ -5,6 +5,11 @@ class ComparisonStep:
 
     def build(self):
 
+        practicas = self.laboratorio.practicas.all()
+
+        if not practicas.exists():
+            return []
+
         return [
             {
                 "id": "comparison",
@@ -31,7 +36,6 @@ class ComparisonStep:
                             "type": "TEXT",
                             "required": True,
                         }
-
                     ]
                 }
             }
