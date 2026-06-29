@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from cloudinary.models import CloudinaryField
 
 # =========================================================
 # CATEGORIA
@@ -56,6 +57,13 @@ class PlantillaLaboratorio(models.Model):
     introduccion = models.TextField()
 
     marco_teorico = models.TextField()
+
+    imagen_portada = CloudinaryField(
+        "image",
+        folder="laboratorios/portadas",
+        null=True,
+        blank=True
+    )
 
     conceptos_basicos = models.ManyToManyField(
         'contenido.ConceptosBasicos',

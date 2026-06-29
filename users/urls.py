@@ -38,4 +38,5 @@ urlpatterns = [
     # ROLES
     path('crear-admin/', crear_admin),
     path('crear-profesor/', crear_profesor),
+
 ]

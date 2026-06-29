@@ -1,3 +1,4 @@
+import pandas as pd
 import qrcode
 from io import BytesIO
 from django.http import HttpResponse
@@ -6,10 +7,17 @@ from rest_framework.viewsets import (ModelViewSet,ReadOnlyModelViewSet)
 from rest_framework.permissions import (IsAuthenticated)
 from rest_framework import status, filters
 from drf_yasg.utils import swagger_auto_schema
+from users.models import Users
 from users.permissions import (IsAdminSuperAdminOrProfesor)
 from rest_framework.decorators import action
 from django_filters.rest_framework import (DjangoFilterBackend)
 from rest_framework.exceptions import ValidationError
+from rest_framework.parsers import (
+    MultiPartParser,
+    FormParser
+)
+
+from django.core.exceptions import ValidationError
 from users.permissions import (
     IsAdminOrSuperAdmin,
     IsProfesor
@@ -32,6 +40,9 @@ from inscripciones.models import (
 from inscripciones.serializers import (
     InscripcionSerializer
 )
+from users.utils import enviar_credenciales, generar_password
+
+
 
 from .serializers import (
     CategoriaSerializer,
@@ -55,6 +66,10 @@ class CategoriaViewSet(ModelViewSet):
 class PlantillaLaboratorioViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, IsAdminSuperAdminOrProfesor]
     queryset = PlantillaLaboratorio.objects.all()
+    parser_classes = (
+        MultiPartParser,
+        FormParser,
+    )
     serializer_class = (
         PlantillaLaboratorioSerializer
     )
@@ -557,184 +572,10 @@ class LaboratorioProfesorViewSet(ModelViewSet):
             many=True
         )
         return Response(serializer.data)
-    
-    # =====================================================
-    # PROGRESO ESTUDIANTE (PENDIENTE)
-    # =====================================================
 
-    # @action(detail=True, methods=['get'])
-    # def progreso(self, request, pk=None):
-    #     laboratorio = self.get_object()
-    #     etapas = Etapa.objects.filter(
-    #         laboratorio=laboratorio
-    #     ).order_by('orden')
-    #
-    #     total = etapas.count()
-    #     completadas = 0
-    #     resultado = []
-    #
-    #     for etapa in etapas:
-    #
-    #         prog = ProgresoEstudiante.objects.filter(
-    #             estudiante=request.user,
-    #             etapa=etapa
-    #         ).first()
-    #
-    #         hecho = prog.completada if prog else False
-    #
-    #         if hecho:
-    #             completadas += 1
-    #
-    #         resultado.append({
-    #             "etapa_id": etapa.id,
-    #             "nombre": etapa.nombre,
-    #             "completada": hecho
-    #         })
-    #
-    #     return Response({
-    #         "porcentaje": (
-    #             int((completadas / total) * 100)
-    #             if total > 0 else 0
-    #         ),
-    #         "etapas": resultado
-    #     })
-
-    # =====================================================
-    # COMPLETAR ETAPA (PENDIENTE)
-    # =====================================================
-
-    # @action(
-    #     detail=True,
-    #     methods=['post'],
-    #     url_path='etapas/(?P<etapa_id>[^/.]+)/completar'
-    # )
-    # def completar_etapa(
-    #     self,
-    #     request,
-    #     pk=None,
-    #     etapa_id=None
-    # ):
-    #
-    #     laboratorio = self.get_object()
-    #
-    #     try:
-    #         etapa = Etapa.objects.get(
-    #             id=etapa_id,
-    #             laboratorio=laboratorio
-    #         )
-    #
-    #     except Etapa.DoesNotExist:
-    #         return Response(
-    #             {"error": "Etapa no encontrada"},
-    #             status=404
-    #         )
-    #
-    #     prog, _ = (
-    #         ProgresoEstudiante.objects.get_or_create(
-    #             estudiante=request.user,
-    #             etapa=etapa
-    #         )
-    #     )
-    #
-    #     prog.completada = True
-    #     prog.fecha_completado = date.today()
-    #     prog.save()
-    #
-    #     return Response({
-    #         "mensaje":
-    #         f"Etapa '{etapa.nombre}' completada"
-    #     })
-
-    # =====================================================
-    # CARGAR ESTUDIANTES EXCEL (PENDIENTE)
-    # =====================================================
-
-    # @action(
-    #     detail=True,
-    #     methods=['post'],
-    #     url_path='cargar-estudiantes'
-    # )
-    # def cargar_estudiantes_excel(
-    #     self,
-    #     request,
-    #     pk=None
-    # ):
-    #
-    #     laboratorio = self.get_object()
-    #
-    #     archivo = request.FILES.get('file')
-    #
-    #     if not archivo:
-    #         return Response(
-    #             {"error": "No se envió archivo"},
-    #             status=400
-    #         )
-    #
-    #     try:
-    #         df = pd.read_excel(archivo)
-    #
-    #     except Exception:
-    #         return Response(
-    #             {"error": "Archivo inválido"},
-    #             status=400
-    #         )
-    #
-    #     creados = 0
-    #     errores = []
-    #
-    #     with transaction.atomic():
-    #
-    #         for index, row in df.iterrows():
-    #
-    #             try:
-    #
-    #                 usuario = Users.objects.get(
-    #                     correo=row['correo']
-    #                 )
-    #
-    #                 if usuario.rol != "estudiante":
-    #
-    #                     errores.append(
-    #                         f"Fila {index}: "
-    #                         f"el usuario no es estudiante"
-    #                     )
-    #
-    #                     continue
-    #
-    #                 inscripcion, created = (
-    #                     Inscripcion.objects.get_or_create(
-    #                         usuario=usuario,
-    #                         laboratorio=laboratorio,
-    #                         defaults={
-    #                             "fecha_inscripcion":
-    #                             date.today()
-    #                         }
-    #                     )
-    #                 )
-    #
-    #                 if created:
-    #                     creados += 1
-    #
-    #                 else:
-    #                     errores.append(
-    #                         f"Fila {index}: ya inscrito"
-    #                     )
-    #
-    #             except Users.DoesNotExist:
-    #
-    #                 errores.append(
-    #                     f"Fila {index}: usuario no existe"
-    #                 )
-    #
-    #     return Response({
-    #         "mensaje": "Inscripción finalizada",
-    #         "creados": creados,
-    #         "errores": errores
-    #     })
-
-# =========================================================
+# ======================================================
 # LABORATORIO ESTUDIANTE
-# =========================================================
+# ======================================================
 class LaboratorioEstudianteViewSet(ReadOnlyModelViewSet):
 
     permission_classes = [IsAuthenticated]
@@ -858,3 +699,4 @@ class PlantillaObjetivoEspecificoViewSet(
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+    
