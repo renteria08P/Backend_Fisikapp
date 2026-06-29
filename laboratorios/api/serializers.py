@@ -8,7 +8,6 @@ from laboratorios.models import (
     ObjetivoEspecifico,
     PlantillaObjetivoGeneral,
     PlantillaObjetivoEspecifico,
-    Etapa, 
 )
 
 from contenido.serializers import (
@@ -203,6 +202,16 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    imagen_portada = serializers.SerializerMethodField()
+
+    def get_imagen_portada(self, obj):
+        plantilla = getattr(obj, "plantilla", None)
+
+        if plantilla and plantilla.imagen_portada:
+            return plantilla.imagen_portada.url
+
+        return None
+
     practicas = PracticaSerializer(
         many=True,
         read_only=True
@@ -265,11 +274,36 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Laboratorio
-        fields = "__all__"
+        fields = [
+            "id",
+            "titulo_lab",
+            "objetivo_general",
+            "profesor_nombre",
+            "categoria",
+            "plantilla_titulo",
+            "plantilla_categoria",
+            "imagen_portada",
+
+            "resumen",
+            "introduccion",
+            "marco_teorico",
+
+            "conceptos_basicos",
+            "practicas",
+            "procedimientos",
+            "formulas",
+
+            "estado",
+            "generado_ia",
+            "fecha_creacion",
+            "fecha_actualizacion",
+
+            "plantilla",
+            "profesor",
+        ]
 
         read_only_fields = [
             'profesor',
-            "codigo_ingreso",
             "fecha_creacion",
         ]
 
@@ -302,6 +336,15 @@ class LaboratorioProfesorAdminSerializer(
         read_only=True
     )
 
+    imagen_portada = serializers.SerializerMethodField()
+    def get_imagen_portada(self, obj):
+        plantilla = getattr(obj, "plantilla", None)
+
+        if plantilla and plantilla.imagen_portada:
+            return plantilla.imagen_portada.url
+
+        return None
+
     ultimo_ingreso = serializers.DateTimeField(
         source='fecha_actualizacion',
         read_only=True
@@ -316,6 +359,7 @@ class LaboratorioProfesorAdminSerializer(
             'categoria',
             'creador',
             'estado',
+            'imagen_portada',
             'ultimo_ingreso'
         ]
 
@@ -336,6 +380,15 @@ class LaboratorioEstudianteListSerializer(
         read_only=True
     )
 
+    imagen_portada = serializers.SerializerMethodField()
+    def get_imagen_portada(self, obj):
+        plantilla = getattr(obj, "plantilla", None)
+
+        if plantilla and plantilla.imagen_portada:
+            return plantilla.imagen_portada.url
+
+        return None
+
     class Meta:
         model = Laboratorio
 
@@ -343,6 +396,7 @@ class LaboratorioEstudianteListSerializer(
             'id',
             'titulo',
             'profesor',
+            'imagen_portada',
         ]
 
 # =========================================================
@@ -376,6 +430,15 @@ class LaboratorioEstudianteSerializer(
         read_only=True
     )
 
+    imagen_portada = serializers.SerializerMethodField()
+    def get_imagen_portada(self, obj):
+        plantilla = getattr(obj, "plantilla", None)
+
+        if plantilla and plantilla.imagen_portada:
+            return plantilla.imagen_portada.url
+
+        return None
+    
     formulas = FormulaSerializer(
         many=True,
         read_only=True
@@ -400,6 +463,7 @@ class LaboratorioEstudianteSerializer(
             "titulo_lab",
             "categoria",
             "profesor_nombre",
+            "imagen_portada",
 
             "resumen",
             "introduccion",
