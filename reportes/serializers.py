@@ -38,28 +38,24 @@ class HistorialReporteSerializer(serializers.ModelSerializer):
     # ======================================
 
     def get_estudiantes_info(self, obj):
-
-        inscripciones = Inscripcion.objects.filter(
-            asignacion__laboratorio=obj.laboratorio
-        ).select_related('estudiante')
+        # Leemos los estudiantes reales vinculados directamente a este reporte específico
+        estudiantes = obj.estudiantes.all()
 
         lista = []
-
-        for inscripcion in inscripciones:
-
-            estudiante = inscripcion.estudiante
-
+        for estudiante in estudiantes:
             lista.append({
                 "id": estudiante.id,
-                "nombre": estudiante.nombre,
-                "codigo": estudiante.identificacion,
-                "correo": estudiante.correo
+                "nombre": estudiante.nombre if hasattr(estudiante, 'nombre') else estudiante.username,
+                "codigo": estudiante.identificacion if hasattr(estudiante, 'identificacion') else "N/A",
+                "correo": estudiante.correo if hasattr(estudiante, 'correo') else estudiante.email
             })
 
         return {
             "total_estudiantes": len(lista),
             "lista_detallada": lista
         }
+    
+    
     # ======================================
     # PDF ESTUDIANTE
     # ======================================
