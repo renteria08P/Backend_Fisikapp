@@ -5,9 +5,9 @@ class PracticeStep:
 
     def build(self):
 
-        practicas = self.laboratorio.practicas.all()
+        practica = self.laboratorio.practicas.first()
 
-        if not practicas.exists():
+        if not practica:
             return []
 
         procedimientos = self.laboratorio.procedimientos.all()
@@ -17,78 +17,84 @@ class PracticeStep:
                 "id": "experimental_practice",
                 "order": 7,
                 "type": "EXPERIMENTAL_PRACTICE",
-                "title": "Práctica experimental",
+                "title": "Ejercicio experimental",
                 "required": True,
 
-                "practices": [
-                    {
-                        "id": practica.id,
-                        "name": practica.nombre_practica,
-                        "objective": practica.objetivo,
-                        "description": practica.descripcion,
-                        "materials": practica.materiales,
-                        "calculations": practica.calculos,
+                "exercise": {
 
-                        "concepts": [
-                            {
-                                "id": concepto.id,
-                                "name": concepto.concepto,
-                                "description": concepto.descripcion,
-                            }
-                            for concepto in practica.conceptos.all()
-                        ],
-                    }
-                    for practica in practicas
-                ],
+                    "id": practica.id,
 
-                "procedure": [
-                    {
-                        "number": paso.paso_numero,
-                        "description": paso.descripcion,
-                        "image": (
-                            paso.imagen.url
-                            if paso.imagen
-                            else None
-                        ),
-                        "order": paso.orden,
-                    }
-                    for paso in procedimientos
-                ],
+                    "name": practica.nombre_practica,
 
-                "expected_inputs": [
-                    {
-                        "id": "observations",
-                        "type": "TEXT",
-                        "label": "Observaciones",
-                        "required": True,
-                    },
+                    "objective": practica.objetivo,
 
-                    {
-                        "id": "calculations",
-                        "type": "TEXT",
-                        "label": "Cálculos realizados",
-                        "required": True,
-                    },
+                    "description": practica.descripcion,
 
-                    {
-                        "id": "conclusions",
-                        "type": "TEXT",
-                        "label": "Conclusiones",
-                        "required": True,
-                    },
+                    "materials": practica.materiales,
 
-                    {
-                        "id": "evidences",
-                        "type": "FILES",
-                        "label": "Evidencias",
-                        "required": False,
-                        "allowed_types": [
-                            "image/*",
-                            "application/pdf",
-                        ],
-                        "multiple": True,
-                    },
+                    "calculations": practica.calculos,
 
-                ],
+                    "concepts": [
+                        {
+                            "id": concepto.id,
+                            "name": concepto.concepto,
+                            "description": concepto.descripcion,
+                        }
+                        for concepto in practica.conceptos.all()
+                    ],
+
+                    "procedure": [
+                        {
+                            "number": paso.paso_numero,
+                            "description": paso.descripcion,
+                            "image": (
+                                paso.imagen.url
+                                if paso.imagen
+                                else None
+                            ),
+                            "order": paso.orden,
+                        }
+                        for paso in procedimientos
+                    ],
+
+                    "expected_inputs": [
+
+                        {
+                            "id": "observations",
+                            "type": "TEXT",
+                            "label": "Observaciones",
+                            "required": True,
+                        },
+
+                        {
+                            "id": "calculations",
+                            "type": "TEXT",
+                            "label": "Cálculos realizados",
+                            "required": True,
+                        },
+
+                        {
+                            "id": "conclusions",
+                            "type": "TEXT",
+                            "label": "Conclusiones",
+                            "required": True,
+                        },
+
+                        {
+                            "id": "evidences",
+                            "type": "FILES",
+                            "label": "Evidencias",
+                            "required": False,
+                            "allowed_types": [
+                                "image/*",
+                                "application/pdf",
+                            ],
+                            "multiple": True,
+                        },
+
+                    ],
+
+                }
+
             }
         ]
