@@ -55,7 +55,6 @@ class HistorialReporteSerializer(serializers.ModelSerializer):
             "lista_detallada": lista
         }
     
-    
     # ======================================
     # PDF ESTUDIANTE
     # ======================================

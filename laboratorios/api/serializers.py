@@ -249,8 +249,10 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
 
     def get_imagen_portada(self, obj):
 
-        if obj.imagen_portada:
-            return obj.imagen_portada.url
+        plantilla = getattr(obj, "plantilla", None)
+
+        if plantilla and plantilla.imagen_portada:
+            return plantilla.imagen_portada.url
 
         return None
 
