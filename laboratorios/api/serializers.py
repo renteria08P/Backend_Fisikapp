@@ -271,6 +271,11 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    conceptos_basicos = ConceptosBasicosSerializer(
+        many=True,
+        read_only=True
+    )
+
 
     def create(self, validated_data):
 
