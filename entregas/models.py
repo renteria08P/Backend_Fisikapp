@@ -88,7 +88,7 @@ class ResultadoPractica(models.Model):
 
     observaciones = models.TextField()
 
-    datos_obtenidos = models.TextField()
+    datos_obtenidos = models.JSONField()
 
     conclusiones = models.TextField()
 
