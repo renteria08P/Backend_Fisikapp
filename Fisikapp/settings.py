@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'reportes',
     "mobile",
     'evaluaciones',
+    "channels",
 
     'rest_framework_simplejwt',  
 
@@ -115,6 +116,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Fisikapp.wsgi.application'
+ASGI_APPLICATION = "Fisikapp.asgi.application"
 
 
 # Database
@@ -133,6 +135,21 @@ DATABASES = {
     }
 }
 
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("127.0.0.1", 6379)],
+#         },
+#     },
+# }
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
