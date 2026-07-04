@@ -24,6 +24,10 @@ from rest_framework.decorators import action
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 import pandas as pd
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 
 from .serializers import (
     UsersSerializer,
@@ -509,3 +513,17 @@ def restablecer_password(request):
 
     return Response({"message": "Contraseña restablecida"})
 
+
+class TotalEstudiantesAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        total = Users.objects.filter(
+            rol="estudiante"
+        ).count()
+
+        return Response({
+            "total_estudiantes": total
+        })

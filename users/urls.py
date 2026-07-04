@@ -9,7 +9,8 @@ from .views import (
     recuperar_password,
     restablecer_password,
     crear_admin,
-    crear_profesor
+    crear_profesor,
+    TotalEstudiantesAPIView, 
 )
 
 router = DefaultRouter()
@@ -39,4 +40,11 @@ urlpatterns = [
     path('crear-admin/', crear_admin),
     path('crear-profesor/', crear_profesor),
 
+
+    # DASHBOARD
+    path(
+        'dashboard/total-estudiantes/',
+        TotalEstudiantesAPIView.as_view(),
+        name='total-estudiantes',
+    ),
 ]
