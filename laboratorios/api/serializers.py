@@ -47,7 +47,7 @@ class ObjetivoGeneralSerializer(serializers.ModelSerializer):
 
     objetivos_especificos = ObjetivoEspecificoSerializer(
         many=True,
-        read_only=True
+        required=False
     )
 
     class Meta:
@@ -127,14 +127,20 @@ class PlantillaLaboratorioSerializer(
         read_only=True
     )
 
-    imagen_portada = serializers.SerializerMethodField()
+    imagen_portada = serializers.ImageField(
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
 
-    def get_imagen_portada(self, obj):
+    imagen_portada_url = serializers.SerializerMethodField()
+
+    def get_imagen_portada_url(self, obj):
 
         if not obj.imagen_portada:
             return None
 
-        url, options = cloudinary_url(
+        url, _ = cloudinary_url(
             str(obj.imagen_portada),
             secure=True
         )
@@ -156,10 +162,12 @@ class PlantillaLaboratorioSerializer(
         fields = [
             "id",
             "titulo",
+            "descripcion",
             "resumen",
             "introduccion",
             "marco_teorico",
             "imagen_portada",
+            "imagen_portada_url",
             "lab_key",
             "estado",
             "fecha_creacion",
@@ -223,8 +231,9 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
     )
 
     objetivo_general = ObjetivoGeneralSerializer(
-        read_only=True
+        required=False
     )
+
     profesor_nombre = serializers.CharField(
         source='profesor.nombre',
         read_only=True
@@ -320,6 +329,76 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         )
 
         return laboratorio
+    
+
+    def update(self, instance, validated_data):
+
+        objetivo_data = validated_data.pop(
+            "objetivo_general",
+            None
+        )
+
+
+        print(objetivo_data)
+
+        # Actualizar datos del laboratorio
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+
+        if objetivo_data is not None:
+
+            objetivos_data = objetivo_data.pop(
+                "objetivos_especificos",
+                []
+            )
+
+            objetivo_general, _ = ObjetivoGeneral.objects.get_or_create(
+                laboratorio=instance
+            )
+
+            if "descripcion" in objetivo_data:
+                 objetivo_general.descripcion = objetivo_data["descripcion"]
+    
+
+            objetivo_general.save()
+
+            ids_recibidos = []
+
+            for item in objetivos_data:
+
+                objetivo_id = item.get("id")
+
+                if objetivo_id:
+
+                    objetivo = ObjetivoEspecifico.objects.filter(
+                        id=objetivo_id,
+                        objetivo_general=objetivo_general
+                    ).first()
+
+                    if objetivo:
+                        objetivo.descripcion = item["descripcion"]
+                        objetivo.save()
+                        ids_recibidos.append(objetivo.id)
+
+                else:
+
+                    nuevo = ObjetivoEspecifico.objects.create(
+                        objetivo_general=objetivo_general,
+                        descripcion=item["descripcion"]
+                    )
+
+                    ids_recibidos.append(nuevo.id)
+
+            # Eliminar los que ya no vienen en la petición
+            ObjetivoEspecifico.objects.filter(
+                objetivo_general=objetivo_general
+            ).exclude(
+                id__in=ids_recibidos
+            ).delete()
+
+        return instance
 
     class Meta:
         model = Laboratorio

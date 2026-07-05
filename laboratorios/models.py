@@ -105,6 +105,12 @@ class PlantillaLaboratorio(models.Model):
         default='ACTIVO'
     )
 
+    descripcion = models.CharField(
+        max_length=300,
+        blank=True,
+        default=""
+    )
+
     fecha_creacion = models.DateTimeField(
         auto_now_add=True
     )
