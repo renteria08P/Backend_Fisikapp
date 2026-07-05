@@ -30,10 +30,25 @@ class ConceptoLaboratorio(models.Model):
         related_name='conceptos_laboratorio'
     )
 
-    concepto = models.ForeignKey(
-        'ConceptosBasicos',
-        on_delete=models.CASCADE,
-        related_name='laboratorios'
+    concepto_original = models.ForeignKey(
+        ConceptosBasicos,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        editable=False,
+        related_name="conceptos_originales"
+    )
+
+    concepto = models.CharField(
+        max_length=100
+    )
+
+    descripcion = models.TextField()
+
+    ejemplo = models.TextField()
+
+    tipo = models.CharField(
+        max_length=50
     )
 
     recursos = models.ManyToManyField(
@@ -45,7 +60,7 @@ class ConceptoLaboratorio(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['laboratorio', 'concepto'],
+                fields=['laboratorio', 'concepto_original'],
                 name='unique_concepto_laboratorio'
             )
         ]

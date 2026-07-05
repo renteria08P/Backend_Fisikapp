@@ -13,26 +13,21 @@ class RecursosSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recursos
-        fields = '__all__'
+        fields = "__all__"
+
 
 class ConceptosBasicosSerializer(serializers.ModelSerializer):
-   
+
     class Meta:
         model = ConceptosBasicos
-        fields = '__all__'
+        fields = "__all__"
+
 
 class ConceptoLaboratorioSerializer(serializers.ModelSerializer):
 
-    concepto = ConceptosBasicosSerializer(
-        read_only=True
+    id = serializers.IntegerField(
+        required=False
     )
-
-    concepto_id = serializers.PrimaryKeyRelatedField(
-        queryset=ConceptosBasicos.objects.all(),
-        source="concepto",
-        write_only=True
-    )
-    
 
     recursos = RecursosSerializer(
         many=True,
@@ -46,6 +41,27 @@ class ConceptoLaboratorioSerializer(serializers.ModelSerializer):
         source="recursos",
         required=False
     )
+
+    concepto_original = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+
+    class Meta:
+        model = ConceptoLaboratorio
+        fields = [
+            "id",
+            "laboratorio",
+
+            "concepto_original",
+
+            "concepto",
+            "descripcion",
+            "ejemplo",
+            "tipo",
+
+            "recursos",
+            "recursos_ids",
+        ]
 
     def create(self, validated_data):
 
@@ -61,11 +77,16 @@ class ConceptoLaboratorioSerializer(serializers.ModelSerializer):
         concepto_laboratorio.recursos.set(recursos)
 
         return concepto_laboratorio
-    
+
     def update(self, instance, validated_data):
 
         recursos = validated_data.pop(
             "recursos",
+            None
+        )
+
+        validated_data.pop(
+            "concepto_original",
             None
         )
 
@@ -79,29 +100,23 @@ class ConceptoLaboratorioSerializer(serializers.ModelSerializer):
 
         return instance
 
-    class Meta:
-        model = ConceptoLaboratorio
-        fields = [
-            "id",
-            "laboratorio",
-            "concepto",
-            "concepto_id",
-            "recursos",
-            "recursos_ids"
-        ]
 
 class PracticaSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Practica
-        fields = '__all__'
+        fields = "__all__"
+
 
 class ProcedimientoSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Procedimiento
-        fields = '__all__'
+        fields = "__all__"
+
 
 class FormulaSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Formula
-        fields = '__all__'
-
+        fields = "__all__"

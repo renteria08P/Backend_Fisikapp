@@ -3,6 +3,7 @@ from laboratorios.models import PlantillaLaboratorio
 from cloudinary.utils import cloudinary_url
 from contenido.models import ConceptoLaboratorio
 from laboratorios.models import Asignacion
+from django.db import transaction
 
 from laboratorios.models import (
     Laboratorio,
@@ -286,7 +287,8 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
     conceptos_basicos = ConceptoLaboratorioSerializer(
         source="conceptos_laboratorio",
         many=True,
-        read_only=True
+        required=False,
+        allow_null=True
     )
 
     def create(self, validated_data):
@@ -331,12 +333,15 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
 
             ConceptoLaboratorio.objects.create(
                 laboratorio=laboratorio,
-                concepto=concepto
+                concepto_original=concepto,
+                concepto=concepto.concepto,
+                descripcion=concepto.descripcion,
+                ejemplo=concepto.ejemplo,
+                tipo=concepto.tipo
             )
 
         return laboratorio
     
-
     def update(self, instance, validated_data):
 
         objetivo_data = validated_data.pop(
@@ -344,11 +349,22 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
             None
         )
 
+        conceptos_data = validated_data.pop(
+            "conceptos_laboratorio",
+            None
+        )
+
+        # ==========================================
         # Actualizar datos del laboratorio
+        # ==========================================
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         instance.save()
+
+        # ==========================================
+        # Actualizar objetivo general
+        # ==========================================
         if objetivo_data is not None:
 
             objetivos_data = objetivo_data.pop(
@@ -395,7 +411,6 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
 
                     ids_recibidos.append(nuevo.id)
 
-            
             if objetivos_data:
                 ObjetivoEspecifico.objects.filter(
                     objetivo_general=objetivo_general
@@ -403,8 +418,51 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
                     id__in=ids_recibidos
                 ).delete()
 
+        # ==========================================
+        # Actualizar conceptos básicos
+        # ==========================================
+        if conceptos_data is not None:
+
+            with transaction.atomic():
+
+                for concepto_data in conceptos_data:
+
+                    recursos = concepto_data.pop(
+                        "recursos",
+                        None
+                    )
+
+                    concepto_data.pop(
+                        "concepto_original",
+                        None
+                    )
+
+                    concepto_id = concepto_data.pop(
+                        "id",
+                        None
+                    )
+
+                    if not concepto_id:
+                        continue
+
+                    concepto = ConceptoLaboratorio.objects.filter(
+                        id=concepto_id,
+                        laboratorio=instance
+                    ).first()
+
+                    if not concepto:
+                        continue
+
+                    for attr, value in concepto_data.items():
+                        setattr(concepto, attr, value)
+
+                    concepto.save()
+
+                    if recursos is not None:
+                        concepto.recursos.set(recursos)
+
         return instance
-             
+            
 
     class Meta:
         model = Laboratorio

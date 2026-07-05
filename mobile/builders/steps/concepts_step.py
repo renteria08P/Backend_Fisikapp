@@ -5,9 +5,7 @@ class ConceptsStep:
 
     def build(self):
 
-        conceptos = self.laboratorio.conceptos_laboratorio.select_related(
-            "concepto"
-        ).prefetch_related(
+        conceptos = self.laboratorio.conceptos_laboratorio.prefetch_related(
             "recursos"
         )
 
@@ -23,11 +21,11 @@ class ConceptsStep:
                 "required": True,
                 "concepts": [
                     {
-                        "id": concepto.concepto.id,
-                        "name": concepto.concepto.concepto,
-                        "description": concepto.concepto.descripcion,
-                        "example": concepto.concepto.ejemplo,
-                        "type": concepto.concepto.tipo,
+                        "id": concepto.id,
+                        "name": concepto.concepto,
+                        "description": concepto.descripcion,
+                        "example": concepto.ejemplo,
+                        "type": concepto.tipo,
                         "resources": [
                             {
                                 "id": recurso.id,
