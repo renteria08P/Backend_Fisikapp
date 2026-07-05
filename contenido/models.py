@@ -13,17 +13,45 @@ class ConceptosBasicos(models.Model):
     ejemplo = models.TextField()
     tipo = models.CharField(max_length=50)
 
-    recursos = models.ManyToManyField(
-        'Recursos',
-        blank=True
-    )
-
     def __str__(self):
         return self.concepto
 
-
     class Meta:
         ordering = ['concepto']
+
+# =========================================================
+# CONCEPTO LABORATORIO
+# =========================================================
+class ConceptoLaboratorio(models.Model):
+
+    laboratorio = models.ForeignKey(
+        'laboratorios.Laboratorio',
+        on_delete=models.CASCADE,
+        related_name='conceptos_laboratorio'
+    )
+
+    concepto = models.ForeignKey(
+        'ConceptosBasicos',
+        on_delete=models.CASCADE,
+        related_name='laboratorios'
+    )
+
+    recursos = models.ManyToManyField(
+        'Recursos',
+        blank=True,
+        related_name='conceptos_laboratorio'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['laboratorio', 'concepto'],
+                name='unique_concepto_laboratorio'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.laboratorio} - {self.concepto}"
     
 # =========================================================
 # RECURSOS
@@ -32,21 +60,6 @@ class Recursos(models.Model):
 
     nombre = models.CharField(
         max_length=100
-    )
-
-    archivo = models.FileField(
-        upload_to='recursos/',
-        null=True,
-        blank=True,
-        validators=[
-            FileExtensionValidator(
-                allowed_extensions=[
-                    'pdf',
-                    'doc',
-                    'docx'
-                ]
-            )
-        ]
     )
 
     url = models.URLField(

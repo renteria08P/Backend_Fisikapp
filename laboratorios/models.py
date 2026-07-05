@@ -171,12 +171,6 @@ class Laboratorio(models.Model):
         related_name='laboratorios'
     )
 
-    conceptos_basicos = models.ManyToManyField(
-        'contenido.ConceptosBasicos',
-        blank=True,
-        related_name='laboratorios'
-    )
-
     resumen = models.TextField()
 
     introduccion = models.TextField()

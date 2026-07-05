@@ -7,6 +7,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 
 from .models import (
+    ConceptoLaboratorio,
     ConceptosBasicos,
     Practica,
     Procedimiento,
@@ -15,12 +16,12 @@ from .models import (
 )
 
 from .serializers import (
+    ConceptoLaboratorioSerializer,
     ConceptosBasicosSerializer,
     PracticaSerializer,
     ProcedimientoSerializer,
     FormulaSerializer,
     RecursosSerializer,
-
 )
 
 
@@ -142,6 +143,149 @@ def conceptos_detalle(request, pk):
         return Response(
             {
                 "mensaje": "Concepto básico eliminado correctamente"
+            },
+            status=204
+        )
+    
+
+
+# ==============================================
+# CONCEPTO LABORATORIO
+# ==============================================
+
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Listar conceptos de un laboratorio",
+    operation_description="""
+    Retorna los conceptos asociados a un laboratorio,
+    incluyendo los recursos agregados por el profesor.
+    """
+)
+@swagger_auto_schema(
+    method='post',
+    operation_summary="Crear concepto de laboratorio",
+    operation_description="""
+    Asocia un concepto básico a un laboratorio.
+    """,
+    request_body=ConceptoLaboratorioSerializer
+)
+@api_view(['GET', 'POST'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
+def conceptos_laboratorio_list(request):
+
+    if request.method == 'GET':
+
+        laboratorio_id = request.query_params.get(
+            'laboratorio',
+            None
+        )
+
+        conceptos = ConceptoLaboratorio.objects.all()
+
+        if laboratorio_id:
+            conceptos = conceptos.filter(
+                laboratorio=laboratorio_id
+            )
+
+        serializer = ConceptoLaboratorioSerializer(
+            conceptos,
+            many=True
+        )
+
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+
+        serializer = ConceptoLaboratorioSerializer(
+            data=request.data
+        )
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(
+                serializer.data,
+                status=201
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
+
+
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Detalle de concepto de laboratorio"
+)
+@swagger_auto_schema(
+    method='put',
+    operation_summary="Actualizar concepto de laboratorio",
+    request_body=ConceptoLaboratorioSerializer
+)
+@swagger_auto_schema(
+    method='patch',
+    operation_summary="Actualizar parcialmente concepto de laboratorio",
+    request_body=ConceptoLaboratorioSerializer
+)
+@swagger_auto_schema(
+    method='delete',
+    operation_summary="Eliminar concepto de laboratorio"
+)
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
+def conceptos_laboratorio_detalle(request, pk):
+
+    try:
+
+        concepto = ConceptoLaboratorio.objects.get(
+            pk=pk
+        )
+
+    except ConceptoLaboratorio.DoesNotExist:
+
+        return Response(
+            {
+                "error": "Concepto de laboratorio no encontrado"
+            },
+            status=404
+        )
+
+    if request.method == 'GET':
+
+        serializer = ConceptoLaboratorioSerializer(
+            concepto
+        )
+
+        return Response(serializer.data)
+
+    elif request.method in ['PUT', 'PATCH']:
+
+        serializer = ConceptoLaboratorioSerializer(
+            concepto,
+            data=request.data,
+            partial=request.method == 'PATCH'
+        )
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(serializer.data)
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
+
+    elif request.method == 'DELETE':
+
+        concepto.delete()
+
+        return Response(
+            {
+                "mensaje": "Concepto de laboratorio eliminado correctamente"
             },
             status=204
         )

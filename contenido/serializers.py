@@ -1,10 +1,11 @@
 from rest_framework import serializers
 from .models import (
+    ConceptoLaboratorio,
     ConceptosBasicos,
     Practica,
     Procedimiento,
     Formula,
-    Recursos
+    Recursos,
 )
 
 
@@ -14,64 +15,80 @@ class RecursosSerializer(serializers.ModelSerializer):
         model = Recursos
         fields = '__all__'
 
-    def validate(self, data):
-        archivo = data.get('archivo', getattr(self.instance, 'archivo', None))
-        url = data.get('url', getattr(self.instance, 'url', None))
-
-        if not archivo and not url:
-            raise serializers.ValidationError(
-                "Debes subir un archivo o proporcionar una URL."
-            )
-
-        return data
-
-    def validate_archivo(self, value):
-        if value:
-            ext = value.name.split('.')[-1].lower()
-            if ext not in ['pdf', 'doc', 'docx']:
-                raise serializers.ValidationError(
-                    "Solo se permiten archivos PDF, DOC o DOCX."
-                )
-        return value
-
-
 class ConceptosBasicosSerializer(serializers.ModelSerializer):
-    
-    # Para leer (GET)
-    recursos = RecursosSerializer(many=True, read_only=True)
-
-    #  Para JSON (crear con URLs)
-    recursos_data = RecursosSerializer(many=True, write_only=True, required=False)
-
-    # Para form-data (usar IDs)
-    recursos_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Recursos.objects.all(),
-        many=True,
-        write_only=True,
-        required=False,
-        source='recursos'
-    )
-
+   
     class Meta:
         model = ConceptosBasicos
         fields = '__all__'
 
+class ConceptoLaboratorioSerializer(serializers.ModelSerializer):
+
+    concepto = ConceptosBasicosSerializer(
+        read_only=True
+    )
+
+    concepto_id = serializers.PrimaryKeyRelatedField(
+        queryset=ConceptosBasicos.objects.all(),
+        source="concepto",
+        write_only=True
+    )
+    
+
+    recursos = RecursosSerializer(
+        many=True,
+        read_only=True
+    )
+
+    recursos_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Recursos.objects.all(),
+        many=True,
+        write_only=True,
+        source="recursos",
+        required=False
+    )
+
     def create(self, validated_data):
-        recursos_data = validated_data.pop('recursos_data', [])
-        recursos_ids = validated_data.pop('recursos', [])
 
-        concepto = ConceptosBasicos.objects.create(**validated_data)
+        recursos = validated_data.pop(
+            "recursos",
+            []
+        )
 
-        # Caso 1: JSON (crear recursos nuevos)
-        for recurso_data in recursos_data:
-            recurso = Recursos.objects.create(**recurso_data)
-            concepto.recursos.add(recurso)
+        concepto_laboratorio = ConceptoLaboratorio.objects.create(
+            **validated_data
+        )
 
-        # Caso 2: form-data (usar recursos existentes)
-        for recurso in recursos_ids:
-            concepto.recursos.add(recurso)
+        concepto_laboratorio.recursos.set(recursos)
 
-        return concepto
+        return concepto_laboratorio
+    
+    def update(self, instance, validated_data):
+
+        recursos = validated_data.pop(
+            "recursos",
+            None
+        )
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+
+        if recursos is not None:
+            instance.recursos.set(recursos)
+
+        return instance
+
+    class Meta:
+        model = ConceptoLaboratorio
+        fields = [
+            "id",
+            "laboratorio",
+            "concepto",
+            "concepto_id",
+            "recursos",
+            "recursos_ids"
+        ]
 
 class PracticaSerializer(serializers.ModelSerializer):
     class Meta:

@@ -17,13 +17,6 @@ from .views import (
 
 )
 
-# ==========================================
-# ROUTER
-# ==========================================
-
-# ==========================================
-# URLS
-# ==========================================
 
 router = DefaultRouter()
 
@@ -49,6 +42,18 @@ urlpatterns = [
     # Formulas
     path('formulas/', lista_formulas),
     path('formulas/<int:pk>/', detalle_formula),
+
+    path(
+    "conceptos-laboratorio/",
+    views.conceptos_laboratorio_list,
+    name="conceptos-laboratorio-list"
+    ),
+
+    path(
+        "conceptos-laboratorio/<int:pk>/",
+        views.conceptos_laboratorio_detalle,
+        name="conceptos-laboratorio-detalle"
+    ),
 
 ]
 

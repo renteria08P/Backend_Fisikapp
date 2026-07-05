@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from laboratorios.models import PlantillaLaboratorio
 from cloudinary.utils import cloudinary_url
-
+from contenido.models import ConceptoLaboratorio
 from laboratorios.models import Asignacion
 
 from laboratorios.models import (
@@ -14,7 +14,7 @@ from laboratorios.models import (
 )
 
 from contenido.serializers import (
-    ConceptosBasicosSerializer,
+    ConceptoLaboratorioSerializer,
     FormulaSerializer,
     ProcedimientoSerializer,
     PracticaSerializer,
@@ -35,10 +35,13 @@ class CategoriaSerializer(serializers.ModelSerializer):
 # =========================================================
 class ObjetivoEspecificoSerializer(serializers.ModelSerializer):
 
+    id = serializers.IntegerField(
+        required=False
+    )
+
     class Meta:
         model = ObjetivoEspecifico
-        fields = '__all__'
-
+        fields = "__all__"
 
 # =========================================================
 # OBJETIVO GENERAL
@@ -280,11 +283,11 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
-    conceptos_basicos = ConceptosBasicosSerializer(
+    conceptos_basicos = ConceptoLaboratorioSerializer(
+        source="conceptos_laboratorio",
         many=True,
         read_only=True
     )
-
 
     def create(self, validated_data):
 
@@ -324,9 +327,12 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
         except PlantillaObjetivoGeneral.DoesNotExist:
             pass
 
-        laboratorio.conceptos_basicos.set(
-            plantilla.conceptos_basicos.all()
-        )
+        for concepto in plantilla.conceptos_basicos.all():
+
+            ConceptoLaboratorio.objects.create(
+                laboratorio=laboratorio,
+                concepto=concepto
+            )
 
         return laboratorio
     
@@ -338,15 +344,11 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
             None
         )
 
-
-        print(objetivo_data)
-
         # Actualizar datos del laboratorio
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         instance.save()
-
         if objetivo_data is not None:
 
             objetivos_data = objetivo_data.pop(
@@ -359,8 +361,7 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
             )
 
             if "descripcion" in objetivo_data:
-                 objetivo_general.descripcion = objetivo_data["descripcion"]
-    
+                objetivo_general.descripcion = objetivo_data["descripcion"]
 
             objetivo_general.save()
 
@@ -377,10 +378,13 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
                         objetivo_general=objetivo_general
                     ).first()
 
-                    if objetivo:
-                        objetivo.descripcion = item["descripcion"]
-                        objetivo.save()
-                        ids_recibidos.append(objetivo.id)
+                    if not objetivo:
+                        continue
+
+                    objetivo.descripcion = item["descripcion"]
+                    objetivo.save()
+
+                    ids_recibidos.append(objetivo.id)
 
                 else:
 
@@ -391,14 +395,16 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
 
                     ids_recibidos.append(nuevo.id)
 
-            # Eliminar los que ya no vienen en la petición
-            ObjetivoEspecifico.objects.filter(
-                objetivo_general=objetivo_general
-            ).exclude(
-                id__in=ids_recibidos
-            ).delete()
+            
+            if objetivos_data:
+                ObjetivoEspecifico.objects.filter(
+                    objetivo_general=objetivo_general
+                ).exclude(
+                    id__in=ids_recibidos
+                ).delete()
 
         return instance
+             
 
     class Meta:
         model = Laboratorio
@@ -553,7 +559,8 @@ class LaboratorioEstudianteSerializer(
         read_only=True
     )
 
-    conceptos_basicos = ConceptosBasicosSerializer(
+    conceptos_basicos = ConceptoLaboratorioSerializer(
+        source="conceptos_laboratorio",
         many=True,
         read_only=True
     )
