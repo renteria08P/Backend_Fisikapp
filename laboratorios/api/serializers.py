@@ -4,6 +4,7 @@ from cloudinary.utils import cloudinary_url
 from contenido.models import ConceptoLaboratorio
 from laboratorios.models import Asignacion
 from django.db import transaction
+from rest_framework import serializers
 
 from laboratorios.models import (
     Laboratorio,
@@ -542,6 +543,10 @@ class LaboratorioProfesorAdminSerializer(
         read_only=True
     )
 
+    generado_ia = serializers.BooleanField(
+        read_only=True
+    )
+
     class Meta:
         model = Laboratorio
 
@@ -551,6 +556,7 @@ class LaboratorioProfesorAdminSerializer(
             'categoria',
             'creador',
             'estado',
+            'generado_ia',
             'imagen_portada',
             'ultimo_ingreso'
         ]
@@ -669,4 +675,30 @@ class LaboratorioEstudianteSerializer(
             "practicas",
             "fecha_creacion"
         ]
-    
+
+
+# =========================================================
+# DASHBOARD ADMIN
+# =========================================================
+
+class DashboardAdminSerializer(serializers.Serializer):
+
+    total_laboratorios = serializers.IntegerField()
+
+    laboratorios_activos = serializers.IntegerField()
+
+    laboratorios_inactivos = serializers.IntegerField()
+
+    usuarios_admin = serializers.IntegerField()
+
+    usuarios_profesor = serializers.IntegerField()
+
+    usuarios_estudiante = serializers.IntegerField()
+
+    laboratorios_ia = serializers.IntegerField()
+
+    eficiencia_ia = serializers.IntegerField()
+
+    ultimos_laboratorios = serializers.ListField()
+
+    tendencia = serializers.DictField()

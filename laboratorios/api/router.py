@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 from .views import (
     CategoriaViewSet,
+    DashboardAdminViewSet,
     LaboratorioProfesorViewSet,
     PlantillaLaboratorioViewSet,
     GrupoAcademicoViewSet,
@@ -10,8 +11,9 @@ from .views import (
     LaboratorioEstudianteViewSet,
     PlantillaObjetivoEspecificoViewSet,
     PlantillaObjetivoGeneralViewSet,
-    LaboratorioProfesorAdminViewSet,
+    LaboratorioProfesorAdminViewSet,  
 )
+
 
 router = DefaultRouter()
 
@@ -75,7 +77,15 @@ router.register(
     basename='plantilla-objetivos-especificos'
 )
 
+router.register(
+    r'dashboard-admin',
+    DashboardAdminViewSet,
+    basename='dashboard-admin'
+)
+
+
 urlpatterns = [
+    
 ]
 
 urlpatterns += router.urls

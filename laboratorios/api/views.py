@@ -3,13 +3,19 @@ import qrcode
 from io import BytesIO
 from django.http import HttpResponse
 from rest_framework.response import Response
-from rest_framework.viewsets import (ModelViewSet,ReadOnlyModelViewSet)
+from rest_framework.viewsets import (ModelViewSet,ReadOnlyModelViewSet, ViewSet)
 from rest_framework.permissions import (IsAuthenticated)
 from rest_framework import status, filters
 from drf_yasg.utils import swagger_auto_schema
 from users.models import Users
 from users.permissions import (IsAdminSuperAdminOrProfesor)
 from rest_framework.decorators import action
+from django.db.models import Count
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+from laboratorios.models import Laboratorio
 from django_filters.rest_framework import (DjangoFilterBackend)
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import (
@@ -46,7 +52,6 @@ from inscripciones.serializers import (
     InscripcionSerializer
 )
 from users.utils import enviar_credenciales, generar_password
-
 
 
 from .serializers import (
@@ -717,4 +722,101 @@ class PlantillaObjetivoEspecificoViewSet(
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
-    
+
+
+# =========================================================
+# DashboardAdmin
+# =========================================================
+
+class DashboardAdminViewSet(ViewSet):
+
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminOrSuperAdmin
+    ]
+
+    @action(detail=False, methods=["get"])
+    def stats(self, request):
+
+        total = Laboratorio.objects.count()
+
+        activos = Laboratorio.objects.filter(
+            estado="ACTIVO"
+        ).count()
+
+        inactivos = Laboratorio.objects.filter(
+            estado="INACTIVO"
+        ).count()
+
+        ia = Laboratorio.objects.filter(
+            generado_ia=True
+        ).count()
+
+        eficiencia = round(
+            (ia / total) * 100
+        ) if total else 0
+
+        admins = Users.objects.filter(
+            rol="admin"
+        ).count()
+
+        profesores = Users.objects.filter(
+            rol="profesor"
+        ).count()
+
+        estudiantes = Users.objects.filter(
+            rol="estudiante"
+        ).count()
+
+        ultimos = (
+            Laboratorio.objects
+            .select_related(
+                "plantilla",
+                "plantilla__categoria"
+            )
+            .order_by("-fecha_creacion")[:5]
+        )
+
+        ultimos_json = [
+            {
+                "id": lab.id,
+                "titulo": lab.plantilla.titulo,
+                "categoria": lab.plantilla.categoria.nombre,
+                "estado": lab.estado,
+                "imagen_portada": (
+                    lab.plantilla.imagen_portada.url
+                    if lab.plantilla.imagen_portada
+                    else None
+                ),
+                "fecha_creacion": lab.fecha_creacion,
+            }
+            for lab in ultimos
+        ]
+
+        tendencia = (
+            Laboratorio.objects
+            .values("fecha_creacion__year")
+            .annotate(total=Count("id"))
+            .order_by("fecha_creacion__year")
+        )
+
+        return Response({
+
+            "total_laboratorios": total,
+
+            "laboratorios_activos": activos,
+
+            "laboratorios_inactivos": inactivos,
+            "usuarios_admin": admins,
+            "usuarios_profesor": profesores,
+            "usuarios_estudiante": estudiantes,
+            
+            "laboratorios_ia": ia,
+
+            "eficiencia_ia": eficiencia,
+
+            "ultimos_laboratorios": ultimos_json,
+
+            "tendencia": tendencia,
+
+        })
