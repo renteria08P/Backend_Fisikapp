@@ -427,21 +427,7 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
             with transaction.atomic():
 
                 for concepto_data in conceptos_data:
-
-                    recursos = concepto_data.pop(
-                        "recursos",
-                        None
-                    )
-
-                    concepto_data.pop(
-                        "concepto_original",
-                        None
-                    )
-
-                    concepto_id = concepto_data.pop(
-                        "id",
-                        None
-                    )
+                    concepto_id = concepto_data.get("id")
 
                     if not concepto_id:
                         continue
@@ -454,13 +440,27 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
                     if not concepto:
                         continue
 
-                    for attr, value in concepto_data.items():
-                        setattr(concepto, attr, value)
+                    recursos = concepto_data.pop("recursos", None)
 
-                    concepto.save()
+                    print("RECURSOS PADRE:", recursos)
+    
+
+                    concepto_data.pop("laboratorio", None)
+                    concepto_data.pop("concepto_original", None)
+
+                    serializer = ConceptoLaboratorioSerializer(
+                        instance=concepto,
+                        data=concepto_data,
+                        partial=True,
+                        context=self.context
+                    )
+
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
 
                     if recursos is not None:
                         concepto.recursos.set(recursos)
+                        print("RECURSOS GUARDADOS:", list(concepto.recursos.all()))
 
         return instance
             

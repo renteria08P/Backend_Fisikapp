@@ -80,10 +80,16 @@ class ConceptoLaboratorioSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
 
+        print("\n========== UPDATE CONCEPTO ==========")
+        print(validated_data)
+        print("=====================================\n")
+
         recursos = validated_data.pop(
             "recursos",
             None
         )
+
+        print("RECURSOS:", recursos)
 
         validated_data.pop(
             "concepto_original",
