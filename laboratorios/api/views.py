@@ -17,13 +17,14 @@ from rest_framework.permissions import IsAuthenticated
 
 from laboratorios.models import Laboratorio
 from django_filters.rest_framework import (DjangoFilterBackend)
-from rest_framework.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError 
 from rest_framework.parsers import (
     MultiPartParser,
     FormParser
 )
 
-from django.core.exceptions import ValidationError
+
 from users.permissions import (
     IsAdminOrSuperAdmin,
     IsProfesor
@@ -98,11 +99,14 @@ class PlantillaLaboratorioViewSet(ModelViewSet):
     )
     
     def perform_create(self, serializer):
-
-        serializer.save(
-            creado_por=self.request.user
+        try:
+            serializer.save(
+              creado_por=self.request.user
         )
 
+        except DjangoValidationError as e:
+            raise ValidationError(e.message_dict)
+    
     @swagger_auto_schema(
         operation_summary="Crear plantilla de laboratorio",
         operation_description="""
