@@ -14,6 +14,8 @@ from django.db.models import Count
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from drf_yasg.utils import swagger_auto_schema
+from .serializers import LaboratorioProfesorPatchSwaggerSerializer
 
 from laboratorios.models import Laboratorio
 from django_filters.rest_framework import (DjangoFilterBackend)
@@ -548,6 +550,7 @@ class LaboratorioProfesorViewSet(ModelViewSet):
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+        
     
     # =====================================================
     # ESTUDIANTES DEL LABORATORIO
@@ -582,7 +585,18 @@ class LaboratorioProfesorViewSet(ModelViewSet):
             })
 
         return Response(data)
-    
+
+
+    @swagger_auto_schema(
+        operation_summary="Actualizar laboratorio",
+        operation_description="""
+        Permite actualizar parcialmente un laboratorio creado
+        por el profesor.
+        """,
+        request_body=LaboratorioProfesorPatchSwaggerSerializer
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
 
     @swagger_auto_schema(
         operation_summary="Mis laboratorios",

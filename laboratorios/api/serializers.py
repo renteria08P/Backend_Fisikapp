@@ -702,3 +702,49 @@ class DashboardAdminSerializer(serializers.Serializer):
     ultimos_laboratorios = serializers.ListField()
 
     tendencia = serializers.DictField()
+
+
+
+from rest_framework import serializers
+
+
+class RecursosSwaggerSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    nombre = serializers.CharField()
+    url = serializers.CharField()
+
+class ConceptoLaboratorioSwaggerSerializer(serializers.Serializer):
+
+    id = serializers.IntegerField(required=False)
+    laboratorio = serializers.IntegerField(required=False)
+
+    concepto = serializers.CharField()
+    descripcion = serializers.CharField()
+    ejemplo = serializers.CharField()
+    tipo = serializers.CharField()
+
+    recursos = RecursosSwaggerSerializer(
+        many=True,
+        required=False
+    )
+
+    # SOLO PARA DOCUMENTACIÓN
+    recursos_ids = RecursosSwaggerSerializer(
+        many=True,
+        required=False
+    )
+
+class LaboratorioProfesorPatchSwaggerSerializer(serializers.Serializer):
+
+    resumen = serializers.CharField(required=False)
+
+    introduccion = serializers.CharField(required=False)
+
+    marco_teorico = serializers.CharField(required=False)
+
+    generado_ia = serializers.BooleanField(required=False)
+
+    conceptos_basicos = ConceptoLaboratorioSwaggerSerializer(
+        many=True,
+        required=False
+    )
