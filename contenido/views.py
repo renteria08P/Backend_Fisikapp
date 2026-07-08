@@ -819,10 +819,10 @@ def recursos_list(request):
     Elimina un recurso registrado.
     """
 )
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 @permission_classes([IsAdminSuperAdminOrProfesor])
 @parser_classes([
-    MultiPartParser,
+    MultiPartParser, 
     FormParser,
     JSONParser
 ])
@@ -882,4 +882,21 @@ def recursos_detalle(request, pk):
                 "mensaje": "Recurso eliminado correctamente"
             },
             status=204
+        )
+    
+    elif request.method == 'PATCH':
+
+        serializer = RecursosSerializer(
+            recurso,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(
+            serializer.errors,
+            status=400
         )

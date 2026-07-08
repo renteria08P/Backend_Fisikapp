@@ -709,9 +709,23 @@ from rest_framework import serializers
 
 
 class RecursosSwaggerSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
+
+    id = serializers.IntegerField(required=False)
+
     nombre = serializers.CharField()
-    url = serializers.CharField()
+
+    url = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        help_text="URL del recurso. Opcional si se envía un archivo."
+    )
+
+    archivo = serializers.FileField(
+        required=False,
+        allow_null=True,
+        help_text="Archivo del recurso (PDF, Word, Excel, PowerPoint o ZIP). Opcional si se envía una URL."
+    )
 
 class ConceptoLaboratorioSwaggerSerializer(serializers.Serializer):
 

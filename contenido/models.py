@@ -1,8 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator
 from django.conf import settings
-
+from cloudinary.models import CloudinaryField
 
 # =========================================================
 # CONCEPTOS BASICOS
@@ -81,6 +80,19 @@ class Recursos(models.Model):
         null=True,
         blank=True
     )
+
+    archivo = CloudinaryField(
+        resource_type="raw",
+        folder="recursos",
+        blank=True,
+        null=True
+    )
+
+    def clean(self):
+        if not self.url and not self.archivo:
+            raise ValidationError(
+                "Debe registrar una URL o un archivo."
+            )
 
     def __str__(self):
         return self.nombre

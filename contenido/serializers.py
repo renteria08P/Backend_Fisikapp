@@ -1,4 +1,5 @@
 from rest_framework import serializers
+import os
 from .models import (
     ConceptoLaboratorio,
     ConceptosBasicos,
@@ -15,6 +16,30 @@ class RecursosSerializer(serializers.ModelSerializer):
         model = Recursos
         fields = "__all__"
 
+    def validate_archivo(self, value):
+
+        if not value:
+            return value
+
+        extension = os.path.splitext(value.name)[1].lower()
+
+        extensiones_permitidas = [
+            ".pdf",
+            ".doc",
+            ".docx",
+            ".xls",
+            ".xlsx",
+            ".ppt",
+            ".pptx",
+            ".zip",
+        ]
+
+        if extension not in extensiones_permitidas:
+            raise serializers.ValidationError(
+                "Solo se permiten archivos PDF, Word, Excel, PowerPoint o ZIP."
+            )
+
+        return value
 
 class ConceptosBasicosSerializer(serializers.ModelSerializer):
 
@@ -80,9 +105,6 @@ class ConceptoLaboratorioSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
 
-        print("\n========== UPDATE CONCEPTO ==========")
-        print(validated_data)
-        print("=====================================\n")
 
         recursos = validated_data.pop(
             "recursos",
