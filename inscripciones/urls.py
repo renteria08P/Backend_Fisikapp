@@ -5,6 +5,7 @@ from .views import (
     mis_grupos,
     mis_laboratorios,
     inscribir_usuario,
+    unirse_grupo,
 )
 
 from .views import grupo_laboratorios
@@ -32,6 +33,12 @@ urlpatterns = [
         'inscripciones/mis-grupos/',
         mis_grupos,
         name='mis-grupos'
+    ),
+
+    path(
+        "grupos/unirse/",
+        unirse_grupo,
+        name="unirse-grupo"
     ),
 
     path(

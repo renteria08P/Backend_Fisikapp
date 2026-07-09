@@ -9,14 +9,26 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes  
 from laboratorios.models import Asignacion
-from evaluaciones.models import (
-    EvaluacionProfesor
-)
-
 
 from .serializers import (
     InscripcionSerializer,
     GrupoLaboratorioSerializer
+)
+
+from .models import (
+    Inscripcion,
+    GrupoEstudiante
+)
+
+from laboratorios.models import (
+    Asignacion,
+    GrupoAcademico
+)
+
+from .serializers import (
+    InscripcionSerializer,
+    GrupoLaboratorioSerializer,
+    GrupoEstudianteSerializer
 )
 from rest_framework.generics import ListAPIView
 
@@ -105,6 +117,77 @@ def inscribir_usuario(request):
     )
 
     serializer = InscripcionSerializer(inscripcion)
+
+    return Response(
+        serializer.data,
+        status=201
+    )
+
+# =============================================
+# UNIRSE A UN GRUPO
+# =============================================
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def unirse_grupo(request):
+
+    codigo = request.data.get("codigo_ingreso")
+
+    if not codigo:
+
+        return Response(
+            {
+                "error": "Debe enviar el código de ingreso."
+            },
+            status=400
+        )
+
+    try:
+
+        grupo = GrupoAcademico.objects.get(
+            codigo_ingreso=codigo
+        )
+
+    except GrupoAcademico.DoesNotExist:
+
+        return Response(
+            {
+                "error": "Código de grupo inválido."
+            },
+            status=404
+        )
+    
+    # ==========================
+    # VALIDAR QUE EL GRUPO ESTÉ ACTIVO
+    # ==========================
+    if not grupo.activo:
+
+        return Response(
+            {
+                "error": "El grupo no se encuentra disponible."
+            },
+            status=400
+        )
+
+    if GrupoEstudiante.objects.filter(
+        estudiante=request.user,
+        grupo=grupo
+    ).exists():
+
+        return Response(
+            {
+                "error": "Ya perteneces a este grupo."
+            },
+            status=400
+        )
+
+    grupo_estudiante = GrupoEstudiante.objects.create(
+        estudiante=request.user,
+        grupo=grupo
+    )
+
+    serializer = GrupoEstudianteSerializer(
+        grupo_estudiante
+    )
 
     return Response(
         serializer.data,

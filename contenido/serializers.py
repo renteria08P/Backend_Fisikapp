@@ -111,8 +111,6 @@ class ConceptoLaboratorioSerializer(serializers.ModelSerializer):
             None
         )
 
-        print("RECURSOS:", recursos)
-
         validated_data.pop(
             "concepto_original",
             None

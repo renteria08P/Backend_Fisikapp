@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from laboratorios.models import Laboratorio
 from .models import Inscripcion
+from .models import GrupoEstudiante
 
 
 class InscripcionSerializer(serializers.ModelSerializer):
@@ -116,3 +117,35 @@ class GrupoLaboratorioSerializer(
             "fecha_entrega",
             "fecha_limite"
     ]
+        
+
+# =========================================================
+# GRUPO ESTUDIANTE
+# =========================================================
+class GrupoEstudianteSerializer(serializers.ModelSerializer):
+
+    grupo_nombre = serializers.CharField(
+        source="grupo.nombre",
+        read_only=True
+    )
+
+    codigo_ingreso = serializers.CharField(
+        source="grupo.codigo_ingreso",
+        read_only=True
+    )
+
+    class Meta:
+        model = GrupoEstudiante
+        fields = [
+            "id",
+            "grupo",
+            "grupo_nombre",
+            "codigo_ingreso",
+            "estado",
+            "fecha_inscripcion",
+        ]
+
+        read_only_fields = [
+            "id",
+            "fecha_inscripcion",
+        ]

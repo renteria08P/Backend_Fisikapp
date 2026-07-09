@@ -28,15 +28,6 @@ class ResultBuilder:
             }
         )
 
-        print("STARTED:", self.data["startedAt"])
-        print("TYPE:", type(self.data["startedAt"]))
-
-        print("FINISHED:", self.data["finishedAt"])
-        print("TYPE:", type(self.data["finishedAt"]))
-
-        print("CREATED:", self.data["attempts"][0]["createdAt"])
-        print("TYPE:", type(self.data["attempts"][0]["createdAt"]))
-
         resultado, _ = ResultadoSimulacion.objects.update_or_create(
             
 

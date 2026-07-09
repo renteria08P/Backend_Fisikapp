@@ -5,6 +5,7 @@ from contenido.models import ConceptoLaboratorio
 from laboratorios.models import Asignacion
 from django.db import transaction
 from rest_framework import serializers
+from laboratorios.models import GrupoAcademico
 
 from laboratorios.models import (
     Laboratorio,
@@ -92,14 +93,16 @@ class PlantillaObjetivoGeneralSerializer(
 #=====================================================
 # GRUPO ACADEMICO
 # =========================================================
-from laboratorios.models import GrupoAcademico
 
 class GrupoAcademicoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GrupoAcademico
         fields = "__all__"
-        read_only_fields = ["profesor"]
+        read_only_fields = [
+            "profesor",
+            "codigo_ingreso",
+        ]
 
 
 class AsignacionSerializer(serializers.ModelSerializer):
@@ -442,9 +445,6 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
 
                     recursos = concepto_data.pop("recursos", None)
 
-                    print("RECURSOS PADRE:", recursos)
-    
-
                     concepto_data.pop("laboratorio", None)
                     concepto_data.pop("concepto_original", None)
 
@@ -460,7 +460,7 @@ class LaboratorioProfesorSerializer(serializers.ModelSerializer):
 
                     if recursos is not None:
                         concepto.recursos.set(recursos)
-                        print("RECURSOS GUARDADOS:", list(concepto.recursos.all()))
+                    
 
         return instance
             
@@ -702,7 +702,6 @@ class DashboardAdminSerializer(serializers.Serializer):
     ultimos_laboratorios = serializers.ListField()
 
     tendencia = serializers.DictField()
-
 
 
 from rest_framework import serializers

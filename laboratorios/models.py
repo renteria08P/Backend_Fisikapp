@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from cloudinary.models import CloudinaryField
+import uuid
 
 # =========================================================
 # CATEGORIA
@@ -350,12 +351,41 @@ class GrupoAcademico(models.Model):
         default=True
     )
 
+    codigo_ingreso = models.CharField(
+        max_length=8,
+        unique=True,
+        blank=True,
+        null=True,
+        db_index=True
+    )
+
+    def generar_codigo_ingreso(self):
+
+        while True:
+
+            codigo = uuid.uuid4().hex[:8].upper()
+
+            existe = GrupoAcademico.objects.filter(
+                codigo_ingreso=codigo
+            ).exists()
+
+            if not existe:
+                return codigo
+
+
     class Meta:
         unique_together = ('nombre', 'profesor')
         ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
+    
+    def save(self, *args, **kwargs):
+
+        if not self.codigo_ingreso:
+            self.codigo_ingreso = self.generar_codigo_ingreso()
+
+        super().save(*args, **kwargs)
 
 
 # =========================================================

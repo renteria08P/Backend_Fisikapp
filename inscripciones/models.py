@@ -28,8 +28,51 @@ class Inscripcion(models.Model):
         )
 
     class Meta:
-        unique_together = (
-            'estudiante',
-            'asignacion'
-        )
-        ordering = ['-fecha_inscripcion']
+        constraints = [
+            models.UniqueConstraint(
+                fields=["estudiante", "asignacion"],
+                name="unique_estudiante_asignacion"
+            )
+        ]
+        ordering = ["-fecha_inscripcion"]
+
+class GrupoEstudiante(models.Model):
+
+    ESTADOS = (
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),
+    )
+
+    estudiante = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="grupos_estudiante"
+    )
+
+    grupo = models.ForeignKey(
+        "laboratorios.GrupoAcademico",
+        on_delete=models.CASCADE,
+        related_name="estudiantes_inscritos"
+    )
+
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default="ACTIVO"
+    )
+
+    fecha_inscripcion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["estudiante", "grupo"],
+                name="unique_estudiante_grupo"
+            )
+        ]
+        ordering = ["-fecha_inscripcion"]
+
+    def __str__(self):
+        return f"{self.estudiante} - {self.grupo.nombre}"
