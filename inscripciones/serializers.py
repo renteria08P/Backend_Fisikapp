@@ -149,3 +149,51 @@ class GrupoEstudianteSerializer(serializers.ModelSerializer):
             "id",
             "fecha_inscripcion",
         ]
+
+# =========================================================
+# MIS GRUPOS
+# =========================================================
+class MisGruposSerializer(serializers.ModelSerializer):
+
+    grupo_id = serializers.IntegerField(
+        source="grupo.id",
+        read_only=True
+    )
+
+    grupo_nombre = serializers.CharField(
+        source="grupo.nombre",
+        read_only=True
+    )
+
+    grado = serializers.CharField(
+        source="grupo.grado",
+        read_only=True
+    )
+
+    jornada = serializers.CharField(
+        source="grupo.jornada",
+        read_only=True
+    )
+
+    codigo_ingreso = serializers.CharField(
+        source="grupo.codigo_ingreso",
+        read_only=True
+    )
+
+    instructor_nombre = serializers.CharField(
+        source="grupo.profesor.nombre",
+        read_only=True
+    )
+
+    class Meta:
+        model = GrupoEstudiante
+        fields = [
+            "grupo_id",
+            "grupo_nombre",
+            "grado",
+            "jornada",
+            "codigo_ingreso",
+            "instructor_nombre",
+            "estado",
+            "fecha_inscripcion",
+        ]

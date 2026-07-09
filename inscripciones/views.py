@@ -12,15 +12,20 @@ from laboratorios.models import Asignacion
 
 from .serializers import (
     InscripcionSerializer,
-    GrupoLaboratorioSerializer
+    GrupoLaboratorioSerializer,
+    MisGruposSerializer
 )
 
 from .models import (
+    Inscripcion,
+    GrupoEstudiante,
     Inscripcion,
     GrupoEstudiante
 )
 
 from laboratorios.models import (
+    Asignacion,
+    GrupoAcademico,
     Asignacion,
     GrupoAcademico
 )
@@ -531,3 +536,124 @@ class GruposLaboratoriosView(
             )
         )
 
+
+
+# =============================================
+# MIS GRUPOS (NUEVO FLUJO MÓVIL)
+# =============================================
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def mis_grupos_movil(request):
+
+    grupos = (
+        GrupoEstudiante.objects.filter(
+            estudiante=request.user,
+            estado="ACTIVO",
+            grupo__activo=True
+        )
+        .select_related(
+            "grupo",
+            "grupo__profesor"
+        )
+    )
+
+    serializer = MisGruposSerializer(
+        grupos,
+        many=True
+    )
+
+    return Response(serializer.data)
+
+
+# =============================================
+# LABORATORIOS DEL GRUPO (MÓVIL)
+# =============================================
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def grupo_laboratorios_movil(request, grupo_id):
+
+    pertenece = GrupoEstudiante.objects.filter(
+        estudiante=request.user,
+        grupo_id=grupo_id,
+        estado="ACTIVO",
+        grupo__activo=True
+    ).exists()
+
+    if not pertenece:
+
+        return Response(
+            {
+                "error": "No perteneces a este grupo."
+            },
+            status=404
+        )
+
+    try:
+
+        grupo = GrupoAcademico.objects.select_related(
+            "profesor"
+        ).get(id=grupo_id)
+
+    except GrupoAcademico.DoesNotExist:
+
+        return Response(
+            {
+                "error": "Grupo no encontrado."
+            },
+            status=404
+        )
+
+    asignaciones = (
+        Asignacion.objects
+        .filter(
+            grupo=grupo,
+            estado="ACTIVO"
+        )
+        .select_related(
+            "laboratorio",
+            "laboratorio__plantilla",
+            "laboratorio__plantilla__categoria"
+        )
+        .order_by("fecha_inicio")
+    )
+
+    resultado = {
+
+        "grupo": {
+
+            "grupo_id": grupo.id,
+            "grupo_nombre": grupo.nombre,
+            "grado": grupo.grado,
+            "jornada": grupo.jornada,
+            "codigo_ingreso": grupo.codigo_ingreso,
+            "profesor": grupo.profesor.nombre
+
+        },
+
+        "laboratorios": []
+
+    }
+
+    for asignacion in asignaciones:
+
+        laboratorio = asignacion.laboratorio
+
+        resultado["laboratorios"].append({
+
+            "asignacion_id": asignacion.id,
+
+            "laboratorio_id": laboratorio.id,
+
+            "titulo": laboratorio.titulo,
+
+            "categoria": laboratorio.plantilla.categoria.nombre,
+
+            "estado": asignacion.estado,
+
+            "fecha_inicio": asignacion.fecha_inicio,
+
+            "fecha_fin": asignacion.fecha_fin
+
+        })
+
+    return Response(resultado)

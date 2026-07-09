@@ -6,6 +6,8 @@ from .views import (
     mis_laboratorios,
     inscribir_usuario,
     unirse_grupo,
+    mis_grupos_movil,
+    grupo_laboratorios_movil
 )
 
 from .views import grupo_laboratorios
@@ -51,5 +53,17 @@ urlpatterns = [
         'estudiante/asignaciones/<int:asignacion_id>/detalle/',
         detalle_asignacion,
         name='detalle-asignacion'
+    ),
+
+    path(
+        "grupos/mis-grupos/",
+        mis_grupos_movil,
+        name="mis-grupos-movil"
+    ),
+
+    path(
+        "grupos/<int:grupo_id>/laboratorios/",
+        grupo_laboratorios_movil,
+        name="grupo-laboratorios-movil"
     ),
 ]
