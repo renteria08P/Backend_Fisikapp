@@ -146,3 +146,19 @@ class FormulaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Formula
         fields = "__all__"
+
+    
+
+class ProcedimientoSwaggerSerializer(serializers.Serializer):
+
+    laboratorio = serializers.IntegerField()
+
+    paso_numero = serializers.IntegerField()
+
+    descripcion = serializers.CharField()
+
+    orden = serializers.IntegerField()
+
+    imagen = serializers.ImageField(
+        required=False
+    )

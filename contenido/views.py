@@ -4,7 +4,7 @@ from users.permissions import (IsAdminSuperAdminOrProfesor)
 from rest_framework.response import Response
 from .serializers import RecursosSerializer
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-
+from drf_yasg import openapi
 
 from .models import (
     ConceptoLaboratorio,
@@ -22,6 +22,7 @@ from .serializers import (
     ProcedimientoSerializer,
     FormulaSerializer,
     RecursosSerializer,
+    ProcedimientoSwaggerSerializer,
 )
 
 
@@ -425,7 +426,6 @@ def practicas_detalle(request, pk):
 # ==============================================
 # PROCEDIMIENTOS
 # ==============================================
-
 @swagger_auto_schema(
     method='get',
     operation_summary="Listar procedimientos",
@@ -436,16 +436,61 @@ def practicas_detalle(request, pk):
     """
 )
 @swagger_auto_schema(
-    method='post',
+    method="post",
     operation_summary="Crear procedimiento",
-    operation_description="""
-    Permite registrar un nuevo procedimiento.
-    """,
-    request_body=ProcedimientoSerializer
+    operation_description="Permite registrar un nuevo procedimiento.",
+    consumes=["multipart/form-data"],
+    manual_parameters=[
+        openapi.Parameter(
+            "laboratorio",
+            openapi.IN_FORM,
+            description="ID del laboratorio",
+            type=openapi.TYPE_INTEGER,
+            required=True,
+        ),
+        openapi.Parameter(
+            "paso_numero",
+            openapi.IN_FORM,
+            description="Número del paso",
+            type=openapi.TYPE_INTEGER,
+            required=True,
+        ),
+        openapi.Parameter(
+            "descripcion",
+            openapi.IN_FORM,
+            description="Descripción del procedimiento",
+            type=openapi.TYPE_STRING,
+            required=True,
+        ),
+        openapi.Parameter(
+            "orden",
+            openapi.IN_FORM,
+            description="Orden del procedimiento",
+            type=openapi.TYPE_INTEGER,
+            required=True,
+        ),
+        openapi.Parameter(
+            "imagen",
+            openapi.IN_FORM,
+            description="Imagen del procedimiento",
+            type=openapi.TYPE_FILE,
+            required=False,
+        ),
+    ],
+    responses={
+        201: ProcedimientoSerializer
+    },
 )
+
 @api_view(['GET', 'POST'])
+@parser_classes([
+    MultiPartParser,
+    FormParser,
+    JSONParser
+])
 @permission_classes([IsAdminSuperAdminOrProfesor])
 def procedimientos_list(request):
+
 
     if request.method == 'GET':
 
@@ -504,7 +549,12 @@ def procedimientos_list(request):
     Elimina un procedimiento registrado.
     """
 )
-@api_view(['PUT', 'DELETE'])
+@api_view(['PUT', 'PATCH', 'DELETE'])
+@parser_classes([
+    MultiPartParser,
+    FormParser,
+    JSONParser
+])
 @permission_classes([IsAdminSuperAdminOrProfesor])
 def procedimientos_detalle(request, pk):
 

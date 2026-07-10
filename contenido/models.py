@@ -141,8 +141,9 @@ class Procedimiento(models.Model):
 
     paso_numero = models.PositiveSmallIntegerField()
     descripcion = models.TextField()
-    imagen = models.ImageField(
-        upload_to='procedimientos/',
+    imagen = CloudinaryField(
+        "image",
+        folder="procedimientos",
         null=True,
         blank=True
     )
