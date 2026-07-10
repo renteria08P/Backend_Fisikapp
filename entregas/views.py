@@ -88,6 +88,9 @@ class ResultadoPracticaViewSet(
 
     def get_queryset(self):
 
+        if getattr(self, "swagger_fake_view", False):
+            return ResultadoPractica.objects.none()
+
         if self.request.user.rol == Roles.ESTUDIANTE:
             return ResultadoPractica.objects.filter(
                 entrega__inscripcion__estudiante=self.request.user
@@ -128,6 +131,9 @@ class ResultadoSimulacionViewSet(
         serializer.save()
 
     def get_queryset(self):
+
+        if getattr(self, "swagger_fake_view", False):
+            return ResultadoSimulacion.objects.none()
 
         if self.request.user.rol == Roles.ESTUDIANTE:
             return ResultadoSimulacion.objects.filter(

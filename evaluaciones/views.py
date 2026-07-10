@@ -25,6 +25,9 @@ class EvaluacionProfesorViewSet(ModelViewSet):
 
     def get_queryset(self):
 
+        if getattr(self, "swagger_fake_view", False):
+            return EvaluacionProfesor.objects.none()
+
         if self.request.user.rol == Roles.ESTUDIANTE:
             return EvaluacionProfesor.objects.filter(
                 entrega__inscripcion__estudiante=self.request.user
@@ -66,6 +69,9 @@ class EvaluacionIAViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+
+        if getattr(self, "swagger_fake_view", False):
+            return EvaluacionIA.objects.none()
 
         if self.request.user.rol == Roles.ESTUDIANTE:
             return EvaluacionIA.objects.filter(
