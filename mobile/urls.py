@@ -43,7 +43,7 @@ urlpatterns = [
         name="mobile-ar-config"
     ),
 
-        # Mantener viejo si todavía existe para compatibilidad:
+    # Mantener viejo si todavía existe para compatibilidad:
     path(
         "simulation/",
         include("mobile.simulation.urls"),

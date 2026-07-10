@@ -469,6 +469,7 @@ class Asignacion(models.Model):
         return f"{self.grupo.nombre} - {self.laboratorio.titulo}"
 
 
+
 # =========================================================
 # SIMULACIÓN AR
 # Configuración genérica para Unity / Android

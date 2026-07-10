@@ -8,36 +8,33 @@ class SimulationARStep:
 
         laboratorio = self.assignment.laboratorio
 
-        lab_key = laboratorio.plantilla.lab_key
+        ar_config = getattr(
+            laboratorio,
+            "simulacion_ar_config",
+            None
+        )
 
-        if not lab_key:
+        if not ar_config or not ar_config.enabled:
             return []
 
         return [
-
             {
-
                 "id": "simulation_ar",
-
                 "order": 8,
-
                 "type": "SIMULATION_AR",
-
                 "title": "Simulación AR",
-
                 "required": True,
-
+                "description": (
+                    "Ejecuta la simulación AR asociada al laboratorio."
+                ),
                 "simulation_ref": {
-
-                    "endpoint": (
-                        f"/api/mobile/simulation/"
-                        f"{self.assignment.id}/"
-                    ),
-
-                    "lab_key": lab_key
-
+                    "ar_id": ar_config.id,
+                    "lab_key": ar_config.lab_key,
+                    "unity_scene_name": ar_config.unity_scene_name,
+                    "display_name": ar_config.display_name,
+                    "config_endpoint": (
+                        f"/api/mobile/ar/{ar_config.id}/"
+                    )
                 }
-
             }
-
         ]
