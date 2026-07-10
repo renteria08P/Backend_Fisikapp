@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from users.permissions import IsProfesor
 from rest_framework.exceptions import ValidationError
@@ -20,40 +20,39 @@ from .serializers import (
 )
 
 
-class EntregaViewSet(ModelViewSet):
+class EntregaViewSet(ReadOnlyModelViewSet):
 
-    queryset = Entrega.objects.all()
     serializer_class = EntregaSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
 
-        if self.request.user.rol == Roles.ESTUDIANTE:
-            return Entrega.objects.filter(
-                inscripcion__estudiante=self.request.user
+        user = self.request.user
+
+        queryset = (
+            Entrega.objects
+            .select_related(
+                "inscripcion",
+                "inscripcion__estudiante",
+                "inscripcion__asignacion",
+                "inscripcion__asignacion__grupo",
+                "inscripcion__asignacion__laboratorio",
+                "inscripcion__asignacion__laboratorio__plantilla",
+                "entrega_unificada",
+            )
+        )
+
+        if getattr(user, "rol", None) == "estudiante":
+            return queryset.filter(
+                inscripcion__estudiante=user
             )
 
-        return Entrega.objects.all()
-    
-    def get_permissions(self):
-
-        if self.request.method in ["GET", "POST"]:
-            return [IsAuthenticated()]
-
-        return [
-            IsAuthenticated(),
-            IsProfesor()
-        ]
-    
-    def perform_create(self, serializer):
-
-        inscripcion = serializer.validated_data["inscripcion"]
-
-        if inscripcion.estudiante != self.request.user:
-            raise ValidationError(
-                "No puedes crear entregas para otro estudiante."
+        if getattr(user, "rol", None) == "profesor":
+            return queryset.filter(
+                inscripcion__asignacion__laboratorio__profesor=user
             )
 
-        serializer.save()
+        return queryset
 
 
 class ResultadoPracticaViewSet(

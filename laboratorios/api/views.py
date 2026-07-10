@@ -44,7 +44,9 @@ from laboratorios.models import (
     Asignacion,
     PlantillaLaboratorio,
     PlantillaObjetivoGeneral,
-    PlantillaObjetivoEspecifico
+    PlantillaObjetivoEspecifico,
+    SimulacionAR,
+    PreguntaLaboratorio,
 )
 
 from inscripciones.models import (
@@ -68,7 +70,9 @@ from .serializers import (
     LaboratorioEstudianteSerializer,
     LaboratorioEstudianteListSerializer,
     PlantillaObjetivoGeneralSerializer,
-    PlantillaObjetivoEspecificoSerializer
+    PlantillaObjetivoEspecificoSerializer,
+    SimulacionARSerializer,
+    PreguntaLaboratorioSerializer
 )
 
 class CategoriaViewSet(ModelViewSet):
@@ -838,3 +842,120 @@ class DashboardAdminViewSet(ViewSet):
             "tendencia": tendencia,
 
         })
+
+   
+# =========================================================
+# SIMULACIÓN AR
+# =========================================================
+
+class SimulacionARViewSet(ModelViewSet):
+
+    serializer_class = SimulacionARSerializer
+
+    permission_classes = [
+        IsAuthenticated,
+        IsProfesor
+    ]
+
+    def get_queryset(self):
+
+        if getattr(self, 'swagger_fake_view', False):
+            return SimulacionAR.objects.none()
+
+        return (
+            SimulacionAR.objects
+            .filter(
+                laboratorio__profesor=self.request.user
+            )
+            .select_related(
+                "laboratorio",
+                "laboratorio__profesor",
+                "laboratorio__plantilla",
+            )
+            .order_by("-fecha_creacion")
+        )
+
+    def perform_create(self, serializer):
+
+        laboratorio = serializer.validated_data["laboratorio"]
+
+        if laboratorio.profesor != self.request.user:
+            raise ValidationError(
+                "No puedes crear una simulación AR para un laboratorio que no te pertenece."
+            )
+
+        serializer.save()
+
+    def perform_update(self, serializer):
+
+        laboratorio = serializer.validated_data.get(
+            "laboratorio",
+            serializer.instance.laboratorio
+        )
+
+        if laboratorio.profesor != self.request.user:
+            raise ValidationError(
+                "No puedes modificar una simulación AR de un laboratorio que no te pertenece."
+            )
+
+        serializer.save()
+
+# =========================================================
+# PREGUNTAS DEL LABORATORIO
+# =========================================================
+
+class PreguntaLaboratorioViewSet(ModelViewSet):
+
+    serializer_class = PreguntaLaboratorioSerializer
+
+    permission_classes = [
+        IsAuthenticated,
+        IsProfesor
+    ]
+
+    def get_queryset(self):
+
+        if getattr(self, "swagger_fake_view", False):
+            return PreguntaLaboratorio.objects.none()
+
+        return (
+            PreguntaLaboratorio.objects
+            .filter(
+                laboratorio__profesor=self.request.user
+            )
+            .select_related(
+                "laboratorio",
+                "laboratorio__profesor",
+                "laboratorio__plantilla",
+            )
+            .order_by(
+                "laboratorio_id",
+                "order",
+                "id"
+            )
+        )
+
+    def perform_create(self, serializer):
+
+        laboratorio = serializer.validated_data["laboratorio"]
+
+        if laboratorio.profesor != self.request.user:
+            raise ValidationError(
+                "No puedes crear preguntas para un laboratorio que no te pertenece."
+            )
+
+        serializer.save()
+
+    def perform_update(self, serializer):
+
+        laboratorio = serializer.validated_data.get(
+            "laboratorio",
+            serializer.instance.laboratorio
+        )
+
+        if laboratorio.profesor != self.request.user:
+            raise ValidationError(
+                "No puedes modificar preguntas de un laboratorio que no te pertenece."
+            )
+
+        serializer.save()

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from laboratorios.models import PlantillaLaboratorio
+from laboratorios.models import PlantillaLaboratorio, PreguntaLaboratorio
 from cloudinary.utils import cloudinary_url
 from contenido.models import ConceptoLaboratorio
 from laboratorios.models import Asignacion
@@ -14,6 +14,8 @@ from laboratorios.models import (
     ObjetivoEspecifico,
     PlantillaObjetivoGeneral,
     PlantillaObjetivoEspecifico,
+    SimulacionAR,
+    PreguntaLaboratorio,
 )
 
 from contenido.serializers import (
@@ -761,3 +763,95 @@ class LaboratorioProfesorPatchSwaggerSerializer(serializers.Serializer):
         many=True,
         required=False
     )
+
+
+# =========================================================
+# SIMULACIÓN AR
+# =========================================================
+
+class SimulacionARSerializer(serializers.ModelSerializer):
+
+    laboratorio_titulo = serializers.CharField(
+        source="laboratorio.titulo",
+        read_only=True
+    )
+
+    profesor_nombre = serializers.CharField(
+        source="laboratorio.profesor.nombre",
+        read_only=True
+    )
+
+    class Meta:
+        model = SimulacionAR
+
+        fields = [
+            "id",
+
+            "laboratorio",
+            "laboratorio_titulo",
+            "profesor_nombre",
+
+            "lab_key",
+            "unity_scene_name",
+            "display_name",
+            "version",
+            "enabled",
+
+            "intro_title",
+            "intro_text",
+            "instructions",
+
+            "max_attempts",
+            "allow_resume",
+            "requires_camera",
+
+            "formulas",
+            "parameters",
+            "options",
+            "result_schema",
+            "evaluation_context",
+
+            "fecha_creacion",
+            "fecha_actualizacion",
+        ]
+
+        read_only_fields = [
+            "fecha_creacion",
+            "fecha_actualizacion",
+        ]
+
+# =========================================================
+# PREGUNTAS DEL LABORATORIO
+# =========================================================
+
+class PreguntaLaboratorioSerializer(serializers.ModelSerializer):
+
+    laboratorio_titulo = serializers.CharField(
+        source="laboratorio.titulo",
+        read_only=True
+    )
+
+    class Meta:
+        model = PreguntaLaboratorio
+
+        fields = [
+            "id",
+            "laboratorio",
+            "laboratorio_titulo",
+            "tipo",
+            "key",
+            "titulo",
+            "enunciado",
+            "input_type",
+            "required",
+            "order",
+            "options",
+            "evaluation_hint",
+            "fecha_creacion",
+            "fecha_actualizacion",
+        ]
+
+        read_only_fields = [
+            "fecha_creacion",
+            "fecha_actualizacion",
+        ]

@@ -18,6 +18,7 @@ class Entrega(models.Model):
     TIPOS = (
         ('PRACTICA', 'Práctica'),
         ('SIMULACION', 'Simulación'),
+        ('INTEGRADA', 'Entrega integrada'),
     )
 
     inscripcion = models.OneToOneField(
@@ -73,7 +74,6 @@ class Entrega(models.Model):
             f"{self.inscripcion.asignacion.laboratorio.titulo}"
         )
 
-
 # =========================================================
 # RESULTADO PRÁCTICA
 # =========================================================
@@ -102,7 +102,6 @@ class ResultadoPractica(models.Model):
 
     def __str__(self):
         return f"Resultado práctica {self.entrega.id}"
-
 
 # =========================================================
 # RESULTADO SIMULACIÓN
@@ -218,7 +217,6 @@ class ResultadoSimulacion(models.Model):
     def __str__(self):
         return f"Resultado simulación {self.entrega.id}"
 
-
 # =========================================================
 # INTENTO SIMULACIÓN
 # =========================================================
@@ -282,3 +280,68 @@ class IntentoSimulacion(models.Model):
 
     def __str__(self):
         return f"Intento {self.numero}"
+    
+# =========================================================
+# ENTREGA LABORATORIO UNIFICADA
+# Nuevo contrato móvil.
+# No reemplaza los modelos legacy de práctica/simulación.
+# =========================================================
+
+class EntregaLaboratorioUnificada(models.Model):
+
+    entrega = models.OneToOneField(
+        Entrega,
+        on_delete=models.CASCADE,
+        related_name="entrega_unificada"
+    )
+
+    practice = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    simulation = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    comparison = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    questions = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    report = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    device = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    llm_payload = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    raw_payload = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True
+    )
+
+    def __str__(self):
+        return f"Entrega unificada {self.entrega_id}"

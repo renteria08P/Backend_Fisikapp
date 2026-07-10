@@ -12,6 +12,8 @@ from .views import (
     PlantillaObjetivoEspecificoViewSet,
     PlantillaObjetivoGeneralViewSet,
     LaboratorioProfesorAdminViewSet,  
+    PreguntaLaboratorioViewSet,
+    SimulacionARViewSet,  
 )
 
 
@@ -83,6 +85,17 @@ router.register(
     basename='dashboard-admin'
 )
 
+router.register(
+    r'simulaciones-ar',
+    SimulacionARViewSet,
+    basename='simulaciones-ar'
+)
+
+router.register(
+    r'preguntas-laboratorio',
+    PreguntaLaboratorioViewSet,
+    basename='preguntas-laboratorio'
+)
 
 urlpatterns = [
     

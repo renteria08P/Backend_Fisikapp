@@ -469,3 +469,210 @@ class Asignacion(models.Model):
         return f"{self.grupo.nombre} - {self.laboratorio.titulo}"
 
 
+# =========================================================
+# SIMULACIÓN AR
+# Configuración genérica para Unity / Android
+# =========================================================
+
+class SimulacionAR(models.Model):
+
+    laboratorio = models.OneToOneField(
+        "laboratorios.Laboratorio",
+        on_delete=models.CASCADE,
+        related_name="simulacion_ar_config"
+    )
+
+    lab_key = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        db_index=True
+    )
+
+    unity_scene_name = models.CharField(
+        max_length=150,
+        blank=True,
+        default=""
+    )
+
+    display_name = models.CharField(
+        max_length=150,
+        blank=True,
+        default=""
+    )
+
+    version = models.CharField(
+        max_length=50,
+        blank=True,
+        default="1.0.0"
+    )
+
+    enabled = models.BooleanField(
+        default=True
+    )
+
+    intro_title = models.CharField(
+        max_length=200,
+        blank=True,
+        default=""
+    )
+
+    intro_text = models.TextField(
+        blank=True,
+        default=""
+    )
+
+    instructions = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    max_attempts = models.PositiveSmallIntegerField(
+        default=1
+    )
+
+    allow_resume = models.BooleanField(
+        default=True
+    )
+
+    requires_camera = models.BooleanField(
+        default=True
+    )
+
+    formulas = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    parameters = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    options = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    result_schema = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    evaluation_context = models.TextField(
+        blank=True,
+        default=""
+    )
+
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = [
+            "lab_key",
+            "display_name"
+        ]
+
+    def __str__(self):
+        nombre = self.display_name or self.lab_key or "Simulación AR"
+        return f"{nombre} - Lab {self.laboratorio_id}"
+
+# =========================================================
+# PREGUNTAS DEL LABORATORIO
+# Preguntas genéricas para móvil / evaluación
+# =========================================================
+
+class PreguntaLaboratorio(models.Model):
+
+    TIPOS = (
+        ("SABER", "Saber"),
+        ("SABER_HACER", "Saber hacer"),
+        ("ANALISIS", "Análisis"),
+        ("REFLEXION", "Reflexión"),
+        ("CIERRE", "Cierre"),
+    )
+
+    INPUT_TYPES = (
+        ("TEXT", "Texto"),
+        ("TEXTAREA", "Texto largo"),
+        ("NUMBER", "Número"),
+        ("BOOLEAN", "Booleano"),
+        ("SELECT", "Selección"),
+        ("MULTI_SELECT", "Selección múltiple"),
+    )
+
+    laboratorio = models.ForeignKey(
+        "laboratorios.Laboratorio",
+        on_delete=models.CASCADE,
+        related_name="preguntas"
+    )
+
+    tipo = models.CharField(
+        max_length=30,
+        choices=TIPOS,
+        default="ANALISIS"
+    )
+
+    key = models.CharField(
+        max_length=100
+    )
+
+    titulo = models.CharField(
+        max_length=200,
+        blank=True,
+        default=""
+    )
+
+    enunciado = models.TextField(
+        blank=True,
+        default=""
+    )
+
+    input_type = models.CharField(
+        max_length=30,
+        choices=INPUT_TYPES,
+        default="TEXTAREA"
+    )
+
+    required = models.BooleanField(
+        default=True
+    )
+
+    order = models.PositiveSmallIntegerField(
+        default=1
+    )
+
+    options = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    evaluation_hint = models.TextField(
+        blank=True,
+        default=""
+    )
+
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = ["order", "id"]
+        unique_together = (
+            "laboratorio",
+            "key"
+        )
+
+    def __str__(self):
+        return f"{self.laboratorio_id} - {self.key}"
+    
+    
