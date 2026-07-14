@@ -15,16 +15,19 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives
 from .permissions import IsAdminSuperAdminOrProfesor
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.decorators import parser_classes
 from rest_framework.decorators import permission_classes
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
-from rest_framework.viewsets import ViewSet
-from users.models import Users
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 import pandas as pd
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 
 from .serializers import (
     UsersSerializer,
@@ -73,58 +76,151 @@ class UsersViewSet(viewsets.ModelViewSet):
         serializer.save(rol=rol)
 
     def get_permissions(self):
-        if self.action == "cargar_estudiantes":
+        if self.action == "cargar_profesores":
             return [IsAuthenticated(), IsAdminSuperAdminOrProfesor()]
 
         return [IsAuthenticated(), IsAdminOrSuperAdmin()]
 
-    # =========================================================
-    # EXCEL - CARGAR ESTUDIANTES
-    # =========================================================
-    @action(detail=False, methods=['post'], url_path='cargar-estudiantes')
-    def cargar_estudiantes(self, request):
+    # =====================================================
+    # CARGAR PROFESORES EXCEL 
+    # =====================================================
+    @action(detail=False, methods=["post"], url_path="cargar-profesores")
+    def cargar_profesores(self, request):
 
-        archivo = request.FILES.get('file')
+        archivo = request.FILES.get("file")
 
         if not archivo:
-            return Response({"error": "No se envió archivo"}, status=400)
+            return Response(
+                {"error": "Debe seleccionar un archivo."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
-            df = pd.read_excel(archivo)
-        except:
-            return Response({"error": "Archivo inválido"}, status=400)
+            if archivo.name.endswith(".csv"):
+                df = pd.read_csv(archivo)
+            else:
+                df = pd.read_excel(archivo)
+        except Exception:
+            return Response(
+                {"error": "No fue posible leer el archivo."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # -----------------------------
+        # Validar columnas
+        # -----------------------------
+        columnas_requeridas = [
+            "nombre",
+            "correo",
+            "identificacion",
+            "institucion",
+        ]
+
+        columnas_archivo = [c.lower().strip() for c in df.columns]
+
+        if columnas_archivo != columnas_requeridas:
+            return Response(
+                {
+                    "error": "La plantilla es incorrecta.",
+                    "columnas_esperadas": columnas_requeridas,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         creados = 0
-        actualizados = 0
+        omitidos = 0
         errores = []
 
-        for index, row in df.iterrows():
+        for fila, row in df.iterrows():
+
+            fila_excel = fila + 2
+
+            nombre = str(row["nombre"]).strip()
+            correo = str(row["correo"]).strip().lower()
+            identificacion = str(row["identificacion"]).strip()
+            institucion = str(row["institucion"]).strip()
+
+            # -----------------------------
+            # Validaciones
+            # -----------------------------
+
+            if not nombre or nombre == "nan":
+                errores.append(f"Fila {fila_excel}: nombre vacío.")
+                continue
+
+            if not correo or correo == "nan":
+                errores.append(f"Fila {fila_excel}: correo vacío.")
+                continue
+
+            if not identificacion or identificacion == "nan":
+                errores.append(f"Fila {fila_excel}: identificación vacía.")
+                continue
+
+            if not institucion or institucion == "nan":
+                errores.append(f"Fila {fila_excel}: institución vacía.")
+                continue
+
+            # Validar formato email
+            try:
+                validate_email(correo)
+            except ValidationError:
+                errores.append(
+                    f"Fila {fila_excel}: correo inválido."
+                )
+                continue
+
+            # Validar correo repetido
+            if Users.objects.filter(correo=correo).exists():
+                omitidos += 1
+                errores.append(
+                    f"Fila {fila_excel}: el correo '{correo}' ya existe."
+                )
+                continue
+
+            # Validar identificación repetida
+            if Users.objects.filter(
+                identificacion=identificacion
+            ).exists():
+                omitidos += 1
+                errores.append(
+                    f"Fila {fila_excel}: la identificación '{identificacion}' ya existe."
+                )
+                continue
 
             try:
-                user, created = Users.objects.get_or_create(
-                    correo=row['correo'],
-                    defaults={
-                        "nombre": row.get('nombre', 'Estudiante'),
-                        "rol": "estudiante"
-                    }
+
+                password = generar_password()
+
+                profesor = Users.objects.create_user(
+                    nombre=nombre,
+                    correo=correo,
+                    identificacion=identificacion,
+                    institucion=institucion,
+                    password=password,
+                    rol="profesor",
                 )
 
-                if created:
-                    user.set_password("Estudiante123456")
-                    user.save()
-                    creados += 1
-                else:
-                    actualizados += 1
+                enviar_credenciales(
+                    profesor,
+                    password
+                )
+
+                creados += 1
 
             except Exception as e:
-                errores.append(f"Fila {index}: {str(e)}")
+                errores.append(
+                    f"Fila {fila_excel}: {str(e)}"
+                )
 
-        return Response({
-            "mensaje": "Carga de estudiantes finalizada",
-            "creados": creados,
-            "actualizados": actualizados,
-            "errores": errores
-        })
+        return Response(
+            {
+                "mensaje": "Carga masiva finalizada.",
+                "creados": creados,
+                "omitidos": omitidos,
+                "errores": errores,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 # =========================================================
 # LOGIN
@@ -187,13 +283,9 @@ def user_profile(request):
     if request.method == 'GET':
         return Response(UsersSerializer(user).data)
 
-    print("DATA PERFIL:", request.data)
-    print("FILES:", request.FILES)
 
     serializer = UsersSerializer(user, data=request.data, partial=True)
 
-    print("VALIDO:", serializer.is_valid())
-    print("ERRORES:", serializer.errors)
 
     if serializer.is_valid():
         serializer.save()
@@ -281,6 +373,7 @@ def crear_admin(request):
 
     if serializer.is_valid():
         user = serializer.save(rol='admin')
+        print
         enviar_credenciales(user, password)
         return Response({"message": "Admin creado y credenciales enviadas"})
 
@@ -417,3 +510,16 @@ def restablecer_password(request):
     return Response({"message": "Contraseña restablecida"})
 
 
+class TotalEstudiantesAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        total = Users.objects.filter(
+            rol="estudiante"
+        ).count()
+
+        return Response({
+            "total_estudiantes": total
+        })

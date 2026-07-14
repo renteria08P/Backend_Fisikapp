@@ -1,10 +1,12 @@
 from django.shortcuts import render
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
+from users.permissions import IsProfesor
+from rest_framework.exceptions import ValidationError
+from users.permissions import Roles
+
 
 from .models import  ( 
-    Pregunta,
-    Respuesta,
     Entrega, 
     ResultadoPractica,
     ResultadoSimulacion
@@ -13,31 +15,44 @@ from .models import  (
 from .serializers import (
     ResultadoPracticaSerializer,
     EntregaSerializer,
-    PreguntaSerializer,
-    RespuestaSerializer,
+
     ResultadoSimulacionSerializer
 )
 
 
-class PreguntaViewSet(ModelViewSet):
+class EntregaViewSet(ReadOnlyModelViewSet):
 
-    queryset = Pregunta.objects.all()
-    serializer_class = PreguntaSerializer
-    permission_classes = [IsAuthenticated]
-
-
-class RespuestaViewSet(ModelViewSet):
-
-    queryset = Respuesta.objects.all()
-    serializer_class = RespuestaSerializer
-    permission_classes = [IsAuthenticated]
-
-
-class EntregaViewSet(ModelViewSet):
-
-    queryset = Entrega.objects.all()
     serializer_class = EntregaSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+
+        user = self.request.user
+
+        queryset = (
+            Entrega.objects
+            .select_related(
+                "inscripcion",
+                "inscripcion__estudiante",
+                "inscripcion__asignacion",
+                "inscripcion__asignacion__grupo",
+                "inscripcion__asignacion__laboratorio",
+                "inscripcion__asignacion__laboratorio__plantilla",
+                "entrega_unificada",
+            )
+        )
+
+        if getattr(user, "rol", None) == "estudiante":
+            return queryset.filter(
+                inscripcion__estudiante=user
+            )
+
+        if getattr(user, "rol", None) == "profesor":
+            return queryset.filter(
+                inscripcion__asignacion__laboratorio__profesor=user
+            )
+
+        return queryset
 
 
 class ResultadoPracticaViewSet(
@@ -50,9 +65,38 @@ class ResultadoPracticaViewSet(
         ResultadoPracticaSerializer
     )
 
-    permission_classes = [
-        IsAuthenticated
-    ]
+    def get_permissions(self):
+
+        if self.request.method in ["GET", "POST"]:
+            return [IsAuthenticated()]
+
+        return [
+            IsAuthenticated(),
+            IsProfesor()
+        ]
+    
+    def perform_create(self, serializer):
+
+        entrega = serializer.validated_data["entrega"]
+
+        if entrega.inscripcion.estudiante != self.request.user:
+            raise ValidationError(
+                "No puedes registrar resultados de otra entrega."
+            )
+
+        serializer.save()
+
+    def get_queryset(self):
+
+        if getattr(self, "swagger_fake_view", False):
+            return ResultadoPractica.objects.none()
+
+        if self.request.user.rol == Roles.ESTUDIANTE:
+            return ResultadoPractica.objects.filter(
+                entrega__inscripcion__estudiante=self.request.user
+            )
+
+        return ResultadoPractica.objects.all()
 
 
 class ResultadoSimulacionViewSet(
@@ -65,6 +109,35 @@ class ResultadoSimulacionViewSet(
         ResultadoSimulacionSerializer
     )
 
-    permission_classes = [
-        IsAuthenticated
-    ]
+    def get_permissions(self):
+
+        if self.request.method in ["GET", "POST"]:
+            return [IsAuthenticated()]
+
+        return [
+            IsAuthenticated(),
+            IsProfesor()
+        ]
+    
+    def perform_create(self, serializer):
+
+        entrega = serializer.validated_data["entrega"]
+
+        if entrega.inscripcion.estudiante != self.request.user:
+            raise ValidationError(
+                "No puedes registrar resultados de otra entrega."
+            )
+
+        serializer.save()
+
+    def get_queryset(self):
+
+        if getattr(self, "swagger_fake_view", False):
+            return ResultadoSimulacion.objects.none()
+
+        if self.request.user.rol == Roles.ESTUDIANTE:
+            return ResultadoSimulacion.objects.filter(
+                entrega__inscripcion__estudiante=self.request.user
+            )
+
+        return ResultadoSimulacion.objects.all()

@@ -1,14 +1,15 @@
 from rest_framework import serializers
 
 from .models import ReporteLaboratorio
-
+from inscripciones.models import Inscripcion
 
 class HistorialReporteSerializer(serializers.ModelSerializer):
 
     laboratorio_nombre = serializers.CharField(
-        source='laboratorio_profesor.laboratorio.titulo_lab'
+        source='laboratorio.plantilla.titulo',
+        read_only=True
     )
-
+    
     estudiantes_info = serializers.SerializerMethodField()
 
     url_reporte_estudiante = serializers.SerializerMethodField()
@@ -37,27 +38,23 @@ class HistorialReporteSerializer(serializers.ModelSerializer):
     # ======================================
 
     def get_estudiantes_info(self, obj):
-
+        # Leemos los estudiantes reales vinculados directamente a este reporte específico
         estudiantes = obj.estudiantes.all()
 
         lista = []
-
-        nombres = []
-
         for estudiante in estudiantes:
-
-            nombres.append(estudiante.nombre)
-
             lista.append({
                 "id": estudiante.id,
-                "nombre": estudiante.nombre,
-                "codigo": estudiante.identificacion,
-                "correo": estudiante.correo
+                "nombre": estudiante.nombre if hasattr(estudiante, 'nombre') else estudiante.username,
+                "codigo": estudiante.identificacion if hasattr(estudiante, 'identificacion') else "N/A",
+                "correo": estudiante.correo if hasattr(estudiante, 'correo') else estudiante.email
             })
 
-            return {
+        return {
+            "total_estudiantes": len(lista),
             "lista_detallada": lista
         }
+    
     # ======================================
     # PDF ESTUDIANTE
     # ======================================

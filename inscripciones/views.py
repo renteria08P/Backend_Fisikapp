@@ -2,7 +2,6 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Inscripcion
-from .serializers import InscripcionSerializer
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -10,6 +9,35 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes  
 from laboratorios.models import Asignacion
+
+from .serializers import (
+    InscripcionSerializer,
+    GrupoLaboratorioSerializer,
+    MisGruposSerializer
+)
+
+from .models import (
+    Inscripcion,
+    GrupoEstudiante,
+    Inscripcion,
+    GrupoEstudiante
+)
+
+from laboratorios.models import (
+    Asignacion,
+    GrupoAcademico,
+    Asignacion,
+    GrupoAcademico
+)
+
+from .serializers import (
+    InscripcionSerializer,
+    GrupoLaboratorioSerializer,
+    GrupoEstudianteSerializer
+)
+from rest_framework.generics import ListAPIView
+
+from inscripciones.models import Inscripcion
 
 class InscripcionesViewSet(viewsets.ModelViewSet):
 
@@ -100,10 +128,90 @@ def inscribir_usuario(request):
         status=201
     )
 
+# =============================================
+# UNIRSE A UN GRUPO
+# =============================================
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def unirse_grupo(request):
+
+    codigo = request.data.get("codigo_ingreso")
+
+    if not codigo:
+
+        return Response(
+            {
+                "error": "Debe enviar el código de ingreso."
+            },
+            status=400
+        )
+
+    try:
+
+        grupo = GrupoAcademico.objects.get(
+            codigo_ingreso=codigo
+        )
+
+    except GrupoAcademico.DoesNotExist:
+
+        return Response(
+            {
+                "error": "Código de grupo inválido."
+            },
+            status=404
+        )
+    
+    # ==========================
+    # VALIDAR QUE EL GRUPO ESTÉ ACTIVO
+    # ==========================
+    if not grupo.activo:
+
+        return Response(
+            {
+                "error": "El grupo no se encuentra disponible."
+            },
+            status=400
+        )
+
+    if GrupoEstudiante.objects.filter(
+        estudiante=request.user,
+        grupo=grupo
+    ).exists():
+
+        return Response(
+            {
+                "error": "Ya perteneces a este grupo."
+            },
+            status=400
+        )
+
+    grupo_estudiante = GrupoEstudiante.objects.create(
+        estudiante=request.user,
+        grupo=grupo
+    )
+
+    serializer = GrupoEstudianteSerializer(
+        grupo_estudiante
+    )
+
+    return Response(
+        serializer.data,
+        status=201
+    )
+
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def listar_inscripciones(request):
-    inscripciones = Inscripcion.objects.all()
-    serializer = InscripcionSerializer(inscripciones, many=True)
+
+    inscripciones = Inscripcion.objects.filter(
+        estudiante=request.user
+    )
+
+    serializer = InscripcionSerializer(
+        inscripciones,
+        many=True
+    )
+
     return Response(serializer.data)
 
 @swagger_auto_schema(method='put', request_body=InscripcionSerializer)
@@ -138,3 +246,414 @@ def mis_laboratorios(request):
     serializer = InscripcionSerializer(inscripciones, many=True)
     return Response(serializer.data)
 
+
+# =============================================
+#  MIS GRUPOS
+# =============================================
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def mis_grupos(request):
+
+    inscripciones = (
+        Inscripcion.objects
+        .filter(estudiante=request.user)
+        .select_related(
+            'asignacion__grupo',
+            'asignacion__laboratorio__profesor',
+            'entrega'
+        )
+    )
+
+    grupos = {}
+
+    for inscripcion in inscripciones:
+
+        asignacion = inscripcion.asignacion
+        grupo = asignacion.grupo
+
+        if grupo.id not in grupos:
+
+            grupos[grupo.id] = {
+                "grupo_id": grupo.id,
+                "grupo_nombre": grupo.nombre,
+
+                "grado": grupo.grado,
+                "jornada": grupo.jornada,
+
+                "instructor_nombre": grupo.profesor.nombre,
+
+                "total_laboratorios": 0,
+                "laboratorios_activos": 0,
+
+                "entregas_pendientes": 0,
+                "entregas_enviadas": 0,
+                "calificaciones_pendientes": 0,
+
+                "actividades": []
+            }
+
+        estado_entrega = None
+
+        grupos[grupo.id]["total_laboratorios"] += 1
+
+        if asignacion.estado == "ACTIVO":
+            grupos[grupo.id]["laboratorios_activos"] += 1
+
+        if hasattr(inscripcion, 'entrega'):
+
+            estado_entrega = inscripcion.entrega.estado
+
+            if inscripcion.entrega.estado == "ENVIADA":
+                grupos[grupo.id]["entregas_enviadas"] += 1
+
+            if inscripcion.entrega.estado != "APROBADO":
+                grupos[grupo.id]["entregas_pendientes"] += 1
+
+            grupos[grupo.id]["calificaciones_pendientes"] += 1
+
+        else:
+
+            grupos[grupo.id]["entregas_pendientes"] += 1
+
+        grupos[grupo.id]["actividades"].append({
+            "laboratorio_id": asignacion.laboratorio.id,
+            "laboratorio": asignacion.laboratorio.titulo,
+            "estado_entrega": estado_entrega,
+            "fecha_limite": asignacion.fecha_fin
+        })
+
+    return Response(
+        list(grupos.values())
+    )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def grupo_laboratorios(request, grupo_id):
+
+    inscripciones = (
+        Inscripcion.objects
+        .filter(
+            estudiante=request.user,
+            asignacion__grupo_id=grupo_id
+        )
+        .select_related(
+            'asignacion',
+            'asignacion__grupo',
+            'asignacion__laboratorio',
+            'asignacion__laboratorio__plantilla',
+            'entrega',
+            'entrega__evaluacion_docente'
+        )
+    )
+
+    if not inscripciones.exists():
+
+        return Response(
+            {
+                "error": "No perteneces a este grupo"
+            },
+            status=404
+        )
+
+    grupo = inscripciones.first().asignacion.grupo
+
+    resultado = {
+        "grupo": {
+            "grupo_id": grupo.id,
+            "grupo_nombre": grupo.nombre,
+            "instructor_nombre": grupo.profesor.nombre,
+            "grado": grupo.grado,
+            "jornada": grupo.jornada
+        },
+        "laboratorios": []
+    }
+
+    for inscripcion in inscripciones:
+
+        asignacion = inscripcion.asignacion
+        laboratorio = asignacion.laboratorio
+
+        estado_entrega = "PENDIENTE"
+        fecha_entrega = None
+        nota = None
+        calificacion_estado = "SIN_CALIFICAR"
+
+        if hasattr(inscripcion, 'entrega'):
+
+            estado_entrega = inscripcion.entrega.estado
+            fecha_entrega = inscripcion.entrega.fecha_entrega
+
+            if hasattr(
+                inscripcion.entrega,
+                'evaluacion_docente'
+            ):
+
+                nota = (
+                    inscripcion.entrega
+                    .evaluacion_docente
+                    .calificacion
+                )
+
+                calificacion_estado = "CALIFICADO"
+
+        resultado["laboratorios"].append({
+
+            "asignacion_id": asignacion.id,
+
+            "laboratorio_id": laboratorio.id,
+
+            "titulo": laboratorio.titulo,
+
+            "categoria": (
+                laboratorio.plantilla
+                .categoria.nombre
+            ),
+
+            "estado_asignacion": asignacion.estado,
+
+            "estado_entrega": estado_entrega,
+
+            "fecha_inicio": asignacion.fecha_inicio,
+
+            "fecha_limite": asignacion.fecha_fin,
+
+            "fecha_entrega": fecha_entrega,
+
+            "nota": nota,
+
+            "calificacion_estado":
+                calificacion_estado
+        })
+
+    return Response(resultado)
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def detalle_asignacion(request, asignacion_id):
+
+    try:
+
+        inscripcion = (
+            Inscripcion.objects
+            .select_related(
+                'asignacion',
+                'asignacion__grupo',
+                'asignacion__laboratorio',
+                'asignacion__laboratorio__plantilla',
+                'entrega',
+                'entrega__evaluacion_docente'
+            )
+            .get(
+                estudiante=request.user,
+                asignacion_id=asignacion_id
+            )
+        )
+
+    except Inscripcion.DoesNotExist:
+
+        return Response(
+            {
+                "error": "No tienes acceso a esta asignación"
+            },
+            status=404
+        )
+
+    asignacion = inscripcion.asignacion
+    laboratorio = asignacion.laboratorio
+
+    estado_entrega = None
+    fecha_entrega = None
+    nota = None
+
+    if hasattr(inscripcion, 'entrega'):
+
+        estado_entrega = inscripcion.entrega.estado
+        fecha_entrega = inscripcion.entrega.fecha_entrega
+
+        if hasattr(
+            inscripcion.entrega,
+            'evaluacion_docente'
+        ):
+            nota = (
+                inscripcion.entrega
+                .evaluacion_docente
+                .calificacion
+            )
+
+    return Response({
+
+        "asignacion_id": asignacion.id,
+
+        "grupo": asignacion.grupo.nombre,
+
+        "estado_entrega": estado_entrega,
+        "fecha_entrega": fecha_entrega,
+        "fecha_limite": asignacion.fecha_fin,
+        "nota": nota,
+
+        "laboratorio": {
+            "id": laboratorio.id,
+            "titulo": laboratorio.titulo,
+            "categoria": laboratorio.plantilla.categoria.nombre,
+            "resumen": laboratorio.resumen,
+            "introduccion": laboratorio.introduccion,
+            "marco_teorico": laboratorio.marco_teorico
+        }
+    })
+
+# =========================================================
+# GRUPO ACADEMICO
+# =========================================================
+class GruposLaboratoriosView(
+    ListAPIView
+):
+
+    serializer_class = (
+        GrupoLaboratorioSerializer
+    )
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get_queryset(self):
+
+        return (
+            Inscripcion.objects
+            .filter(
+                estudiante=self.request.user
+            )
+            .select_related(
+                'asignacion',
+                'asignacion__laboratorio',
+                'asignacion__laboratorio__plantilla',
+                'asignacion__laboratorio__profesor',
+                'entrega',
+                'entrega__evaluacion_docente'
+            )
+        )
+
+
+
+# =============================================
+# MIS GRUPOS (NUEVO FLUJO MÓVIL)
+# =============================================
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def mis_grupos_movil(request):
+
+    grupos = (
+        GrupoEstudiante.objects.filter(
+            estudiante=request.user,
+            estado="ACTIVO",
+            grupo__activo=True
+        )
+        .select_related(
+            "grupo",
+            "grupo__profesor"
+        )
+    )
+
+    serializer = MisGruposSerializer(
+        grupos,
+        many=True
+    )
+
+    return Response(serializer.data)
+
+
+# =============================================
+# LABORATORIOS DEL GRUPO (MÓVIL)
+# =============================================
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def grupo_laboratorios_movil(request, grupo_id):
+
+    pertenece = GrupoEstudiante.objects.filter(
+        estudiante=request.user,
+        grupo_id=grupo_id,
+        estado="ACTIVO",
+        grupo__activo=True
+    ).exists()
+
+    if not pertenece:
+
+        return Response(
+            {
+                "error": "No perteneces a este grupo."
+            },
+            status=404
+        )
+
+    try:
+
+        grupo = GrupoAcademico.objects.select_related(
+            "profesor"
+        ).get(id=grupo_id)
+
+    except GrupoAcademico.DoesNotExist:
+
+        return Response(
+            {
+                "error": "Grupo no encontrado."
+            },
+            status=404
+        )
+
+    asignaciones = (
+        Asignacion.objects
+        .filter(
+            grupo=grupo,
+            estado="ACTIVO"
+        )
+        .select_related(
+            "laboratorio",
+            "laboratorio__plantilla",
+            "laboratorio__plantilla__categoria"
+        )
+        .order_by("fecha_inicio")
+    )
+
+    resultado = {
+
+        "grupo": {
+
+            "grupo_id": grupo.id,
+            "grupo_nombre": grupo.nombre,
+            "grado": grupo.grado,
+            "jornada": grupo.jornada,
+            "codigo_ingreso": grupo.codigo_ingreso,
+            "profesor": grupo.profesor.nombre
+
+        },
+
+        "laboratorios": []
+
+    }
+
+    for asignacion in asignaciones:
+
+        laboratorio = asignacion.laboratorio
+
+        resultado["laboratorios"].append({
+
+            "asignacion_id": asignacion.id,
+
+            "laboratorio_id": laboratorio.id,
+
+            "titulo": laboratorio.titulo,
+
+            "categoria": laboratorio.plantilla.categoria.nombre,
+
+            "estado": asignacion.estado,
+
+            "fecha_inicio": asignacion.fecha_inicio,
+
+            "fecha_fin": asignacion.fecha_fin
+
+        })
+
+    return Response(resultado)

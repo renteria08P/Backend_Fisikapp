@@ -27,11 +27,11 @@ class HistorialReportesDocenteView(generics.ListAPIView):
         return (
             ReporteLaboratorio.objects
             .filter(
-                laboratorio_profesor__profesor=self.request.user
+                laboratorio__profesor=self.request.user
             )
             .select_related(
-                'laboratorio_profesor',
-                'laboratorio_profesor__laboratorio'
+                'laboratorio',
+                'laboratorio__plantilla'
             )
             .prefetch_related('estudiantes')
             .distinct()

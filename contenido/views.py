@@ -1,56 +1,31 @@
-from django.shortcuts import render
-
-from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import api_view, parser_classes, permission_classes
+from users.permissions import (IsAdminSuperAdminOrProfesor)
 from rest_framework.response import Response
-from .models import Recursos
 from .serializers import RecursosSerializer
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-
+from drf_yasg import openapi
 
 from .models import (
+    ConceptoLaboratorio,
     ConceptosBasicos,
     Practica,
     Procedimiento,
     Formula,
-    Bibliografia,
     Recursos,
-    PlantillaPractica,
-    PlantillaProcedimiento,
-    PlantillaFormula,
-    PlantillaBibliografia
 )
 
 from .serializers import (
+    ConceptoLaboratorioSerializer,
     ConceptosBasicosSerializer,
     PracticaSerializer,
     ProcedimientoSerializer,
     FormulaSerializer,
-    BibliografiaSerializer, 
-    RecursosSerializer
-)
-
-from .serializers import (
-    ConceptosBasicosSerializer,
-    PracticaSerializer,
-    ProcedimientoSerializer,
-    FormulaSerializer,
-    BibliografiaSerializer,
     RecursosSerializer,
-
-    PlantillaPracticaSerializer,
-    PlantillaProcedimientoSerializer,
-    PlantillaFormulaSerializer,
-    PlantillaBibliografiaSerializer
+    ProcedimientoSwaggerSerializer,
 )
 
-# ==============================================
-# CONCEPTOS BASICOS
-# ==============================================
+
 # ==============================================
 # CONCEPTOS BASICOS
 # ==============================================
@@ -72,6 +47,7 @@ from .serializers import (
     request_body=ConceptosBasicosSerializer
 )
 @api_view(['GET', 'POST'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def conceptos_list(request):
 
     if request.method == 'GET':
@@ -122,7 +98,9 @@ def conceptos_list(request):
     """
 )
 @api_view(['PUT', 'DELETE'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def conceptos_detalle(request, pk):
+
 
     try:
 
@@ -169,10 +147,150 @@ def conceptos_detalle(request, pk):
             },
             status=204
         )
+    
 
-# ==========================================
-# PRACTICAS
-# ==========================================
+
+# ==============================================
+# CONCEPTO LABORATORIO
+# ==============================================
+
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Listar conceptos de un laboratorio",
+    operation_description="""
+    Retorna los conceptos asociados a un laboratorio,
+    incluyendo los recursos agregados por el profesor.
+    """
+)
+@swagger_auto_schema(
+    method='post',
+    operation_summary="Crear concepto de laboratorio",
+    operation_description="""
+    Asocia un concepto básico a un laboratorio.
+    """,
+    request_body=ConceptoLaboratorioSerializer
+)
+@api_view(['GET', 'POST'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
+def conceptos_laboratorio_list(request):
+
+    if request.method == 'GET':
+
+        laboratorio_id = request.query_params.get(
+            'laboratorio',
+            None
+        )
+
+        conceptos = ConceptoLaboratorio.objects.all()
+
+        if laboratorio_id:
+            conceptos = conceptos.filter(
+                laboratorio=laboratorio_id
+            )
+
+        serializer = ConceptoLaboratorioSerializer(
+            conceptos,
+            many=True
+        )
+
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+
+        serializer = ConceptoLaboratorioSerializer(
+            data=request.data
+        )
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(
+                serializer.data,
+                status=201
+            )
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
+
+
+@swagger_auto_schema(
+    method='get',
+    operation_summary="Detalle de concepto de laboratorio"
+)
+@swagger_auto_schema(
+    method='put',
+    operation_summary="Actualizar concepto de laboratorio",
+    request_body=ConceptoLaboratorioSerializer
+)
+@swagger_auto_schema(
+    method='patch',
+    operation_summary="Actualizar parcialmente concepto de laboratorio",
+    request_body=ConceptoLaboratorioSerializer
+)
+@swagger_auto_schema(
+    method='delete',
+    operation_summary="Eliminar concepto de laboratorio"
+)
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
+def conceptos_laboratorio_detalle(request, pk):
+
+    try:
+
+        concepto = ConceptoLaboratorio.objects.get(
+            pk=pk
+        )
+
+    except ConceptoLaboratorio.DoesNotExist:
+
+        return Response(
+            {
+                "error": "Concepto de laboratorio no encontrado"
+            },
+            status=404
+        )
+
+    if request.method == 'GET':
+
+        serializer = ConceptoLaboratorioSerializer(
+            concepto
+        )
+
+        return Response(serializer.data)
+
+    elif request.method in ['PUT', 'PATCH']:
+
+        serializer = ConceptoLaboratorioSerializer(
+            concepto,
+            data=request.data,
+            partial=request.method == 'PATCH'
+        )
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(serializer.data)
+
+        return Response(
+            serializer.errors,
+            status=400
+        )
+
+    elif request.method == 'DELETE':
+
+        concepto.delete()
+
+        return Response(
+            {
+                "mensaje": "Concepto de laboratorio eliminado correctamente"
+            },
+            status=204
+        )
+
 # ==============================================
 # PRACTICAS
 # ==============================================
@@ -195,6 +313,7 @@ def conceptos_detalle(request, pk):
     request_body=PracticaSerializer
 )
 @api_view(['GET', 'POST'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def practicas_list(request):
 
     if request.method == 'GET':
@@ -255,6 +374,7 @@ def practicas_list(request):
     """
 )
 @api_view(['PUT', 'DELETE'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def practicas_detalle(request, pk):
 
     try:
@@ -306,7 +426,6 @@ def practicas_detalle(request, pk):
 # ==============================================
 # PROCEDIMIENTOS
 # ==============================================
-
 @swagger_auto_schema(
     method='get',
     operation_summary="Listar procedimientos",
@@ -317,15 +436,61 @@ def practicas_detalle(request, pk):
     """
 )
 @swagger_auto_schema(
-    method='post',
+    method="post",
     operation_summary="Crear procedimiento",
-    operation_description="""
-    Permite registrar un nuevo procedimiento.
-    """,
-    request_body=ProcedimientoSerializer
+    operation_description="Permite registrar un nuevo procedimiento.",
+    consumes=["multipart/form-data"],
+    manual_parameters=[
+        openapi.Parameter(
+            "laboratorio",
+            openapi.IN_FORM,
+            description="ID del laboratorio",
+            type=openapi.TYPE_INTEGER,
+            required=True,
+        ),
+        openapi.Parameter(
+            "paso_numero",
+            openapi.IN_FORM,
+            description="Número del paso",
+            type=openapi.TYPE_INTEGER,
+            required=True,
+        ),
+        openapi.Parameter(
+            "descripcion",
+            openapi.IN_FORM,
+            description="Descripción del procedimiento",
+            type=openapi.TYPE_STRING,
+            required=True,
+        ),
+        openapi.Parameter(
+            "orden",
+            openapi.IN_FORM,
+            description="Orden del procedimiento",
+            type=openapi.TYPE_INTEGER,
+            required=True,
+        ),
+        openapi.Parameter(
+            "imagen",
+            openapi.IN_FORM,
+            description="Imagen del procedimiento",
+            type=openapi.TYPE_FILE,
+            required=False,
+        ),
+    ],
+    responses={
+        201: ProcedimientoSerializer
+    },
 )
+
 @api_view(['GET', 'POST'])
+@parser_classes([
+    MultiPartParser,
+    FormParser,
+    JSONParser
+])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def procedimientos_list(request):
+
 
     if request.method == 'GET':
 
@@ -384,7 +549,13 @@ def procedimientos_list(request):
     Elimina un procedimiento registrado.
     """
 )
-@api_view(['PUT', 'DELETE'])
+@api_view(['PUT', 'PATCH', 'DELETE'])
+@parser_classes([
+    MultiPartParser,
+    FormParser,
+    JSONParser
+])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def procedimientos_detalle(request, pk):
 
     try:
@@ -455,6 +626,7 @@ def procedimientos_detalle(request, pk):
     request_body=FormulaSerializer
 )
 @api_view(['GET', 'POST'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def lista_formulas(request):
 
     if request.method == 'GET':
@@ -530,6 +702,7 @@ def lista_formulas(request):
     """
 )
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def detalle_formula(request, pk):
 
     try:
@@ -609,182 +782,6 @@ def detalle_formula(request, pk):
             status=204
         )
 
-# ==============================================
-# BIBLIOGRAFIA
-# ==============================================
-
-@swagger_auto_schema(
-    method='get',
-    operation_summary="Listar bibliografías",
-    operation_description="""
-    Retorna todas las referencias bibliográficas
-    registradas. Puede filtrarse por laboratorio
-    mediante el parámetro ?laboratorio=id.
-    """
-)
-@swagger_auto_schema(
-    method='post',
-    operation_summary="Crear referencia bibliográfica",
-    operation_description="""
-    Permite registrar una nueva referencia bibliográfica.
-    """,
-    request_body=BibliografiaSerializer
-)
-@api_view(['GET', 'POST'])
-def lista_bibliografia(request):
-
-    if request.method == 'GET':
-
-        laboratorio_id = request.query_params.get(
-            'laboratorio',
-            None
-        )
-
-        bibliografias = Bibliografia.objects.all()
-
-        if laboratorio_id:
-            bibliografias = bibliografias.filter(
-                laboratorio=laboratorio_id
-            )
-
-        serializer = BibliografiaSerializer(
-            bibliografias,
-            many=True
-        )
-
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-
-        serializer = BibliografiaSerializer(
-            data=request.data
-        )
-
-        if serializer.is_valid():
-
-            serializer.save()
-
-            return Response(
-                serializer.data,
-                status=201
-            )
-
-        return Response(
-            serializer.errors,
-            status=400
-        )
-
-
-@swagger_auto_schema(
-    method='get',
-    operation_summary="Detalle de referencia bibliográfica",
-    operation_description="""
-    Obtiene la información de una referencia
-    bibliográfica específica.
-    """
-)
-@swagger_auto_schema(
-    method='put',
-    operation_summary="Actualizar referencia bibliográfica",
-    operation_description="""
-    Actualiza completamente una referencia bibliográfica.
-    """,
-    request_body=BibliografiaSerializer
-)
-@swagger_auto_schema(
-    method='patch',
-    operation_summary="Actualizar parcialmente referencia bibliográfica",
-    operation_description="""
-    Actualiza uno o varios campos de una referencia bibliográfica.
-    """,
-    request_body=BibliografiaSerializer
-)
-@swagger_auto_schema(
-    method='delete',
-    operation_summary="Eliminar referencia bibliográfica",
-    operation_description="""
-    Elimina una referencia bibliográfica registrada.
-    """
-)
-@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
-def detalle_bibliografia(request, pk):
-
-    try:
-
-        bibliografia = Bibliografia.objects.get(
-            pk=pk
-        )
-
-    except Bibliografia.DoesNotExist:
-
-        return Response(
-            {
-                "error": "Referencia bibliográfica no encontrada"
-            },
-            status=404
-        )
-
-    if request.method == 'GET':
-
-        serializer = BibliografiaSerializer(
-            bibliografia
-        )
-
-        return Response(
-            serializer.data
-        )
-
-    elif request.method == 'PUT':
-
-        serializer = BibliografiaSerializer(
-            bibliografia,
-            data=request.data
-        )
-
-        if serializer.is_valid():
-
-            serializer.save()
-
-            return Response(
-                serializer.data
-            )
-
-        return Response(
-            serializer.errors,
-            status=400
-        )
-
-    elif request.method == 'PATCH':
-
-        serializer = BibliografiaSerializer(
-            bibliografia,
-            data=request.data,
-            partial=True
-        )
-
-        if serializer.is_valid():
-
-            serializer.save()
-
-            return Response(
-                serializer.data
-            )
-
-        return Response(
-            serializer.errors,
-            status=400
-        )
-
-    elif request.method == 'DELETE':
-
-        bibliografia.delete()
-
-        return Response(
-            {
-                "mensaje": "Referencia bibliográfica eliminada correctamente"
-            },
-            status=204
-        )
 
 # ==============================================
 # RECURSOS
@@ -813,6 +810,7 @@ def detalle_bibliografia(request, pk):
     FormParser,
     JSONParser
 ])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 def recursos_list(request):
 
     if request.method == 'GET':
@@ -871,9 +869,10 @@ def recursos_list(request):
     Elimina un recurso registrado.
     """
 )
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@permission_classes([IsAdminSuperAdminOrProfesor])
 @parser_classes([
-    MultiPartParser,
+    MultiPartParser, 
     FormParser,
     JSONParser
 ])
@@ -934,42 +933,20 @@ def recursos_detalle(request, pk):
             },
             status=204
         )
+    
+    elif request.method == 'PATCH':
 
-# =========================================================
-# PLANTILLA PRACTICA
-# =========================================================
-class PlantillaPracticaViewSet(ModelViewSet):
+        serializer = RecursosSerializer(
+            recurso,
+            data=request.data,
+            partial=True
+        )
 
-    queryset = PlantillaPractica.objects.all()
-    serializer_class = PlantillaPracticaSerializer
-    permission_classes = [IsAuthenticated]
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
 
-
-# =========================================================
-# PLANTILLA PROCEDIMIENTO
-# =========================================================
-class PlantillaProcedimientoViewSet(ModelViewSet):
-
-    queryset = PlantillaProcedimiento.objects.all()
-    serializer_class = PlantillaProcedimientoSerializer
-    permission_classes = [IsAuthenticated]
-
-
-# =========================================================
-# PLANTILLA FORMULA
-# =========================================================
-class PlantillaFormulaViewSet(ModelViewSet):
-
-    queryset = PlantillaFormula.objects.all()
-    serializer_class = PlantillaFormulaSerializer
-    permission_classes = [IsAuthenticated]
-
-
-# =========================================================
-# PLANTILLA BIBLIOGRAFIA
-# =========================================================
-class PlantillaBibliografiaViewSet(ModelViewSet):
-
-    queryset = PlantillaBibliografia.objects.all()
-    serializer_class = PlantillaBibliografiaSerializer
-    permission_classes = [IsAuthenticated]
+        return Response(
+            serializer.errors,
+            status=400
+        )

@@ -52,4 +52,4 @@ class ReporteLaboratorio(models.Model):
     )
 
     def __str__(self):
-        return f"Reporte - {self.laboratorio.titulo_lab}"
+        return f"Reporte - {self.laboratorio.plantilla.titulo}"

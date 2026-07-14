@@ -1,7 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
-
+from cloudinary.models import CloudinaryField
+import uuid
 
 # =========================================================
 # CATEGORIA
@@ -20,28 +21,31 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+    def clean(self):
 
+        existe = Categoria.objects.filter(
+            nombre__iexact=self.nombre.strip()
+        ).exclude(
+            pk=self.pk
+        )
 
-# =========================================================
-# PALABRAS CLAVES
-# =========================================================
-class PalabraClave(models.Model):
+        if existe.exists():
+            raise ValidationError({
+                "nombre":
+                "Ya existe una categoría con este nombre."
+            })
+        
 
-    palabra_clave = models.CharField(
-        max_length=100
-    )
+    def save(self, *args, **kwargs):
 
-    categoria = models.ForeignKey(
-        Categoria,
-        on_delete=models.CASCADE,
-        related_name='palabras_clave'
-    )
+        self.nombre = " ".join(
+            self.nombre.strip().split()
+        )
 
-    descripcion = models.TextField()
+        self.full_clean()
 
-    def __str__(self):
-        return self.palabra_clave
-
+        super().save(*args, **kwargs)
 
 
 # =========================================================
@@ -51,19 +55,15 @@ class PlantillaLaboratorio(models.Model):
 
     resumen = models.TextField()
 
-    prologo = models.TextField(
-        null=True,
-        blank=True
-    )
-
     introduccion = models.TextField()
 
     marco_teorico = models.TextField()
 
-    palabras_clave = models.ManyToManyField(
-        PalabraClave,
-        blank=True,
-        related_name='plantillas'
+    imagen_portada = CloudinaryField(
+        "image",
+        folder="laboratorios/portadas",
+        null=True,
+        blank=True
     )
 
     conceptos_basicos = models.ManyToManyField(
@@ -73,14 +73,12 @@ class PlantillaLaboratorio(models.Model):
     )
 
     ESTADOS = (
-        ('BORRADOR', 'Borrador'),
-        ('PUBLICADO', 'Publicado'),
-        ('ARCHIVADO', 'Archivado'),
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),
     )
 
     titulo = models.CharField(
         max_length=200,
-        unique=True
     )
 
     categoria = models.ForeignKey(
@@ -95,14 +93,23 @@ class PlantillaLaboratorio(models.Model):
         related_name='plantillas_creadas'
     )
 
-    simulacion = models.BooleanField(
-        default=False
+    lab_key = models.CharField(
+        max_length=50,
+        unique=True,
+        blank=True,
+        null=True
     )
 
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='BORRADOR'
+        default='ACTIVO'
+    )
+
+    descripcion = models.CharField(
+        max_length=300,
+        blank=True,
+        default=""
     )
 
     fecha_creacion = models.DateTimeField(
@@ -115,17 +122,42 @@ class PlantillaLaboratorio(models.Model):
 
     def __str__(self):
         return self.titulo
-    
 
+
+    def clean(self):
+
+        existe = PlantillaLaboratorio.objects.filter(
+            titulo__iexact=self.titulo.strip()
+        ).exclude(
+            pk=self.pk
+        )
+
+        if existe.exists():
+            raise ValidationError({
+                "titulo":
+                "Ya existe un laboratorio con este título."
+            })
+
+
+    def save(self, *args, **kwargs):
+
+        self.titulo = " ".join(
+            self.titulo.strip().split()
+        )
+
+        self.full_clean()
+
+        super().save(*args, **kwargs)
+    
 # =========================================================
 # LABORATORIO DEL PROFESOR
 # =========================================================
 class Laboratorio(models.Model):
 
     ESTADOS = (
-        ('BORRADOR', 'Borrador'),
-        ('ACTIVO', 'Activo'),
-        ('ARCHIVADO', 'Archivado'),
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),   
+        
     )
 
     plantilla = models.ForeignKey(
@@ -140,49 +172,20 @@ class Laboratorio(models.Model):
         related_name='laboratorios'
     )
 
-    palabras_clave = models.ManyToManyField(
-        PalabraClave,
-        blank=True,
-        related_name='laboratorios'
-    )
-
-    conceptos_basicos = models.ManyToManyField(
-        'contenido.ConceptosBasicos',
-        blank=True,
-        related_name='laboratorios'
-    )
-
     resumen = models.TextField()
-
-    prologo = models.TextField(
-        null=True,
-        blank=True
-    )
 
     introduccion = models.TextField()
 
     marco_teorico = models.TextField()
 
-    grado = models.CharField(
-        max_length=25,
-        null=True,
-        blank=True
-    )
-
-    jornada = models.CharField(
-        max_length=25,
-        null=True,
-        blank=True
-    )
-
     generado_ia = models.BooleanField(
         default=False
     )
-
+    
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='BORRADOR'
+        default='ACTIVO'
     )
 
     fecha_creacion = models.DateTimeField(
@@ -265,6 +268,7 @@ class PlantillaObjetivoEspecifico(models.Model):
 
     def __str__(self):
         return self.descripcion
+    
 
 # =========================================================
 # ETAPAS
@@ -272,10 +276,28 @@ class PlantillaObjetivoEspecifico(models.Model):
 class Etapa(models.Model):
 
     TIPOS_ETAPA = (
-        ('CONCEPTOS', 'Conceptos Básicos'),
-        ('PRACTICA', 'Práctica'),
-        ('INFORME', 'Informe'),
-    )
+
+    ("INTRODUCTION", "Introducción"),
+
+    ("THEORY", "Marco Teórico"),
+
+    ("OBJECTIVES", "Objetivos"),
+
+    ("CONCEPTS", "Conceptos Básicos"),
+
+    ("FORMULAS", "Fórmulas"),
+
+    ("PRACTICE", "Práctica"),
+
+    ("SIMULATION_AR", "Simulación AR"),
+
+    ("COMPARISON", "Comparación"),
+
+    ("REPORT", "Informe"),
+
+    ("SUBMIT", "Envío"),
+
+)
 
     laboratorio = models.ForeignKey(
         Laboratorio,
@@ -288,7 +310,7 @@ class Etapa(models.Model):
     )
 
     tipo = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=TIPOS_ETAPA
     )
 
@@ -329,12 +351,41 @@ class GrupoAcademico(models.Model):
         default=True
     )
 
+    codigo_ingreso = models.CharField(
+        max_length=8,
+        unique=True,
+        blank=True,
+        null=True,
+        db_index=True
+    )
+
+    def generar_codigo_ingreso(self):
+
+        while True:
+
+            codigo = uuid.uuid4().hex[:8].upper()
+
+            existe = GrupoAcademico.objects.filter(
+                codigo_ingreso=codigo
+            ).exists()
+
+            if not existe:
+                return codigo
+
+
     class Meta:
         unique_together = ('nombre', 'profesor')
         ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
+    
+    def save(self, *args, **kwargs):
+
+        if not self.codigo_ingreso:
+            self.codigo_ingreso = self.generar_codigo_ingreso()
+
+        super().save(*args, **kwargs)
 
 
 # =========================================================
@@ -343,10 +394,8 @@ class GrupoAcademico(models.Model):
 class Asignacion(models.Model):
 
     ESTADOS = (
-        ('PROGRAMADA', 'Programada'),
-        ('ACTIVA', 'Activa'),
-        ('FINALIZADA', 'Finalizada'),
-        ('CANCELADA', 'Cancelada'),
+        ("ACTIVO", "Activo"),
+        ("INACTIVO", "Inactivo"),
     )
 
     codigo_ingreso = models.CharField(
@@ -358,12 +407,6 @@ class Asignacion(models.Model):
         Laboratorio,
         on_delete=models.CASCADE,
         related_name='asignaciones'
-    )
-
-    profesor = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='asignaciones_creadas'
     )
 
     grupo = models.ForeignKey(
@@ -379,7 +422,7 @@ class Asignacion(models.Model):
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
-        default='PROGRAMADA'
+        default='ACTIVO'
     )
 
     fecha_creacion = models.DateTimeField(
@@ -396,15 +439,10 @@ class Asignacion(models.Model):
             raise ValidationError(
                 "La fecha fin debe ser mayor que la fecha inicio."
             )
-
-        if self.profesor != self.grupo.profesor:
+        
+        if self.grupo.profesor != self.laboratorio.profesor:
             raise ValidationError(
-                "El grupo no pertenece al profesor."
-            )
-
-        if self.profesor != self.laboratorio.profesor:
-            raise ValidationError(
-                "El laboratorio no pertenece al profesor."
+                "El grupo y el laboratorio deben pertenecer al mismo profesor."
             )
         
     def save(self, *args, **kwargs):
@@ -431,3 +469,211 @@ class Asignacion(models.Model):
         return f"{self.grupo.nombre} - {self.laboratorio.titulo}"
 
 
+
+# =========================================================
+# SIMULACIÓN AR
+# Configuración genérica para Unity / Android
+# =========================================================
+
+class SimulacionAR(models.Model):
+
+    laboratorio = models.OneToOneField(
+        "laboratorios.Laboratorio",
+        on_delete=models.CASCADE,
+        related_name="simulacion_ar_config"
+    )
+
+    lab_key = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        db_index=True
+    )
+
+    unity_scene_name = models.CharField(
+        max_length=150,
+        blank=True,
+        default=""
+    )
+
+    display_name = models.CharField(
+        max_length=150,
+        blank=True,
+        default=""
+    )
+
+    version = models.CharField(
+        max_length=50,
+        blank=True,
+        default="1.0.0"
+    )
+
+    enabled = models.BooleanField(
+        default=True
+    )
+
+    intro_title = models.CharField(
+        max_length=200,
+        blank=True,
+        default=""
+    )
+
+    intro_text = models.TextField(
+        blank=True,
+        default=""
+    )
+
+    instructions = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    max_attempts = models.PositiveSmallIntegerField(
+        default=1
+    )
+
+    allow_resume = models.BooleanField(
+        default=True
+    )
+
+    requires_camera = models.BooleanField(
+        default=True
+    )
+
+    formulas = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    parameters = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    options = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    result_schema = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    evaluation_context = models.TextField(
+        blank=True,
+        default=""
+    )
+
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = [
+            "lab_key",
+            "display_name"
+        ]
+
+    def __str__(self):
+        nombre = self.display_name or self.lab_key or "Simulación AR"
+        return f"{nombre} - Lab {self.laboratorio_id}"
+
+# =========================================================
+# PREGUNTAS DEL LABORATORIO
+# Preguntas genéricas para móvil / evaluación
+# =========================================================
+
+class PreguntaLaboratorio(models.Model):
+
+    TIPOS = (
+        ("SABER", "Saber"),
+        ("SABER_HACER", "Saber hacer"),
+        ("ANALISIS", "Análisis"),
+        ("REFLEXION", "Reflexión"),
+        ("CIERRE", "Cierre"),
+    )
+
+    INPUT_TYPES = (
+        ("TEXT", "Texto"),
+        ("TEXTAREA", "Texto largo"),
+        ("NUMBER", "Número"),
+        ("BOOLEAN", "Booleano"),
+        ("SELECT", "Selección"),
+        ("MULTI_SELECT", "Selección múltiple"),
+    )
+
+    laboratorio = models.ForeignKey(
+        "laboratorios.Laboratorio",
+        on_delete=models.CASCADE,
+        related_name="preguntas"
+    )
+
+    tipo = models.CharField(
+        max_length=30,
+        choices=TIPOS,
+        default="ANALISIS"
+    )
+
+    key = models.CharField(
+        max_length=100
+    )
+
+    titulo = models.CharField(
+        max_length=200,
+        blank=True,
+        default=""
+    )
+
+    enunciado = models.TextField(
+        blank=True,
+        default=""
+    )
+
+    input_type = models.CharField(
+        max_length=30,
+        choices=INPUT_TYPES,
+        default="TEXTAREA"
+    )
+
+    required = models.BooleanField(
+        default=True
+    )
+
+    order = models.PositiveSmallIntegerField(
+        default=1
+    )
+
+    options = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    evaluation_hint = models.TextField(
+        blank=True,
+        default=""
+    )
+
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = ["order", "id"]
+        unique_together = (
+            "laboratorio",
+            "key"
+        )
+
+    def __str__(self):
+        return f"{self.laboratorio_id} - {self.key}"
+    
+    

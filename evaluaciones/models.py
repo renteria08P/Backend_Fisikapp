@@ -37,6 +37,7 @@ class EvaluacionIA(models.Model):
 
     class Meta:
         ordering = ['-fecha_evaluacion']
+        
 # =========================================================
 # EVALUACION DOCENTE
 # =========================================================

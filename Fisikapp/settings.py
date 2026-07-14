@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'entregas',
     'reportes',
+    "mobile",
     'evaluaciones',
 
     'rest_framework_simplejwt',  
@@ -213,7 +214,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'apikey'  # Esto debe decir 'apikey' literalmente
+EMAIL_HOST_USER = 'apikey'  
 EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY")  # Toma la llave de tu .env
 
 # El remitente que configuraste en SendGrid

@@ -1,30 +1,79 @@
 from rest_framework import serializers
-from .models import Pregunta, ResultadoSimulacion
-from .models import Respuesta
-from .models import Entrega
-from .models import ResultadoPractica
+from .models import ResultadoSimulacion
+
+from .models import (
+    Entrega,
+    ResultadoPractica,
+    EntregaLaboratorioUnificada,
+)
 
 
-class PreguntaSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Pregunta
-        fields = '__all__'
-
-
-class RespuestaSerializer(serializers.ModelSerializer):
+class EntregaLaboratorioUnificadaSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Respuesta
-        fields = '__all__'
+        model = EntregaLaboratorioUnificada
+        fields = [
+            "id",
+            "practice",
+            "simulation",
+            "comparison",
+            "questions",
+            "report",
+            "device",
+            "llm_payload",
+            "raw_payload",
+            "fecha_creacion",
+            "fecha_actualizacion",
+        ]
 
 
 class EntregaSerializer(serializers.ModelSerializer):
 
+    entrega_unificada = EntregaLaboratorioUnificadaSerializer(
+        read_only=True
+    )
+
+    estudiante_nombre = serializers.CharField(
+        source="inscripcion.estudiante.nombre",
+        read_only=True
+    )
+
+    estudiante_correo = serializers.CharField(
+        source="inscripcion.estudiante.correo",
+        read_only=True
+    )
+
+    laboratorio_titulo = serializers.CharField(
+        source="inscripcion.asignacion.laboratorio.titulo",
+        read_only=True
+    )
+
+    grupo_nombre = serializers.CharField(
+        source="inscripcion.asignacion.grupo.nombre",
+        read_only=True
+    )
+
     class Meta:
         model = Entrega
-        fields = '__all__'
 
+        fields = [
+            "id",
+            "tipo_reporte",
+            "estado",
+            "fecha_inicio",
+            "fecha_entrega",
+            "observaciones",
+            "fecha_creacion",
+            "fecha_actualizacion",
+            "inscripcion",
+
+            "estudiante_nombre",
+            "estudiante_correo",
+            "laboratorio_titulo",
+            "grupo_nombre",
+
+            "entrega_unificada",
+        ]
 
 class ResultadoPracticaSerializer(
     serializers.ModelSerializer

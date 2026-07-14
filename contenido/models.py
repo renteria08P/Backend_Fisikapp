@@ -1,8 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator
 from django.conf import settings
-
+from cloudinary.models import CloudinaryField
 
 # =========================================================
 # CONCEPTOS BASICOS
@@ -13,17 +12,60 @@ class ConceptosBasicos(models.Model):
     ejemplo = models.TextField()
     tipo = models.CharField(max_length=50)
 
-    recursos = models.ManyToManyField(
-        'Recursos',
-        blank=True
-    )
-
     def __str__(self):
         return self.concepto
 
-
     class Meta:
         ordering = ['concepto']
+
+# =========================================================
+# CONCEPTO LABORATORIO
+# =========================================================
+class ConceptoLaboratorio(models.Model):
+
+    laboratorio = models.ForeignKey(
+        'laboratorios.Laboratorio',
+        on_delete=models.CASCADE,
+        related_name='conceptos_laboratorio'
+    )
+
+    concepto_original = models.ForeignKey(
+        ConceptosBasicos,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        editable=False,
+        related_name="conceptos_originales"
+    )
+
+    concepto = models.CharField(
+        max_length=100
+    )
+
+    descripcion = models.TextField()
+
+    ejemplo = models.TextField()
+
+    tipo = models.CharField(
+        max_length=50
+    )
+
+    recursos = models.ManyToManyField(
+        'Recursos',
+        blank=True,
+        related_name='conceptos_laboratorio'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['laboratorio', 'concepto_original'],
+                name='unique_concepto_laboratorio'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.laboratorio} - {self.concepto}"
     
 # =========================================================
 # RECURSOS
@@ -34,65 +76,27 @@ class Recursos(models.Model):
         max_length=100
     )
 
-    archivo = models.FileField(
-        upload_to='recursos/',
-        null=True,
-        blank=True,
-        validators=[
-            FileExtensionValidator(
-                allowed_extensions=[
-                    'pdf',
-                    'doc',
-                    'docx'
-                ]
-            )
-        ]
-    )
-
     url = models.URLField(
         null=True,
         blank=True
     )
 
+    archivo = CloudinaryField(
+        resource_type="raw",
+        folder="recursos",
+        blank=True,
+        null=True
+    )
+
+    def clean(self):
+        if not self.url and not self.archivo:
+            raise ValidationError(
+                "Debe registrar una URL o un archivo."
+            )
+
     def __str__(self):
         return self.nombre
     
-# =========================================================
-# PLANTILLA PRACTICA
-# =========================================================
-
-class PlantillaPractica(models.Model):
-
-    plantilla = models.ForeignKey(
-        'laboratorios.PlantillaLaboratorio',
-        on_delete=models.CASCADE,
-        related_name='practicas'
-    )
-
-    nombre_practica = models.CharField(
-        max_length=100
-    )
-
-    objetivo = models.TextField()
-
-    descripcion = models.TextField()
-
-    materiales = models.TextField()
-
-    calculos = models.TextField()
-
-    conceptos = models.ManyToManyField(
-        ConceptosBasicos,
-        blank=True,
-        related_name='practicas_plantilla'
-    )
-
-    def __str__(self):
-        return self.nombre_practica
-    
-    class Meta:
-        ordering = ['nombre_practica']
-
 
 class Practica(models.Model):
 
@@ -126,26 +130,6 @@ class Practica(models.Model):
     class Meta:
         ordering = ['nombre_practica']
 
-# =========================================================
-# PLANTILLA PROCEDIMIENTO
-# =========================================================
-class PlantillaProcedimiento(models.Model):
-
-    plantilla = models.ForeignKey(
-        'laboratorios.PlantillaLaboratorio',
-        on_delete=models.CASCADE,
-        related_name='procedimientos'
-    )
-
-    muestras = models.TextField()
-
-    calculos = models.TextField()
-
-    resultados = models.TextField()
-
-    def __str__(self):
-        return f"Procedimiento {self.id}"
-
 
 class Procedimiento(models.Model):
 
@@ -155,39 +139,21 @@ class Procedimiento(models.Model):
         related_name='procedimientos'
     )
 
-    muestras = models.TextField()
-
-    calculos = models.TextField()
-
-    resultados = models.TextField()
-
-    def __str__(self):
-        return f"Procedimiento {self.id}"
-
-# =========================================================
-# PLANTILLA FORMULAS
-# =========================================================
-class PlantillaFormula(models.Model):
-
-    plantilla = models.ForeignKey(
-        'laboratorios.PlantillaLaboratorio',
-        on_delete=models.CASCADE,
-        related_name='formulas'
-    )
-
-    nombre = models.CharField(
-        max_length=100
-    )
-
+    paso_numero = models.PositiveSmallIntegerField()
     descripcion = models.TextField()
-
-    expresion = models.TextField()
-
-    def __str__(self):
-        return self.nombre
+    imagen = CloudinaryField(
+        "image",
+        folder="procedimientos",
+        null=True,
+        blank=True
+    )
+    orden = models.PositiveSmallIntegerField()
 
     class Meta:
-        ordering = ['nombre']
+        ordering = ['orden']
+
+    def __str__(self):
+        return f"Paso {self.paso_numero}"
 
 
 class Formula(models.Model):
@@ -217,18 +183,6 @@ class Formula(models.Model):
 # =========================================================
 class PracticaEstudiante(models.Model):
 
-    ESTADOS = (
-        ('PENDIENTE', 'Pendiente'),
-        ('EN_PROGRESO', 'En progreso'),
-        ('COMPLETADA', 'Completada'),
-    )
-
-    estado = models.CharField(
-        max_length=20,
-        choices=ESTADOS,
-        default='PENDIENTE'
-    )
-
     estudiante = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE
@@ -257,67 +211,3 @@ class PracticaEstudiante(models.Model):
 
     def __str__(self):
         return f"{self.estudiante} - {self.practica.nombre_practica}"
-
-# =========================================================
-# PLANTILLA BIBLIOGRAFIA
-# =========================================================
-class PlantillaBibliografia(models.Model):
-
-    plantilla = models.ForeignKey(
-        'laboratorios.PlantillaLaboratorio',
-        on_delete=models.CASCADE,
-        related_name='bibliografias'
-    )
-
-    autor = models.CharField(max_length=100)
-
-    titulo = models.CharField(max_length=200)
-
-    tipo_fuente = models.CharField(max_length=100)
-
-    anio = models.PositiveIntegerField()
-
-    editorial = models.CharField(max_length=150)
-
-    url = models.URLField()
-
-    fecha_consulta = models.DateField()
-
-    descripcion = models.TextField()
-
-    def __str__(self):
-        return self.titulo
-    
-    class Meta:
-        ordering = ['titulo']
-
-
-class Bibliografia(models.Model):
-
-    laboratorio = models.ForeignKey(
-        'laboratorios.Laboratorio',
-        on_delete=models.CASCADE,
-        related_name='bibliografias'
-    )
-
-    autor = models.CharField(max_length=100)
-
-    titulo = models.CharField(max_length=200)
-
-    tipo_fuente = models.CharField(max_length=100)
-
-    anio = models.PositiveIntegerField()
-
-    editorial = models.CharField(max_length=150)
-
-    url = models.URLField()
-
-    fecha_consulta = models.DateField()
-
-    descripcion = models.TextField()
-
-    def __str__(self):
-        return self.titulo
-    
-    class Meta:
-        ordering = ['titulo']

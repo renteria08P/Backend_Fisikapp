@@ -1,8 +1,8 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
-
 from .views import (
     CategoriaViewSet,
-    PalabraClaveViewSet,
+    DashboardAdminViewSet,
     LaboratorioProfesorViewSet,
     PlantillaLaboratorioViewSet,
     GrupoAcademicoViewSet,
@@ -11,8 +11,11 @@ from .views import (
     LaboratorioEstudianteViewSet,
     PlantillaObjetivoEspecificoViewSet,
     PlantillaObjetivoGeneralViewSet,
-    LaboratorioProfesorAdminViewSet,
+    LaboratorioProfesorAdminViewSet,  
+    PreguntaLaboratorioViewSet,
+    SimulacionARViewSet,  
 )
+
 
 router = DefaultRouter()
 
@@ -47,12 +50,6 @@ router.register(
 )
 
 router.register(
-    r'palabras-clave',
-    PalabraClaveViewSet,
-    basename='palabras-clave'
-)
-
-router.register(
     r'laboratorio-profesor',
     LaboratorioProfesorViewSet,
     basename='laboratorio-profesor'
@@ -82,4 +79,26 @@ router.register(
     basename='plantilla-objetivos-especificos'
 )
 
-urlpatterns = router.urls
+router.register(
+    r'dashboard-admin',
+    DashboardAdminViewSet,
+    basename='dashboard-admin'
+)
+
+router.register(
+    r'simulaciones-ar',
+    SimulacionARViewSet,
+    basename='simulaciones-ar'
+)
+
+router.register(
+    r'preguntas-laboratorio',
+    PreguntaLaboratorioViewSet,
+    basename='preguntas-laboratorio'
+)
+
+urlpatterns = [
+    
+]
+
+urlpatterns += router.urls
